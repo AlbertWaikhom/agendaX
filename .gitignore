@@ -8,13 +8,9 @@ web-build/
 expo-env.d.ts
 
 # Native & Android build artifacts
+/android
+/ios
 .kotlin/
-android/.gradle/
-android/app/build/
-android/build/
-android/.cxx/
-android/.idea/
-android/local.properties
 *.orig.*
 *.jks
 *.p8
