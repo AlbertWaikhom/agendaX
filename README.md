@@ -25,8 +25,8 @@ Get the standalone **AgendaX Android APK** and run the app directly on your phon
 
 <div align="center">
 
-### 📲 [👉 Click Here to Download AgendaX v1.0.0 APK](https://github.com/AlbertWaikhom/agendaX/releases/download/v1.0.0/app-release.apk)
-*(Direct file download: `app-release.apk` ~ 82 MB)*
+### 📲 [👉 Click Here to Download agendaX v-1 APK](https://github.com/AlbertWaikhom/agendaX/releases/download/v1.0.0/agendaX-v1.apk)
+*(Direct file download: `agendaX-v1.apk` ~ 82 MB)*
 
 Or view all releases: **[GitHub Releases Hub](https://github.com/AlbertWaikhom/agendaX/releases)**
 
