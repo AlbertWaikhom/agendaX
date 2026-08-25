@@ -6,14 +6,39 @@
 
 ### **Next-Gen iOS 26 Liquid Glass Productivity, Expense & Security Manager**
 
+[![Download APK](https://img.shields.io/badge/⬇️_Download_Android_APK-v1.0.0_Release-34D399?style=for-the-badge&logo=android&logoColor=white)](https://github.com/AlbertWaikhom/agendaX/releases/latest)
+[![Latest Release](https://img.shields.io/github/v/release/AlbertWaikhom/agendaX?style=for-the-badge&color=818CF8&label=Latest%20Version)](https://github.com/AlbertWaikhom/agendaX/releases/latest)
 [![React Native](https://img.shields.io/badge/React%20Native-0.86.2-blue?style=for-the-badge&logo=react)](https://reactnative.dev/)
 [![Expo](https://img.shields.io/badge/Expo-v57.0-black?style=for-the-badge&logo=expo)](https://expo.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
-[Features](#-key-features) • [Daily Life Benefits](#-how-agendax-helps-in-your-daily-life) • [Step-by-Step Guide](#-step-by-step-user-guide) • [Security Vault](#-security--privacy-vault) • [Building APK](#-how-to-build-offline-apk) • [Developer](#-developer--contact)
+[⬇️ Download APK](#-download--install-apk) • [Features](#-key-features) • [Daily Life Benefits](#-how-agendax-helps-in-your-daily-life) • [Step-by-Step Guide](#-step-by-step-user-guide) • [Security Vault](#-security--privacy-vault) • [Building APK](#-how-to-build-offline-apk) • [Developer](#-developer--contact)
 
 </div>
+
+---
+
+## 📥 Download & Install APK
+
+Get the standalone **AgendaX Android APK** and run the app directly on your phone **100% offline (no PC or server needed)**:
+
+<div align="center">
+
+### 📲 [👉 Click Here to Download AgendaX v1.0.0 APK](https://github.com/AlbertWaikhom/agendaX/releases/download/v1.0.0/app-release.apk)
+*(Direct file download: `app-release.apk` ~ 82 MB)*
+
+Or view all releases: **[GitHub Releases Hub](https://github.com/AlbertWaikhom/agendaX/releases)**
+
+</div>
+
+### 🛠️ Easy Installation Steps:
+1. **Download**: Tap the download button above on your Android phone.
+2. **Install**: Tap `app-release.apk` in your phone's notification or Downloads folder.
+3. **Allow Permission**: If prompted with *"Install unknown apps"*, tap **Settings** → toggle **Allow from this source**.
+4. **Launch**: Open **AgendaX** and enjoy the next-gen iOS 26 Liquid Glass experience!
+
+> **System Compatibility**: Android 8.0 (Oreo) to Android 15+ (API 24 to 36).
 
 ---
 
