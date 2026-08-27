@@ -12,7 +12,6 @@ export const SCHEMA_MIGRATIONS: SchemaMigration[] = [
     version: 1,
     name: 'initial_schema_v1',
     up: async (_db: SQLiteDatabase) => {
-      // Version 1 tables are generated in schema.ts CREATE_TABLES_SQL
     },
   },
   {
@@ -32,19 +31,19 @@ export const SCHEMA_MIGRATIONS: SchemaMigration[] = [
     up: async (db: SQLiteDatabase) => {
       try {
         await db.execAsync('ALTER TABLE tasks ADD COLUMN media_uri TEXT;');
-      } catch {}
+      } catch { }
       try {
         await db.execAsync('ALTER TABLE events ADD COLUMN image_uri TEXT;');
-      } catch {}
+      } catch { }
       try {
         await db.execAsync('ALTER TABLE expenses ADD COLUMN transaction_id TEXT;');
-      } catch {}
+      } catch { }
       try {
         await db.execAsync('ALTER TABLE expenses ADD COLUMN receipt_uri TEXT;');
-      } catch {}
+      } catch { }
       try {
         await db.execAsync('ALTER TABLE urls ADD COLUMN preview_image_uri TEXT;');
-      } catch {}
+      } catch { }
     },
   },
 ];
@@ -59,7 +58,8 @@ export const Migrations = {
         if (migration.version > currentVersion) {
           console.log(`[Migrations] Applying schema migration v${migration.version}: ${migration.name}`);
           await migration.up(db);
-          await db.execAsync(`PRAGMA user_version = ${migration.version};`);
+          // PRAGMA must use runAsync, NOT execAsync to avoid SQLITE_MISUSE
+          await db.runAsync(`PRAGMA user_version = ${migration.version};`);
         }
       }
     } catch (e) {

@@ -1,5 +1,5 @@
 import * as SQLite from 'expo-sqlite';
-import { DATABASE_NAME, CREATE_TABLES_SQL } from './schema';
+import { DATABASE_NAME, CREATE_TABLES_SQL, PRAGMA_SETUP_SQL } from './schema';
 
 let dbInstance: SQLite.SQLiteDatabase | null = null;
 let isInitializing = false;
@@ -34,7 +34,12 @@ export const Database = {
       isInitializing = true;
       const db = await SQLite.openDatabaseAsync(DATABASE_NAME);
 
-      // Execute schema creation
+      // Run PRAGMAs individually FIRST — they cannot be mixed with DDL in execAsync
+      for (const pragma of PRAGMA_SETUP_SQL) {
+        await db.runAsync(pragma);
+      }
+
+      // Execute schema creation (CREATE TABLE IF NOT EXISTS only)
       await db.execAsync(CREATE_TABLES_SQL);
 
       // Run any pending schema migrations

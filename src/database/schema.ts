@@ -1,11 +1,16 @@
 export const DATABASE_NAME = 'agendax.db';
 export const CURRENT_SCHEMA_VERSION = 1;
 
-export const CREATE_TABLES_SQL = `
--- PRAGMA configuration
-PRAGMA journal_mode = WAL;
-PRAGMA foreign_keys = ON;
+/**
+ * PRAGMAs must be executed individually with runAsync() — NOT inside execAsync() DDL batches.
+ * Mixing PRAGMA journal_mode = WAL with CREATE TABLE causes SQLITE_MISUSE (error 21).
+ */
+export const PRAGMA_SETUP_SQL: string[] = [
+  'PRAGMA journal_mode = WAL;',
+  'PRAGMA foreign_keys = ON;',
+];
 
+export const CREATE_TABLES_SQL = `
 -- 1. App Migrations Tracking
 CREATE TABLE IF NOT EXISTS app_migrations (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
