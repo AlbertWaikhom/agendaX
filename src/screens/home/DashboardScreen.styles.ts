@@ -4,8 +4,10 @@ import { ThemeColors, Typography, BorderRadius, Spacing } from '../../constants/
 export const createDashboardStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     scrollContent: {
-      paddingBottom: Spacing.xxxl,
+      paddingBottom: Spacing.xxxl + 20,
     },
+
+    // Top Hero Header
     topHeader: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -17,18 +19,28 @@ export const createDashboardStyles = (colors: ThemeColors) =>
       flex: 1,
       marginRight: Spacing.md,
     },
+    dateBadge: {
+      fontFamily: Typography.fontFamily,
+      fontSize: 11,
+      fontWeight: '700',
+      color: colors.textMuted,
+      textTransform: 'uppercase',
+      letterSpacing: 0.8,
+      marginBottom: 3,
+    },
     greetingRow: {
       flexDirection: 'row',
       alignItems: 'center',
     },
     greetingText: {
       fontFamily: Typography.fontFamily,
-      fontSize: Typography.fontSize.xxl,
+      fontSize: 24,
       fontWeight: Typography.fontWeight.heavy,
       color: colors.text,
-      letterSpacing: -0.5,
+      letterSpacing: -0.6,
     },
-    greetingIcon: {
+    greetingEmoji: {
+      fontSize: 22,
       marginLeft: 6,
     },
     workspaceIdBadge: {
@@ -36,18 +48,25 @@ export const createDashboardStyles = (colors: ThemeColors) =>
       alignItems: 'center',
       gap: 5,
       marginTop: 4,
+      alignSelf: 'flex-start',
+      backgroundColor: `${colors.primary}15`,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: BorderRadius.full,
+      borderWidth: 1,
+      borderColor: `${colors.primary}30`,
     },
     workspaceIdText: {
       fontFamily: Typography.fontFamily,
-      fontSize: Typography.fontSize.xs,
+      fontSize: 11,
       color: colors.primaryLight,
-      fontWeight: Typography.fontWeight.semibold,
-      letterSpacing: 0.2,
+      fontWeight: Typography.fontWeight.bold,
+      letterSpacing: 0.3,
     },
     headerRight: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 12,
+      gap: 10,
     },
     glassIconBtn: {
       width: 44,
@@ -112,7 +131,7 @@ export const createDashboardStyles = (colors: ThemeColors) =>
       fontWeight: Typography.fontWeight.bold,
     },
 
-    // 2x2 Summary Metric Cards Grid
+    // 2x2 Bento Summary Grid
     summaryGrid: {
       flexDirection: 'row',
       flexWrap: 'wrap',
@@ -120,6 +139,151 @@ export const createDashboardStyles = (colors: ThemeColors) =>
       gap: 12,
       marginTop: Spacing.sm,
       marginBottom: Spacing.md,
+    },
+    bentoItem: {
+      width: '48%',
+    },
+
+    // Spotlight Focus Card
+    spotlightCard: {
+      borderRadius: BorderRadius.xl,
+      padding: Spacing.md + 2,
+      borderWidth: 1,
+      marginBottom: Spacing.md,
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.25,
+      shadowRadius: 14,
+      elevation: 5,
+      position: 'relative',
+      overflow: 'hidden',
+    },
+    spotlightHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: Spacing.sm,
+    },
+    spotlightTag: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 5,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: BorderRadius.full,
+    },
+    spotlightTagText: {
+      fontFamily: Typography.fontFamily,
+      fontSize: 10,
+      fontWeight: '800',
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+    spotlightTitle: {
+      fontFamily: Typography.fontFamily,
+      fontSize: Typography.fontSize.md + 1,
+      fontWeight: Typography.fontWeight.heavy,
+      color: colors.text,
+      marginBottom: 4,
+      letterSpacing: -0.2,
+    },
+    spotlightSub: {
+      fontFamily: Typography.fontFamily,
+      fontSize: Typography.fontSize.xs,
+      color: colors.textSecondary,
+      marginBottom: Spacing.sm,
+    },
+    spotlightMetaRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      marginTop: 2,
+    },
+    spotlightMetaItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    spotlightMetaText: {
+      fontFamily: Typography.fontFamily,
+      fontSize: 11,
+      fontWeight: Typography.fontWeight.semibold,
+      color: colors.textMuted,
+    },
+
+    // Liquid Glass Daily Progress Card
+    progressCard: {
+      backgroundColor: colors.glassCard,
+      borderRadius: BorderRadius.xl,
+      padding: Spacing.md + 2,
+      borderWidth: 1,
+      borderColor: colors.glassBorder,
+      borderTopColor: colors.glassSpecular,
+      marginBottom: Spacing.md,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.18,
+      shadowRadius: 12,
+      elevation: 4,
+    },
+    progressHeaderRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: Spacing.xs,
+    },
+    progressTitleGroup: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    progressTitle: {
+      fontFamily: Typography.fontFamily,
+      fontSize: Typography.fontSize.sm,
+      fontWeight: Typography.fontWeight.bold,
+      color: colors.text,
+    },
+    progressPercentageTag: {
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: BorderRadius.full,
+      backgroundColor: `${colors.primary}25`,
+      borderWidth: 1,
+      borderColor: `${colors.primary}40`,
+    },
+    progressPercentageText: {
+      fontFamily: Typography.fontFamily,
+      fontSize: 11,
+      fontWeight: Typography.fontWeight.heavy,
+      color: colors.primaryLight,
+    },
+    progressSubtextRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: Spacing.sm,
+    },
+    progressSubtext: {
+      fontFamily: Typography.fontFamily,
+      fontSize: Typography.fontSize.xs,
+      color: colors.textMuted,
+    },
+    statusBadge: {
+      fontFamily: Typography.fontFamily,
+      fontSize: 10,
+      fontWeight: '700',
+      color: colors.primaryLight,
+    },
+    progressBarBg: {
+      height: 7,
+      borderRadius: 4,
+      backgroundColor: colors.surfaceHighlight,
+      overflow: 'hidden',
+    },
+    progressBarFill: {
+      height: '100%',
+      borderRadius: 4,
+      backgroundColor: colors.primary,
     },
 
     // Quick Actions Bar
@@ -132,15 +296,15 @@ export const createDashboardStyles = (colors: ThemeColors) =>
     quickActionChip: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
-      paddingHorizontal: 14,
-      paddingVertical: 10,
+      gap: 7,
+      paddingHorizontal: 13,
+      paddingVertical: 9,
       borderRadius: BorderRadius.xl,
       backgroundColor: colors.glassCard,
       borderWidth: 1,
       borderColor: colors.glassBorder,
       borderTopColor: colors.glassSpecular,
-      marginRight: 10,
+      marginRight: 9,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.15,
@@ -159,65 +323,6 @@ export const createDashboardStyles = (colors: ThemeColors) =>
       fontSize: Typography.fontSize.xs,
       fontWeight: Typography.fontWeight.bold,
       color: colors.text,
-    },
-
-    // Liquid Glass Daily Progress Card
-    glassCard: {
-      backgroundColor: colors.glassCard,
-      borderRadius: BorderRadius.xl,
-      padding: Spacing.lg,
-      borderWidth: 1,
-      borderColor: colors.glassBorder,
-      borderTopColor: colors.glassSpecular,
-      marginBottom: Spacing.lg,
-      shadowColor: colors.primary,
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.2,
-      shadowRadius: 16,
-      elevation: 6,
-    },
-    progressHeaderRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: Spacing.sm,
-    },
-    progressTitle: {
-      fontFamily: Typography.fontFamily,
-      fontSize: Typography.fontSize.md,
-      fontWeight: Typography.fontWeight.bold,
-      color: colors.text,
-    },
-    progressPercentageTag: {
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-      borderRadius: BorderRadius.full,
-      backgroundColor: `${colors.primary}25`,
-      borderWidth: 1,
-      borderColor: `${colors.primary}40`,
-    },
-    progressPercentageText: {
-      fontFamily: Typography.fontFamily,
-      fontSize: Typography.fontSize.xs,
-      fontWeight: Typography.fontWeight.heavy,
-      color: colors.primaryLight,
-    },
-    progressSubtext: {
-      fontFamily: Typography.fontFamily,
-      fontSize: Typography.fontSize.xs,
-      color: colors.textMuted,
-      marginBottom: Spacing.sm,
-    },
-    progressBarBg: {
-      height: 8,
-      borderRadius: 4,
-      backgroundColor: colors.surfaceHighlight,
-      overflow: 'hidden',
-    },
-    progressBarFill: {
-      height: '100%',
-      borderRadius: 4,
-      backgroundColor: colors.primary,
     },
 
     // Empty Schedule State
