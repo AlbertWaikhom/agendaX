@@ -329,9 +329,9 @@ export const BorderRadius = {
 };
 
 const fontStack = Platform.select({
-  ios: 'SF Pro Display, -apple-system, BlinkMacSystemFont',
-  android: 'SF Pro Display, Roboto, sans-serif',
-  default: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif',
+  ios: 'System',
+  android: 'sans-serif',
+  default: 'sans-serif',
 });
 
 export const Typography = {
