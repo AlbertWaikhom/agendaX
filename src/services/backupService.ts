@@ -104,8 +104,8 @@ export const BackupService = {
       const payload = this.generateBackupPayload(workspace);
       zip.file('workspace.json', JSON.stringify(payload, null, 2));
 
-      // 3. Generate ZIP binary/base64
-      const zipBase64 = await zip.generateAsync({ type: 'base64' });
+      // 3. Generate genuine binary ZIP
+      const zipBytes = await zip.generateAsync({ type: 'uint8array' });
       const fileName = `AgendaX_FullBackup_${workspace.user?.id || 'workspace'}_${timestamp}.zip`;
 
       if (Platform.OS === 'web') {
@@ -125,7 +125,7 @@ export const BackupService = {
       if (!file.exists) {
         file.create();
       }
-      file.write(zipBase64);
+      file.write(zipBytes);
 
       const isAvailable = await Sharing.isAvailableAsync();
       if (isAvailable) {
@@ -222,8 +222,16 @@ export const BackupService = {
   }> {
     try {
       const file = new File(uri);
-      const zipContent = await file.bytes();
-      const zip = await JSZip.loadAsync(zipContent);
+      let zip: JSZip;
+
+      try {
+        const zipContent = await file.bytes();
+        zip = await JSZip.loadAsync(zipContent);
+      } catch (binaryErr) {
+        // Fallback for legacy base64 encoded zip text
+        const textContent = await file.text();
+        zip = await JSZip.loadAsync(textContent.trim(), { base64: true });
+      }
 
       const workspaceJsonEntry = zip.file('workspace.json');
       if (!workspaceJsonEntry) {

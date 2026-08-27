@@ -6,14 +6,15 @@ import { AttachmentItem, AttachmentParentType } from '../types';
 import { FileStorage } from './fileStorage';
 import { AttachmentRepository } from '../database/repositories/attachmentRepository';
 import { Encryption } from './encryption';
+import { PermissionService } from '../services/permissionService';
 
 export const MediaStorage = {
 
-  async pickImage(): Promise<{ success: boolean; uri?: string; fileName?: string; mimeType?: string; fileSize?: number; error?: string }> {
+  async pickImage(featureName: string = 'media attachment'): Promise<{ success: boolean; uri?: string; fileName?: string; mimeType?: string; fileSize?: number; error?: string }> {
     try {
-      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permission.granted) {
-        return { success: false, error: 'Permission to access media library was denied' };
+      const hasPermission = await PermissionService.requireMediaLibraryPermission(featureName);
+      if (!hasPermission) {
+        return { success: false, error: 'Storage permission denied' };
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -27,10 +28,13 @@ export const MediaStorage = {
       }
 
       const asset = result.assets[0];
+      const fileName = asset.fileName || `image_${Date.now()}.jpg`;
+      const persistentUri = await FileStorage.copyMediaToStorageAsync(asset.uri, 'images', fileName);
+
       return {
         success: true,
-        uri: asset.uri,
-        fileName: asset.fileName || `image_${Date.now()}.jpg`,
+        uri: persistentUri,
+        fileName,
         mimeType: asset.mimeType || 'image/jpeg',
         fileSize: asset.fileSize || 0,
       };
@@ -51,10 +55,13 @@ export const MediaStorage = {
       }
 
       const asset = result.assets[0];
+      const fileName = asset.name || `doc_${Date.now()}`;
+      const persistentUri = await FileStorage.copyMediaToStorageAsync(asset.uri, 'documents', fileName);
+
       return {
         success: true,
-        uri: asset.uri,
-        fileName: asset.name || `doc_${Date.now()}`,
+        uri: persistentUri,
+        fileName,
         mimeType: asset.mimeType || 'application/octet-stream',
         fileSize: asset.size || 0,
       };
@@ -84,24 +91,8 @@ export const MediaStorage = {
     else if (params.mimeType.startsWith('video/')) category = 'videos';
     else if (params.mimeType.startsWith('audio/')) category = 'audio';
 
+    const persistentUri = await FileStorage.copyMediaToStorageAsync(params.sourceUri, category, storedFileName);
     const relativePath = `media/${category}/${storedFileName}`;
-
-    let finalSize = params.fileSize || 0;
-
-    if (Platform.OS !== 'web') {
-      try {
-        const destDir = FileStorage.getMediaDirectory(category);
-        const destFile = new File(destDir, storedFileName);
-
-        const sourceFile = new File(params.sourceUri);
-        if (sourceFile.exists) {
-          sourceFile.copy(destFile);
-          finalSize = destFile.size || finalSize;
-        }
-      } catch (e) {
-        console.warn('[MediaStorage] Failed to copy physical file:', e);
-      }
-    }
 
     const attachment: AttachmentItem = {
       id: attachmentId,
@@ -111,7 +102,7 @@ export const MediaStorage = {
       storedFileName,
       relativePath,
       mimeType: params.mimeType,
-      fileSize: finalSize,
+      fileSize: params.fileSize || 0,
       isEncrypted: false,
       createdAt: new Date().toISOString(),
     };

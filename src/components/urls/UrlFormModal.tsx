@@ -10,6 +10,7 @@ import { HapticService } from '../../utils/haptics';
 import { Input } from '../common/Input';
 import { Button } from '../common/Button';
 import { ModalWrapper } from '../common/ModalWrapper';
+import { MediaStorage } from '../../storage/mediaStorage';
 
 interface UrlFormModalProps {
   visible: boolean;
@@ -63,15 +64,9 @@ export const UrlFormModal: React.FC<UrlFormModalProps> = ({
 
   const handlePickPreview = async () => {
     try {
-      const ImagePicker = await import('expo-image-picker');
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
-        allowsEditing: false,
-        quality: 0.85,
-      });
-
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setPreviewImageUri(result.assets[0].uri);
+      const res = await MediaStorage.pickImage('bookmark thumbnail');
+      if (res.success && res.uri) {
+        setPreviewImageUri(res.uri);
       }
     } catch (e) {
       console.warn('Pick URL thumbnail error:', e);

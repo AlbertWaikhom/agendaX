@@ -19,6 +19,8 @@ import { Button } from '../common/Button';
 import { ModalWrapper } from '../common/ModalWrapper';
 import { DateTimePickerModal } from '../common/DateTimePickerModal';
 
+import { MediaStorage } from '../../storage/mediaStorage';
+
 interface TaskFormModalProps {
   visible: boolean;
   onClose: () => void;
@@ -91,15 +93,9 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
 
   const handlePickMedia = async () => {
     try {
-      const ImagePicker = await import('expo-image-picker');
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
-        allowsEditing: false,
-        quality: 0.85,
-      });
-
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setMediaUri(result.assets[0].uri);
+      const res = await MediaStorage.pickImage('task attachment');
+      if (res.success && res.uri) {
+        setMediaUri(res.uri);
       }
     } catch (e) {
       console.warn('Pick media error:', e);

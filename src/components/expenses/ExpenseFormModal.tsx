@@ -21,6 +21,7 @@ import { ExpenseItem, ExpenseCategory, PaymentMethod } from '../../types';
 import { EXPENSE_CATEGORY_COLORS, EXPENSE_CATEGORY_ICONS } from '../../services/expenseService';
 import { getTodayDateString } from '../../utils';
 import { FileStorage } from '../../storage/fileStorage';
+import { MediaStorage } from '../../storage/mediaStorage';
 import { File } from 'expo-file-system';
 import { CustomAlertModal } from '../common/CustomAlertModal';
 
@@ -72,8 +73,6 @@ export const ExpenseFormModal: React.FC<ExpenseFormModalProps> = ({
   const [transactionId, setTransactionId] = useState('');
   const [receiptUri, setReceiptUri] = useState<string | undefined>(undefined);
   const [showFullImage, setShowFullImage] = useState(false);
-
-  // Custom Alert State
   const [alertConfig, setAlertConfig] = useState<{
     visible: boolean;
     title: string;
@@ -114,56 +113,10 @@ export const ExpenseFormModal: React.FC<ExpenseFormModalProps> = ({
 
   const handlePickReceipt = async () => {
     try {
-      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permission.granted) {
-        setAlertConfig({
-          visible: true,
-          title: 'Permission Required',
-          message: 'Please allow photo gallery access to upload payment screenshot/receipt.',
-          icon: 'image-outline',
-          iconColor: colors.warning,
-        });
-        return;
+      const res = await MediaStorage.pickImage('payment receipt/screenshot');
+      if (res.success && res.uri) {
+        setReceiptUri(res.uri);
       }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
-        allowsEditing: false,
-        quality: 0.85,
-      });
-
-      if (result.canceled || !result.assets || result.assets.length === 0) {
-        return;
-      }
-
-      const asset = result.assets[0];
-
-      // Validate 10MB limit
-      if (asset.fileSize && asset.fileSize > 10 * 1024 * 1024) {
-        setAlertConfig({
-          visible: true,
-          title: 'File Too Large',
-          message: 'The selected receipt screenshot exceeds the 10 MB limit.',
-          icon: 'alert-circle-outline',
-          iconColor: colors.error,
-        });
-        return;
-      }
-
-      await FileStorage.ensureDirectoriesAsync();
-      const imagesDir = FileStorage.getMediaDirectory('images');
-      const fileName = `receipt_${Date.now()}_${Math.random().toString(36).substring(2, 6)}.jpg`;
-      const destFile = new File(imagesDir, fileName);
-
-      if (Platform.OS !== 'web') {
-        const srcFile = new File(asset.uri);
-        if (srcFile.exists) {
-          srcFile.copy(destFile);
-        }
-      }
-
-      const finalUri = Platform.OS === 'web' ? asset.uri : destFile.uri;
-      setReceiptUri(finalUri);
     } catch (e: any) {
       console.warn('[ExpenseFormModal] Receipt upload error:', e);
     }
@@ -491,7 +444,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   formContent: {
-    paddingBottom: 220, // Generous padding so inputs never hide behind keyboard
+    paddingBottom: 220,
   },
   amountBox: {
     flexDirection: 'row',

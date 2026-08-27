@@ -31,6 +31,7 @@ import { NotificationService } from '../services/notificationService';
 import { BackupService } from '../services/backupService';
 import { MediaStorage } from '../storage/mediaStorage';
 import { FileStorage } from '../storage/fileStorage';
+import { PermissionService } from '../services/permissionService';
 import { generateId } from '../utils';
 
 interface WorkspaceContextValue {
@@ -43,26 +44,18 @@ interface WorkspaceContextValue {
   notifications: NotificationRecord[];
   settings: AppSettings;
   unreadNotificationsCount: number;
-
-  // User/Workspace lifecycle
   initializeUser: (name: string) => Promise<boolean>;
   updateUser: (name: string) => Promise<boolean>;
   updateUserAvatar: (avatarUri: string) => Promise<boolean>;
   removeUserAvatar: () => Promise<boolean>;
   triggerTestNotification: (soundId?: string, soundTitle?: string) => Promise<boolean>;
-
-  // Task Operations
   addTask: (params: Parameters<typeof TaskService.createTask>[0]) => Promise<TaskItem>;
   updateTask: (task: TaskItem) => Promise<boolean>;
   deleteTask: (id: string) => Promise<boolean>;
   toggleTask: (id: string) => Promise<boolean>;
-
-  // Event Operations
   addEvent: (params: Parameters<typeof EventService.createEvent>[0]) => Promise<EventItem>;
   updateEvent: (event: EventItem) => Promise<boolean>;
   deleteEvent: (id: string) => Promise<boolean>;
-
-  // Expense Operations
   addExpense: (params: {
     title: string;
     amount: number;
@@ -75,19 +68,13 @@ interface WorkspaceContextValue {
   }) => Promise<ExpenseItem>;
   updateExpense: (expense: ExpenseItem) => Promise<boolean>;
   deleteExpense: (id: string) => Promise<boolean>;
-
-  // URL Operations
   addUrl: (params: { title: string; url: string; category?: string; note?: string; previewImageUri?: string }) => Promise<{ success: boolean; error?: string }>;
   updateUrl: (id: string, params: { title: string; url: string; category?: string; note?: string; previewImageUri?: string }) => Promise<{ success: boolean; error?: string }>;
   deleteUrl: (id: string) => Promise<boolean>;
-
-  // Notification Operations
   markNotificationAsRead: (id: string) => Promise<void>;
   markAllNotificationsAsRead: () => Promise<void>;
   deleteNotification: (id: string) => Promise<void>;
   clearAllNotifications: () => Promise<void>;
-
-  // Attachments
   addAttachment: (params: {
     parentType: AttachmentParentType;
     parentId: string;
@@ -97,8 +84,6 @@ interface WorkspaceContextValue {
     fileSize?: number;
   }) => Promise<AttachmentItem>;
   deleteAttachment: (attachment: AttachmentItem) => Promise<void>;
-
-  // Settings & Storage
   updateSettings: (newSettings: Partial<AppSettings>) => Promise<void>;
   exportData: () => Promise<{ success: boolean; message?: string; error?: string }>;
   exportZipData: () => Promise<{ success: boolean; message?: string; error?: string }>;
@@ -123,16 +108,9 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const loadAll = useCallback(async () => {
     setIsLoading(true);
     try {
-      // 1. Initialize file storage & directories
       await FileStorage.ensureDirectoriesAsync();
-
-      // 2. Initialize database
       await Database.initDatabaseAsync();
-
-      // 3. Run auto legacy migration if needed
       await LegacyMigrationService.runAutoMigration();
-
-      // 4. Load all records from SQLite
       const [u, t, ev, exp, uList, notifs, s] = await Promise.all([
         UserRepository.getUser(),
         TaskRepository.getAllTasks(),
@@ -150,6 +128,9 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setUrls(uList);
       setNotifications(notifs);
       setSettings(s || defaultSettings);
+
+      // Proactively request initial app permissions (Notifications, Media Storage)
+      PermissionService.requestInitialPermissionsAsync().catch(() => {});
     } catch (e) {
       console.error('[WorkspaceContext] Failed to load SQLite workspace:', e);
     } finally {
@@ -215,8 +196,6 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const triggerTestNotification = async (soundId: string = 'default', soundTitle?: string): Promise<boolean> => {
     return NotificationService.triggerTestReminder(soundId, soundTitle);
   };
-
-  // --- Task Handlers ---
   const addTask = async (params: Parameters<typeof TaskService.createTask>[0]): Promise<TaskItem> => {
     let notificationId: string | undefined;
 

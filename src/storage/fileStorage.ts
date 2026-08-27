@@ -97,4 +97,39 @@ export const FileStorage = {
       console.warn('[FileStorage] Error cleaning temp directory:', e);
     }
   },
+
+  /**
+   * Copy any source media (picker cache, content://, file://) into persistent AgendaX media directory
+   */
+  async copyMediaToStorageAsync(
+    sourceUri: string,
+    category: 'images' | 'videos' | 'audio' | 'documents' = 'images',
+    suggestedFileName?: string
+  ): Promise<string> {
+    if (Platform.OS === 'web' || !sourceUri) return sourceUri;
+
+    try {
+      await this.ensureDirectoriesAsync();
+      const targetDir = this.getMediaDirectory(category);
+      const ext = suggestedFileName?.includes('.')
+        ? suggestedFileName.split('.').pop()
+        : sourceUri.includes('.')
+          ? sourceUri.split('.').pop()?.split('?')[0] || 'jpg'
+          : 'jpg';
+
+      const fileName = suggestedFileName || `${category.slice(0, 3)}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
+      const destFile = new File(targetDir, fileName);
+
+      const srcFile = new File(sourceUri);
+      if (srcFile.exists) {
+        srcFile.copy(destFile);
+        return destFile.uri;
+      }
+
+      return sourceUri;
+    } catch (e) {
+      console.warn('[FileStorage] copyMediaToStorageAsync fallback:', e);
+      return sourceUri;
+    }
+  },
 };

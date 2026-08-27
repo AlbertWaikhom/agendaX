@@ -19,6 +19,8 @@ import { Button } from '../common/Button';
 import { ModalWrapper } from '../common/ModalWrapper';
 import { DateTimePickerModal } from '../common/DateTimePickerModal';
 
+import { MediaStorage } from '../../storage/mediaStorage';
+
 interface EventFormModalProps {
   visible: boolean;
   onClose: () => void;
@@ -99,15 +101,9 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
 
   const handlePickImage = async () => {
     try {
-      const ImagePicker = await import('expo-image-picker');
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
-        allowsEditing: false,
-        quality: 0.85,
-      });
-
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setImageUri(result.assets[0].uri);
+      const res = await MediaStorage.pickImage('event pass/photo');
+      if (res.success && res.uri) {
+        setImageUri(res.uri);
       }
     } catch (e) {
       console.warn('Pick event image error:', e);
