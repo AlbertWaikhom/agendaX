@@ -51,7 +51,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ visible, onClose }) => {
         <Button
           title="Download APK v1.01"
           icon="download-outline"
-          onPress={() => handleOpenLink('https://github.com/AlbertWaikhom/agendaX/raw/main/agendaX-v1.01.apk')}
+          onPress={() => handleOpenLink('https://github.com/AlbertWaikhom/agendaX/releases/download/v1.01/agendaX-v1.01.apk')}
           style={{ marginTop: 6 }}
         />
       </View>

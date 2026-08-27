@@ -496,7 +496,7 @@ export const MoreScreen: React.FC = () => {
             <TouchableOpacity
               style={styles.menuItem}
               activeOpacity={0.7}
-              onPress={() => handleOpenLink('https://github.com/AlbertWaikhom/agendaX/raw/main/agendaX-v1.01.apk')}
+              onPress={() => handleOpenLink('https://github.com/AlbertWaikhom/agendaX/releases/download/v1.01/agendaX-v1.01.apk')}
             >
               <View style={styles.menuItemLeft}>
                 <View style={[styles.menuIconBox, { backgroundColor: '#34D39920' }]}>
