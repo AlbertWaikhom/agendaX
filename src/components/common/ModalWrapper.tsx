@@ -11,7 +11,8 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Typography, BorderRadius, Spacing } from '../../constants/theme';
+import { Typography, BorderRadius, Spacing } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 interface ModalWrapperProps {
   visible: boolean;
@@ -29,6 +30,8 @@ export const ModalWrapper: React.FC<ModalWrapperProps> = ({
   subtitle,
   children,
 }) => {
+  const { colors } = useTheme();
+
   return (
     <Modal
       visible={visible}
@@ -39,26 +42,38 @@ export const ModalWrapper: React.FC<ModalWrapperProps> = ({
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.overlay}
+        style={[styles.overlay, { backgroundColor: colors.overlay }]}
       >
         <TouchableWithoutFeedback onPress={onClose}>
           <View style={styles.backdrop} />
         </TouchableWithoutFeedback>
 
-        <View style={styles.sheet}>
+        <View
+          style={[
+            styles.sheet,
+            {
+              backgroundColor: colors.modalBackground,
+              borderColor: colors.cardBorder,
+            },
+          ]}
+        >
           {/* Grab Handle Indicator */}
           <View style={styles.handleContainer}>
-            <View style={styles.handle} />
+            <View style={[styles.handle, { backgroundColor: colors.borderLight }]} />
           </View>
 
           {/* Header */}
-          <View style={styles.header}>
+          <View style={[styles.header, { borderColor: colors.border }]}>
             <View style={styles.titleContainer}>
-              <Text style={styles.title}>{title}</Text>
-              {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+              <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+              {subtitle && <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text>}
             </View>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-              <Ionicons name="close" size={20} color={Colors.textSecondary} />
+            <TouchableOpacity
+              onPress={onClose}
+              style={[styles.closeBtn, { backgroundColor: colors.surfaceHighlight }]}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name="close" size={20} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
 
@@ -80,17 +95,14 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: Colors.overlay,
   },
   backdrop: {
     ...StyleSheet.absoluteFill,
   },
   sheet: {
-    backgroundColor: Colors.modalBackground,
     borderTopLeftRadius: BorderRadius.xl,
     borderTopRightRadius: BorderRadius.xl,
     borderTopWidth: 1,
-    borderColor: Colors.cardBorder,
     maxHeight: '90%',
     minHeight: '40%',
     paddingBottom: Spacing.xl,
@@ -103,7 +115,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: Colors.borderLight,
   },
   header: {
     flexDirection: 'row',
@@ -112,7 +123,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingBottom: Spacing.md,
     borderBottomWidth: 1,
-    borderColor: Colors.border,
   },
   titleContainer: {
     flex: 1,
@@ -120,19 +130,16 @@ const styles = StyleSheet.create({
   title: {
     fontSize: Typography.fontSize.xl,
     fontWeight: Typography.fontWeight.bold,
-    color: Colors.text,
     letterSpacing: -0.3,
   },
   subtitle: {
     fontSize: Typography.fontSize.sm,
-    color: Colors.textSecondary,
     marginTop: 2,
   },
   closeBtn: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Colors.surfaceHighlight,
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 12,

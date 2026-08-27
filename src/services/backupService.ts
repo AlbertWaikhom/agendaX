@@ -10,7 +10,7 @@ export const BackupService = {
    */
   generateBackupPayload(workspace: WorkspaceData): BackupPayload {
     return {
-      version: '1.0.0',
+      version: '1.01',
       app: 'AgendaX',
       exportedAt: new Date().toISOString(),
       workspaceId: workspace.user?.id || 'UNKNOWN',
@@ -78,7 +78,7 @@ export const BackupService = {
   async pickAndValidateBackup(): Promise<{
     success: boolean;
     data?: WorkspaceData;
-    summary?: { tasksCount: number; eventsCount: number; urlsCount: number; userName: string; exportedAt: string };
+    summary?: { tasksCount: number; eventsCount: number; expensesCount: number; urlsCount: number; userName: string; exportedAt: string };
     error?: string;
   }> {
     try {
@@ -118,7 +118,7 @@ export const BackupService = {
   validateAndParseBackupContent(jsonString: string): {
     success: boolean;
     data?: WorkspaceData;
-    summary?: { tasksCount: number; eventsCount: number; urlsCount: number; userName: string; exportedAt: string };
+    summary?: { tasksCount: number; eventsCount: number; expensesCount: number; urlsCount: number; userName: string; exportedAt: string };
     error?: string;
   } {
     try {
@@ -165,6 +165,7 @@ export const BackupService = {
         summary: {
           tasksCount: validatedData.tasks.length,
           eventsCount: validatedData.events.length,
+          expensesCount: validatedData.expenses.length,
           urlsCount: validatedData.urls.length,
           userName: validatedData.user?.name || 'Workspace User',
           exportedAt,

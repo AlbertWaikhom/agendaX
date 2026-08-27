@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Typography, BorderRadius, Spacing } from '../../constants/theme';
+import { Typography, BorderRadius, Spacing } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 interface CalendarStripProps {
   selectedDate: string; // YYYY-MM-DD
@@ -20,6 +21,7 @@ export const CalendarStrip: React.FC<CalendarStripProps> = ({
   onSelectDate,
   eventDatesMap,
 }) => {
+  const { colors } = useTheme();
   const [currentYear, setCurrentYear] = useState<number>(() => {
     const parts = selectedDate.split('-').map(Number);
     return parts[0] || new Date().getFullYear();
@@ -71,18 +73,26 @@ export const CalendarStrip: React.FC<CalendarStripProps> = ({
   });
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
       {/* Month Navigator */}
       <View style={styles.header}>
-        <Text style={styles.monthTitle}>
+        <Text style={[styles.monthTitle, { color: colors.text }]}>
           {MONTHS[currentMonth]} {currentYear}
         </Text>
         <View style={styles.navButtons}>
-          <TouchableOpacity onPress={prevMonth} style={styles.navBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Ionicons name="chevron-back" size={18} color={Colors.text} />
+          <TouchableOpacity
+            onPress={prevMonth}
+            style={[styles.navBtn, { backgroundColor: colors.surfaceHighlight }]}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons name="chevron-back" size={18} color={colors.text} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={nextMonth} style={styles.navBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Ionicons name="chevron-forward" size={18} color={Colors.text} />
+          <TouchableOpacity
+            onPress={nextMonth}
+            style={[styles.navBtn, { backgroundColor: colors.surfaceHighlight }]}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons name="chevron-forward" size={18} color={colors.text} />
           </TouchableOpacity>
         </View>
       </View>
@@ -97,17 +107,39 @@ export const CalendarStrip: React.FC<CalendarStripProps> = ({
           <TouchableOpacity
             key={item.dateStr}
             onPress={() => onSelectDate(item.dateStr)}
-            style={[styles.dayCard, item.isSelected && styles.dayCardSelected]}
+            style={[
+              styles.dayCard,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+              },
+              item.isSelected && {
+                backgroundColor: colors.primary,
+                borderColor: colors.primaryLight,
+              },
+            ]}
             activeOpacity={0.7}
           >
-            <Text style={[styles.dayOfWeek, item.isSelected && styles.dayOfWeekSelected]}>
+            <Text
+              style={[
+                styles.dayOfWeek,
+                { color: colors.textMuted },
+                item.isSelected && styles.dayOfWeekSelected,
+              ]}
+            >
               {item.dayOfWeek}
             </Text>
-            <Text style={[styles.dayNumber, item.isSelected && styles.dayNumberSelected]}>
+            <Text
+              style={[
+                styles.dayNumber,
+                { color: colors.text },
+                item.isSelected && styles.dayNumberSelected,
+              ]}
+            >
               {item.day}
             </Text>
             {item.hasEvents && (
-              <View style={[styles.eventDot, item.isSelected && styles.eventDotSelected]} />
+              <View style={[styles.eventDot, { backgroundColor: colors.primaryLight }, item.isSelected && styles.eventDotSelected]} />
             )}
           </TouchableOpacity>
         ))}
@@ -118,11 +150,9 @@ export const CalendarStrip: React.FC<CalendarStripProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.surface,
     borderRadius: BorderRadius.lg,
     paddingVertical: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.cardBorder,
     marginBottom: Spacing.md,
   },
   header: {
@@ -135,7 +165,6 @@ const styles = StyleSheet.create({
   monthTitle: {
     fontSize: Typography.fontSize.md,
     fontWeight: Typography.fontWeight.bold,
-    color: Colors.text,
     letterSpacing: -0.3,
   },
   navButtons: {
@@ -146,7 +175,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Colors.surfaceHighlight,
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 6,
@@ -158,21 +186,14 @@ const styles = StyleSheet.create({
     width: 50,
     height: 72,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.card,
     borderWidth: 1,
-    borderColor: Colors.border,
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: 4,
     paddingVertical: 6,
   },
-  dayCardSelected: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primaryLight,
-  },
   dayOfWeek: {
     fontSize: Typography.fontSize.xs,
-    color: Colors.textMuted,
     fontWeight: Typography.fontWeight.medium,
     textTransform: 'uppercase',
   },
@@ -183,7 +204,6 @@ const styles = StyleSheet.create({
   dayNumber: {
     fontSize: Typography.fontSize.lg,
     fontWeight: Typography.fontWeight.bold,
-    color: Colors.text,
     marginVertical: 2,
   },
   dayNumberSelected: {
@@ -193,7 +213,6 @@ const styles = StyleSheet.create({
     width: 5,
     height: 5,
     borderRadius: 2.5,
-    backgroundColor: Colors.primaryLight,
     marginTop: 2,
   },
   eventDotSelected: {

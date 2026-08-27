@@ -104,7 +104,7 @@ export interface SecuritySettings {
   appLockEnabled: boolean;
   lockMode: LockMode;
   customPin: string | null; // Stored PIN (4-6 digits)
-  lockedPages: string[]; // List of page IDs: 'Expenses', 'Urls', 'Tasks', 'Events'
+  lockedPages: string[]; // List of page IDs: 'Settings', 'Expenses', 'Urls', 'Tasks', 'Events'
   biometricsEnabled: boolean;
 }
 

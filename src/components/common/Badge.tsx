@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, StyleProp, ViewStyle, TextStyle } from 'react-native';
-import { Colors, Typography, BorderRadius } from '../../constants/theme';
+import { Typography, BorderRadius } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { Priority } from '../../types';
 
 interface PriorityBadgeProps {
@@ -9,17 +10,19 @@ interface PriorityBadgeProps {
 }
 
 export const PriorityBadge: React.FC<PriorityBadgeProps> = ({ priority, style }) => {
-  let bg = Colors.mediumPriorityBg;
-  let text = Colors.mediumPriority;
+  const { colors } = useTheme();
+
+  let bg = colors.mediumPriorityBg;
+  let text = colors.mediumPriority;
   let label = 'Medium';
 
   if (priority === 'high') {
-    bg = Colors.highPriorityBg;
-    text = Colors.highPriority;
+    bg = colors.highPriorityBg;
+    text = colors.highPriority;
     label = 'High';
   } else if (priority === 'low') {
-    bg = Colors.lowPriorityBg;
-    text = Colors.lowPriority;
+    bg = colors.lowPriorityBg;
+    text = colors.lowPriority;
     label = 'Low';
   }
 
@@ -40,13 +43,16 @@ interface CategoryPillProps {
 
 export const CategoryPill: React.FC<CategoryPillProps> = ({
   label,
-  color = Colors.primary,
+  color,
   style,
   textStyle,
 }) => {
+  const { colors } = useTheme();
+  const activeColor = color || colors.primary;
+
   return (
-    <View style={[styles.categoryPill, { backgroundColor: `${color}20`, borderColor: `${color}50` }, style]}>
-      <Text style={[styles.categoryLabel, { color }, textStyle]}>{label}</Text>
+    <View style={[styles.categoryPill, { backgroundColor: `${activeColor}20`, borderColor: `${activeColor}50` }, style]}>
+      <Text style={[styles.categoryLabel, { color: activeColor }, textStyle]}>{label}</Text>
     </View>
   );
 };

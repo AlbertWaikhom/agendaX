@@ -6,7 +6,7 @@
 
 ### **Next-Gen iOS 26 Liquid Glass Productivity, Expense & Security Manager**
 
-[![Download APK](https://img.shields.io/badge/⬇️_Download_Android_APK-v1.0.0_Release-34D399?style=for-the-badge&logo=android&logoColor=white)](https://github.com/AlbertWaikhom/agendaX/releases/latest)
+[![Download APK](https://img.shields.io/badge/⬇️_Download_Android_APK-v1.01_Release-34D399?style=for-the-badge&logo=android&logoColor=white)](https://github.com/AlbertWaikhom/agendaX/releases/latest)
 [![Latest Release](https://img.shields.io/github/v/release/AlbertWaikhom/agendaX?style=for-the-badge&color=818CF8&label=Latest%20Version)](https://github.com/AlbertWaikhom/agendaX/releases/latest)
 [![React Native](https://img.shields.io/badge/React%20Native-0.86.2-blue?style=for-the-badge&logo=react)](https://reactnative.dev/)
 [![Expo](https://img.shields.io/badge/Expo-v57.0-black?style=for-the-badge&logo=expo)](https://expo.dev/)
@@ -25,8 +25,8 @@ Get the standalone **AgendaX Android APK** and run the app directly on your phon
 
 <div align="center">
 
-### 📲 [👉 Click Here to Download agendaX v-1 APK](https://github.com/AlbertWaikhom/agendaX/releases/download/v1.0.0/agendaX-v1.apk)
-*(Direct file download: `agendaX-v1.apk` ~ 82 MB)*
+### 📲 [👉 Click Here to Download agendaX v1.01 APK](https://github.com/AlbertWaikhom/agendaX/releases/download/v1.01/agendaX-v1.01.apk)
+*(Direct file download: `agendaX-v1.01.apk` ~ 83 MB)*
 
 Or view all releases: **[GitHub Releases Hub](https://github.com/AlbertWaikhom/agendaX/releases)**
 

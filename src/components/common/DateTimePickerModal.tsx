@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { Colors, Typography, BorderRadius, Spacing } from '../../constants/theme';
+import { Typography, BorderRadius, Spacing } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { Button } from './Button';
 import { ModalWrapper } from './ModalWrapper';
 
@@ -21,6 +22,7 @@ export const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
   initialTime,
   mode = 'datetime',
 }) => {
+  const { colors } = useTheme();
   const today = new Date();
   const [selectedYear, setSelectedYear] = useState<number>(() => {
     if (initialDate) {
@@ -90,21 +92,30 @@ export const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
     <ModalWrapper visible={visible} onClose={onClose} title="Select Date & Time">
       {/* Quick shortcuts */}
       <View style={styles.quickShortcuts}>
-        <TouchableOpacity style={styles.quickChip} onPress={() => setQuickDate(0)}>
-          <Text style={styles.quickChipText}>Today</Text>
+        <TouchableOpacity
+          style={[styles.quickChip, { backgroundColor: colors.surfaceHighlight, borderColor: colors.border }]}
+          onPress={() => setQuickDate(0)}
+        >
+          <Text style={[styles.quickChipText, { color: colors.textSecondary }]}>Today</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.quickChip} onPress={() => setQuickDate(1)}>
-          <Text style={styles.quickChipText}>Tomorrow</Text>
+        <TouchableOpacity
+          style={[styles.quickChip, { backgroundColor: colors.surfaceHighlight, borderColor: colors.border }]}
+          onPress={() => setQuickDate(1)}
+        >
+          <Text style={[styles.quickChipText, { color: colors.textSecondary }]}>Tomorrow</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.quickChip} onPress={() => setQuickDate(7)}>
-          <Text style={styles.quickChipText}>Next Week</Text>
+        <TouchableOpacity
+          style={[styles.quickChip, { backgroundColor: colors.surfaceHighlight, borderColor: colors.border }]}
+          onPress={() => setQuickDate(7)}
+        >
+          <Text style={[styles.quickChipText, { color: colors.textSecondary }]}>Next Week</Text>
         </TouchableOpacity>
       </View>
 
       {/* Date Pickers */}
       {(mode === 'date' || mode === 'datetime') && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Date (Month / Day / Year)</Text>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Date (Month / Day / Year)</Text>
           <View style={styles.pickerRow}>
             {/* Month */}
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipsScroll}>
@@ -118,9 +129,19 @@ export const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
                   <TouchableOpacity
                     key={name}
                     onPress={() => setSelectedMonth(mNum)}
-                    style={[styles.numChip, active && styles.numChipActive]}
+                    style={[
+                      styles.numChip,
+                      { backgroundColor: colors.surface, borderColor: colors.border },
+                      active && { backgroundColor: colors.primary, borderColor: colors.primary },
+                    ]}
                   >
-                    <Text style={[styles.numChipText, active && styles.numChipTextActive]}>
+                    <Text
+                      style={[
+                        styles.numChipText,
+                        { color: colors.textSecondary },
+                        active && styles.numChipTextActive,
+                      ]}
+                    >
                       {name}
                     </Text>
                   </TouchableOpacity>
@@ -137,9 +158,19 @@ export const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
                 <TouchableOpacity
                   key={day}
                   onPress={() => setSelectedDay(day)}
-                  style={[styles.dayChip, active && styles.dayChipActive]}
+                  style={[
+                    styles.dayChip,
+                    { backgroundColor: colors.surface, borderColor: colors.border },
+                    active && { backgroundColor: colors.primary, borderColor: colors.primary },
+                  ]}
                 >
-                  <Text style={[styles.dayChipText, active && styles.dayChipTextActive]}>
+                  <Text
+                    style={[
+                      styles.dayChipText,
+                      { color: colors.text },
+                      active && styles.dayChipTextActive,
+                    ]}
+                  >
                     {day}
                   </Text>
                 </TouchableOpacity>
@@ -152,11 +183,11 @@ export const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
       {/* Time Pickers */}
       {(mode === 'time' || mode === 'datetime') && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Time</Text>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Time</Text>
           <View style={styles.timeRow}>
             {/* Hours */}
             <View style={styles.timeCol}>
-              <Text style={styles.timeLabel}>Hour</Text>
+              <Text style={[styles.timeLabel, { color: colors.textMuted }]}>Hour</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 {Array.from({ length: 24 }, (_, i) => i).map(h => {
                   const active = selectedHour === h;
@@ -165,9 +196,19 @@ export const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
                     <TouchableOpacity
                       key={h}
                       onPress={() => setSelectedHour(h)}
-                      style={[styles.timeChip, active && styles.timeChipActive]}
+                      style={[
+                        styles.timeChip,
+                        { backgroundColor: colors.surface, borderColor: colors.border },
+                        active && { backgroundColor: colors.primary, borderColor: colors.primary },
+                      ]}
                     >
-                      <Text style={[styles.timeChipText, active && styles.timeChipTextActive]}>
+                      <Text
+                        style={[
+                          styles.timeChipText,
+                          { color: colors.textSecondary },
+                          active && styles.timeChipTextActive,
+                        ]}
+                      >
                         {displayH}
                       </Text>
                     </TouchableOpacity>
@@ -180,7 +221,7 @@ export const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
           {/* Minutes */}
           <View style={styles.timeRow}>
             <View style={styles.timeCol}>
-              <Text style={styles.timeLabel}>Minute</Text>
+              <Text style={[styles.timeLabel, { color: colors.textMuted }]}>Minute</Text>
               <View style={styles.minuteGrid}>
                 {[0, 15, 30, 45].map(min => {
                   const active = selectedMinute === min;
@@ -188,9 +229,19 @@ export const DateTimePickerModal: React.FC<DateTimePickerModalProps> = ({
                     <TouchableOpacity
                       key={min}
                       onPress={() => setSelectedMinute(min)}
-                      style={[styles.minChip, active && styles.minChipActive]}
+                      style={[
+                        styles.minChip,
+                        { backgroundColor: colors.surface, borderColor: colors.border },
+                        active && { backgroundColor: colors.primary, borderColor: colors.primary },
+                      ]}
                     >
-                      <Text style={[styles.minChipText, active && styles.minChipTextActive]}>
+                      <Text
+                        style={[
+                          styles.minChipText,
+                          { color: colors.textSecondary },
+                          active && styles.minChipTextActive,
+                        ]}
+                      >
                         :{String(min).padStart(2, '0')}
                       </Text>
                     </TouchableOpacity>
@@ -213,16 +264,13 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   quickChip: {
-    backgroundColor: Colors.surfaceHighlight,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: BorderRadius.full,
     marginRight: 8,
     borderWidth: 1,
-    borderColor: Colors.border,
   },
   quickChipText: {
-    color: Colors.textSecondary,
     fontSize: Typography.fontSize.xs,
     fontWeight: Typography.fontWeight.semibold,
   },
@@ -232,7 +280,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: Typography.fontSize.sm,
     fontWeight: Typography.fontWeight.semibold,
-    color: Colors.textSecondary,
     marginBottom: 8,
   },
   pickerRow: {
@@ -245,17 +292,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: Colors.border,
     marginRight: 6,
   },
-  numChipActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
   numChipText: {
-    color: Colors.textSecondary,
     fontSize: Typography.fontSize.sm,
     fontWeight: Typography.fontWeight.medium,
   },
@@ -271,19 +311,12 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: Colors.border,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 6,
   },
-  dayChipActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
   dayChipText: {
-    color: Colors.text,
     fontSize: Typography.fontSize.sm,
     fontWeight: Typography.fontWeight.medium,
   },
@@ -299,24 +332,16 @@ const styles = StyleSheet.create({
   },
   timeLabel: {
     fontSize: Typography.fontSize.xs,
-    color: Colors.textMuted,
     marginBottom: 4,
   },
   timeChip: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: Colors.border,
     marginRight: 6,
   },
-  timeChipActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
   timeChipText: {
-    color: Colors.textSecondary,
     fontSize: Typography.fontSize.xs,
     fontWeight: Typography.fontWeight.medium,
   },
@@ -332,18 +357,11 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 8,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: Colors.border,
     alignItems: 'center',
     marginRight: 6,
   },
-  minChipActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
   minChipText: {
-    color: Colors.textSecondary,
     fontSize: Typography.fontSize.sm,
     fontWeight: Typography.fontWeight.semibold,
   },

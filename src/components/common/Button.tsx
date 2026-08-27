@@ -10,7 +10,8 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Typography, BorderRadius, Spacing } from '../../constants/theme';
+import { Typography, BorderRadius, Spacing } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost';
 export type ButtonSize = 'sm' | 'md' | 'lg';
@@ -42,21 +43,23 @@ export const Button: React.FC<ButtonProps> = ({
   textStyle,
   fullWidth = false,
 }) => {
+  const { colors } = useTheme();
+
   const getContainerStyle = (): ViewStyle => {
-    let bg = Colors.primary;
+    let bg = colors.primary;
     let borderColor = 'transparent';
     let borderWidth = 0;
 
     if (variant === 'secondary') {
-      bg = Colors.surfaceHighlight;
-      borderColor = Colors.border;
+      bg = colors.surfaceHighlight;
+      borderColor = colors.border;
       borderWidth = 1;
     } else if (variant === 'outline') {
       bg = 'transparent';
-      borderColor = Colors.primary;
+      borderColor = colors.primary;
       borderWidth = 1.5;
     } else if (variant === 'danger') {
-      bg = Colors.error;
+      bg = colors.error;
     } else if (variant === 'ghost') {
       bg = 'transparent';
     }
@@ -86,9 +89,9 @@ export const Button: React.FC<ButtonProps> = ({
 
   const getTextStyle = (): TextStyle => {
     let color = '#FFFFFF';
-    if (variant === 'outline') color = Colors.primaryLight;
-    if (variant === 'ghost') color = Colors.textSecondary;
-    if (variant === 'secondary') color = Colors.text;
+    if (variant === 'outline') color = colors.primaryLight;
+    if (variant === 'ghost') color = colors.textSecondary;
+    if (variant === 'secondary') color = colors.text;
 
     let fontSize = Typography.fontSize.md;
     if (size === 'sm') fontSize = Typography.fontSize.sm;

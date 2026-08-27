@@ -26,7 +26,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ visible, onClose }) => {
           resizeMode="contain"
         />
         <Text style={[styles.tagline, { color: colors.primaryLight }]}>Plan. Track. Achieve.</Text>
-        <Text style={[styles.version, { color: colors.textMuted }]}>Version 1.0.0 • Production Release</Text>
+        <Text style={[styles.version, { color: colors.textMuted }]}>Version 1.01 • Production Release</Text>
       </View>
 
       {/* Developer Profile Card */}

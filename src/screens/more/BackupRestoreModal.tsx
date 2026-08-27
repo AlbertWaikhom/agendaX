@@ -4,11 +4,11 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ActivityIndicator,
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Typography, BorderRadius, Spacing } from '../../constants/theme';
+import { Typography, BorderRadius, Spacing } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { BackupService } from '../../services/backupService';
 import { WorkspaceData } from '../../types';
@@ -24,6 +24,7 @@ export const BackupRestoreModal: React.FC<BackupRestoreModalProps> = ({
   visible,
   onClose,
 }) => {
+  const { colors } = useTheme();
   const { exportData, importData } = useWorkspace();
   const [loadingExport, setLoadingExport] = useState(false);
   const [loadingImport, setLoadingImport] = useState(false);
@@ -34,6 +35,7 @@ export const BackupRestoreModal: React.FC<BackupRestoreModalProps> = ({
   const [previewSummary, setPreviewSummary] = useState<{
     tasksCount: number;
     eventsCount: number;
+    expensesCount: number;
     urlsCount: number;
     userName: string;
     exportedAt: string;
@@ -116,15 +118,15 @@ export const BackupRestoreModal: React.FC<BackupRestoreModalProps> = ({
       subtitle="Export or import your complete local workspace JSON file"
     >
       {/* Export Section */}
-      <View style={styles.sectionCard}>
+      <View style={[styles.sectionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <View style={styles.sectionHeader}>
-          <View style={[styles.iconCircle, { backgroundColor: `${Colors.primary}20` }]}>
-            <Ionicons name="cloud-upload-outline" size={22} color={Colors.primary} />
+          <View style={[styles.iconCircle, { backgroundColor: `${colors.primary}20` }]}>
+            <Ionicons name="cloud-upload-outline" size={22} color={colors.primary} />
           </View>
           <View style={styles.headerText}>
-            <Text style={styles.sectionTitle}>Export Workspace JSON</Text>
-            <Text style={styles.sectionDesc}>
-              Save all your tasks, events, URLs, and settings into a standard offline JSON backup file.
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Export Workspace JSON</Text>
+            <Text style={[styles.sectionDesc, { color: colors.textSecondary }]}>
+              Save all your tasks, events, expenses, URLs, and settings into a standard offline JSON backup file.
             </Text>
           </View>
         </View>
@@ -138,22 +140,22 @@ export const BackupRestoreModal: React.FC<BackupRestoreModalProps> = ({
         />
 
         {exportMessage && (
-          <View style={styles.messageBox}>
-            <Ionicons name="checkmark-circle-outline" size={16} color={Colors.success} />
-            <Text style={styles.messageText}>{exportMessage}</Text>
+          <View style={[styles.messageBox, { backgroundColor: colors.successBg, borderColor: colors.success }]}>
+            <Ionicons name="checkmark-circle-outline" size={16} color={colors.success} />
+            <Text style={[styles.messageText, { color: colors.success }]}>{exportMessage}</Text>
           </View>
         )}
       </View>
 
       {/* Import Section */}
-      <View style={styles.sectionCard}>
+      <View style={[styles.sectionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <View style={styles.sectionHeader}>
-          <View style={[styles.iconCircle, { backgroundColor: `${Colors.accentPurple}20` }]}>
-            <Ionicons name="cloud-download-outline" size={22} color={Colors.accentPurple} />
+          <View style={[styles.iconCircle, { backgroundColor: `${colors.accentPurple}20` }]}>
+            <Ionicons name="cloud-download-outline" size={22} color={colors.accentPurple} />
           </View>
           <View style={styles.headerText}>
-            <Text style={styles.sectionTitle}>Import & Restore JSON</Text>
-            <Text style={styles.sectionDesc}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Import & Restore JSON</Text>
+            <Text style={[styles.sectionDesc, { color: colors.textSecondary }]}>
               Load an existing AgendaX JSON backup file to restore your workspace.
             </Text>
           </View>
@@ -169,31 +171,35 @@ export const BackupRestoreModal: React.FC<BackupRestoreModalProps> = ({
         />
 
         {importError && (
-          <View style={[styles.messageBox, { backgroundColor: Colors.errorBg, borderColor: Colors.error }]}>
-            <Ionicons name="alert-circle-outline" size={16} color={Colors.error} />
-            <Text style={[styles.messageText, { color: Colors.error }]}>{importError}</Text>
+          <View style={[styles.messageBox, { backgroundColor: colors.errorBg, borderColor: colors.error }]}>
+            <Ionicons name="alert-circle-outline" size={16} color={colors.error} />
+            <Text style={[styles.messageText, { color: colors.error }]}>{importError}</Text>
           </View>
         )}
 
         {/* Backup Summary Preview */}
         {previewSummary && (
-          <View style={styles.previewCard}>
-            <Text style={styles.previewTitle}>Backup File Summary</Text>
-            <View style={styles.previewRow}>
-              <Text style={styles.previewLabel}>Owner:</Text>
-              <Text style={styles.previewVal}>{previewSummary.userName}</Text>
+          <View style={[styles.previewCard, { backgroundColor: colors.surfaceHighlight, borderColor: colors.borderLight }]}>
+            <Text style={[styles.previewTitle, { color: colors.primaryLight }]}>Backup File Summary</Text>
+            <View style={[styles.previewRow, { borderColor: colors.border }]}>
+              <Text style={[styles.previewLabel, { color: colors.textSecondary }]}>Owner:</Text>
+              <Text style={[styles.previewVal, { color: colors.text }]}>{previewSummary.userName}</Text>
             </View>
-            <View style={styles.previewRow}>
-              <Text style={styles.previewLabel}>Tasks:</Text>
-              <Text style={styles.previewVal}>{previewSummary.tasksCount} tasks</Text>
+            <View style={[styles.previewRow, { borderColor: colors.border }]}>
+              <Text style={[styles.previewLabel, { color: colors.textSecondary }]}>Tasks:</Text>
+              <Text style={[styles.previewVal, { color: colors.text }]}>{previewSummary.tasksCount} tasks</Text>
             </View>
-            <View style={styles.previewRow}>
-              <Text style={styles.previewLabel}>Events:</Text>
-              <Text style={styles.previewVal}>{previewSummary.eventsCount} events</Text>
+            <View style={[styles.previewRow, { borderColor: colors.border }]}>
+              <Text style={[styles.previewLabel, { color: colors.textSecondary }]}>Events:</Text>
+              <Text style={[styles.previewVal, { color: colors.text }]}>{previewSummary.eventsCount} events</Text>
             </View>
-            <View style={styles.previewRow}>
-              <Text style={styles.previewLabel}>URLs:</Text>
-              <Text style={styles.previewVal}>{previewSummary.urlsCount} bookmarks</Text>
+            <View style={[styles.previewRow, { borderColor: colors.border }]}>
+              <Text style={[styles.previewLabel, { color: colors.textSecondary }]}>Expenses:</Text>
+              <Text style={[styles.previewVal, { color: colors.text }]}>{previewSummary.expensesCount} expenses</Text>
+            </View>
+            <View style={[styles.previewRow, { borderColor: colors.border }]}>
+              <Text style={[styles.previewLabel, { color: colors.textSecondary }]}>URLs:</Text>
+              <Text style={[styles.previewVal, { color: colors.text }]}>{previewSummary.urlsCount} bookmarks</Text>
             </View>
 
             <Button
@@ -212,11 +218,9 @@ export const BackupRestoreModal: React.FC<BackupRestoreModalProps> = ({
 
 const styles = StyleSheet.create({
   sectionCard: {
-    backgroundColor: Colors.surface,
     borderRadius: BorderRadius.lg,
     padding: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.border,
     marginBottom: Spacing.lg,
   },
   sectionHeader: {
@@ -237,42 +241,34 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: Typography.fontSize.md,
     fontWeight: Typography.fontWeight.bold,
-    color: Colors.text,
   },
   sectionDesc: {
     fontSize: Typography.fontSize.xs,
-    color: Colors.textSecondary,
     marginTop: 3,
     lineHeight: 17,
   },
   messageBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.successBg,
     padding: Spacing.sm,
     borderRadius: BorderRadius.sm,
     marginTop: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.success,
   },
   messageText: {
     fontSize: Typography.fontSize.xs,
-    color: Colors.success,
     marginLeft: 6,
     flex: 1,
   },
   previewCard: {
-    backgroundColor: Colors.surfaceHighlight,
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
     marginTop: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.borderLight,
   },
   previewTitle: {
     fontSize: Typography.fontSize.sm,
     fontWeight: Typography.fontWeight.bold,
-    color: Colors.primaryLight,
     marginBottom: 8,
   },
   previewRow: {
@@ -280,15 +276,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 4,
     borderBottomWidth: 1,
-    borderColor: Colors.border,
   },
   previewLabel: {
     fontSize: Typography.fontSize.xs,
-    color: Colors.textSecondary,
   },
   previewVal: {
     fontSize: Typography.fontSize.xs,
     fontWeight: Typography.fontWeight.semibold,
-    color: Colors.text,
   },
 });
