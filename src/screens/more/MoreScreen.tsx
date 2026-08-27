@@ -24,6 +24,7 @@ import { Button } from '../../components/common/Button';
 import { ModalWrapper } from '../../components/common/ModalWrapper';
 import { BackupRestoreModal } from './BackupRestoreModal';
 import { AboutModal } from './AboutModal';
+import { ThemeSelectorModal, THEME_OPTIONS } from './ThemeSelectorModal';
 import { SecuritySettingsModal } from '../../components/security/SecuritySettingsModal';
 import { ThemeMode } from '../../types';
 import { FileStorage } from '../../storage/fileStorage';
@@ -31,37 +32,6 @@ import { RINGTONE_OPTIONS } from '../../services/notificationService';
 import { UpdateService, UpdateCheckResult, CURRENT_APP_VERSION } from '../../services/updateService';
 import { CustomAlertModal, AlertButton } from '../../components/common/CustomAlertModal';
 import { createMoreStyles } from './MoreScreen.styles';
-
-const THEME_OPTIONS: { id: ThemeMode; name: string; bg: string; accent: string; previewCard: string }[] = [
-  {
-    id: 'dark',
-    name: 'Liquid Dark',
-    bg: '#070A12',
-    accent: '#6366F1',
-    previewCard: '#111827',
-  },
-  {
-    id: 'light',
-    name: 'Crystal Light',
-    bg: '#F8FAFC',
-    accent: '#4F46E5',
-    previewCard: '#FFFFFF',
-  },
-  {
-    id: 'cyber',
-    name: 'Cyber Neon',
-    bg: '#040711',
-    accent: '#06B6D4',
-    previewCard: '#0B132B',
-  },
-  {
-    id: 'sunset',
-    name: 'Sunset Amber',
-    bg: '#0D0806',
-    accent: '#F97316',
-    previewCard: '#20140F',
-  },
-];
 
 export const MoreScreen: React.FC = () => {
   const { theme, colors, setTheme } = useTheme();
@@ -83,6 +53,7 @@ export const MoreScreen: React.FC = () => {
   const [showEditName, setShowEditName] = useState(false);
   const [nameInput, setNameInput] = useState(user?.name || '');
   const [copiedId, setCopiedId] = useState(false);
+  const [showThemeModal, setShowThemeModal] = useState(false);
   const [showBackupModal, setShowBackupModal] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [showAppSettingsModal, setShowAppSettingsModal] = useState(false);
@@ -90,7 +61,6 @@ export const MoreScreen: React.FC = () => {
   const [isTestingSound, setIsTestingSound] = useState(false);
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
 
-  // Custom Liquid Glass Alert Dialog State
   const [alertConfig, setAlertConfig] = useState<{
     visible: boolean;
     title: string;
@@ -183,7 +153,6 @@ export const MoreScreen: React.FC = () => {
 
       const asset = result.assets[0];
 
-      // Validate 10MB size limit (10 * 1024 * 1024 bytes)
       if (asset.fileSize && asset.fileSize > 10 * 1024 * 1024) {
         setAlertConfig({
           visible: true,
@@ -243,7 +212,7 @@ export const MoreScreen: React.FC = () => {
     if (result.hasUpdate) {
       setAlertConfig({
         visible: true,
-        title: `🚀 Update Available: v${result.latestVersion}`,
+        title: ` Update Available: v${result.latestVersion}`,
         message: `${result.releaseTitle}\n\n${result.releaseNotes?.substring(0, 180)}...\n\nClick below to download the latest APK from GitHub.`,
         icon: 'arrow-down-circle',
         iconColor: colors.accentEmerald,
@@ -297,7 +266,7 @@ export const MoreScreen: React.FC = () => {
   const handleClearAllData = () => {
     setAlertConfig({
       visible: true,
-      title: '🚨 Wipe All Data',
+      title: ' Wipe All Data',
       message: 'This will permanently delete your local SQLite database, tasks, events, expenses, attachments, and settings.\n\nThis action cannot be undone.',
       icon: 'trash',
       iconColor: colors.error,
@@ -371,45 +340,37 @@ export const MoreScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
 
-          {/* Liquid Glass Theme Switcher Section */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeaderRow}>
-              <Ionicons name="color-palette-outline" size={18} color={colors.primaryLight} />
-              <Text style={styles.sectionTitle}>App Theme (iOS 26 Liquid Glass)</Text>
-            </View>
-
-            <View style={styles.themesGrid}>
-              {THEME_OPTIONS.map(opt => {
-                const isSelected = theme === opt.id;
-                return (
-                  <TouchableOpacity
-                    key={opt.id}
-                    activeOpacity={0.8}
-                    onPress={() => {
-                      setTheme(opt.id);
-                      updateSettings({ theme: opt.id });
-                    }}
-                    style={[styles.themeCard, isSelected && styles.themeCardActive]}
-                  >
-                    <View style={[styles.themePreviewBox, { backgroundColor: opt.bg, borderColor: opt.accent, borderWidth: 1 }]}>
-                      <View style={[styles.themeDot, { backgroundColor: opt.accent }]} />
-                      <View style={[styles.themeDot, { backgroundColor: opt.previewCard }]} />
-                    </View>
-                    <Text style={styles.themeName}>{opt.name}</Text>
-                    {isSelected && (
-                      <View style={styles.themeActiveTag}>
-                        <Ionicons name="checkmark-circle" size={12} color={colors.primaryLight} />
-                        <Text style={styles.themeActiveText}>Active</Text>
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
-
-          {/* Security & Features Settings Group */}
+          {/* Settings Group */}
           <View style={styles.menuGroup}>
+            {/* App Theme Selector */}
+            <TouchableOpacity
+              style={styles.menuItem}
+              activeOpacity={0.7}
+              onPress={() => setShowThemeModal(true)}
+            >
+              <View style={styles.menuItemLeft}>
+                <View style={[styles.menuIconBox, { backgroundColor: `${colors.primary}20` }]}>
+                  <Ionicons name="color-palette-outline" size={18} color={colors.primaryLight} />
+                </View>
+                <View>
+                  <Text style={styles.menuTitle}>App Theme & Accents</Text>
+                  <Text style={styles.menuSubtitle}>
+                    {THEME_OPTIONS.find(t => t.id === theme)?.name || 'Sunset Amber'} • AgendaX Liquid Effect
+                  </Text>
+                </View>
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View
+                  style={{
+                    width: 14,
+                    height: 14,
+                    borderRadius: 7,
+                    backgroundColor: THEME_OPTIONS.find(t => t.id === theme)?.accent || colors.primary,
+                  }}
+                />
+                <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+              </View>
+            </TouchableOpacity>
             {/* Security & Lock Feature */}
             <TouchableOpacity
               style={styles.menuItem}
@@ -666,6 +627,17 @@ export const MoreScreen: React.FC = () => {
 
         {/* Security & Privacy Modal */}
         <SecuritySettingsModal visible={showSecurityModal} onClose={() => setShowSecurityModal(false)} />
+
+        {/* Theme Selector Modal */}
+        <ThemeSelectorModal
+          visible={showThemeModal}
+          onClose={() => setShowThemeModal(false)}
+          currentTheme={theme}
+          onSelectTheme={newTheme => {
+            setTheme(newTheme);
+            updateSettings({ theme: newTheme });
+          }}
+        />
 
         {/* Backup & Restore Modal */}
         <BackupRestoreModal visible={showBackupModal} onClose={() => setShowBackupModal(false)} />

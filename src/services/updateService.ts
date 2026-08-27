@@ -14,9 +14,6 @@ export const CURRENT_APP_VERSION = '1.01';
 const GITHUB_REPO_API = 'https://api.github.com/repos/AlbertWaikhom/agendaX/releases/latest';
 const DEFAULT_DOWNLOAD_URL = 'https://github.com/AlbertWaikhom/agendaX/releases/download/v1.01/agendaX-v1.01.apk';
 
-/**
- * Compare two semver/version strings (e.g., "1.01" vs "1.02" or "v1.02")
- */
 function isVersionNewer(current: string, remote: string): boolean {
   try {
     const cleanCurrent = current.replace(/^v/i, '').trim();

@@ -6,9 +6,7 @@ let isInitializing = false;
 let initPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
 export const Database = {
-  /**
-   * Get the singleton SQLite database instance
-   */
+
   async getDatabaseAsync(): Promise<SQLite.SQLiteDatabase> {
     if (dbInstance) {
       return dbInstance;

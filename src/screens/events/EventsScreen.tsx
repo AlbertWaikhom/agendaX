@@ -15,6 +15,7 @@ import { PageLockGuard } from '../../components/security/PageLockGuard';
 import { EventCard } from '../../components/events/EventCard';
 import { EventFormModal } from '../../components/events/EventFormModal';
 import { EventDetailsModal } from '../../components/events/EventDetailsModal';
+import { CustomAlertModal, AlertButton } from '../../components/common/CustomAlertModal';
 import { FloatingActionButton } from '../../components/common/FloatingActionButton';
 import { createEventsStyles } from './EventsScreen.styles';
 
@@ -29,6 +30,19 @@ export const EventsScreen: React.FC = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
 
+  // Custom Alert Modal State
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    title: string;
+    message?: string;
+    icon?: keyof typeof Ionicons.glyphMap;
+    iconColor?: string;
+    buttons?: AlertButton[];
+  }>({
+    visible: false,
+    title: '',
+  });
+
   const displayedEvents = useMemo(() => {
     return EventService.filterEvents(events, viewMode);
   }, [events, viewMode]);
@@ -42,6 +56,29 @@ export const EventsScreen: React.FC = () => {
     setSelectedEvent(event);
     setShowDetailsModal(false);
     setShowFormModal(true);
+  };
+
+  const confirmDeleteEvent = (event: EventItem) => {
+    setAlertConfig({
+      visible: true,
+      title: 'Delete Event',
+      message: `Are you sure you want to delete "${event.name}"? This action cannot be undone.`,
+      icon: 'trash-outline',
+      iconColor: colors.error,
+      buttons: [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete Event',
+          style: 'destructive',
+          icon: 'trash-outline',
+          onPress: () => {
+            deleteEvent(event.id);
+            setShowDetailsModal(false);
+            setSelectedEvent(null);
+          },
+        },
+      ],
+    });
   };
 
   const handleSave = (data: any) => {
@@ -130,7 +167,20 @@ export const EventsScreen: React.FC = () => {
             setSelectedEvent(null);
           }}
           onEdit={handleEdit}
-          onDelete={id => deleteEvent(id)}
+          onDelete={id => {
+            if (selectedEvent) confirmDeleteEvent(selectedEvent);
+          }}
+        />
+
+        {/* Custom Liquid Glass Alert Modal for Event Deletion */}
+        <CustomAlertModal
+          visible={alertConfig.visible}
+          title={alertConfig.title}
+          message={alertConfig.message}
+          icon={alertConfig.icon}
+          iconColor={alertConfig.iconColor}
+          buttons={alertConfig.buttons}
+          onClose={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
         />
       </PageLockGuard>
     </PageContainer>

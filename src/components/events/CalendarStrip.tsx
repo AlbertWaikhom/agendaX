@@ -5,7 +5,7 @@ import { Typography, BorderRadius, Spacing } from '../../constants/theme';
 import { useTheme } from '../../context/ThemeContext';
 
 interface CalendarStripProps {
-  selectedDate: string; // YYYY-MM-DD
+  selectedDate: string;
   onSelectDate: (date: string) => void;
   eventDatesMap: Record<string, boolean>;
 }
@@ -50,7 +50,6 @@ export const CalendarStrip: React.FC<CalendarStripProps> = ({
     }
   };
 
-  // Generate days in month
   const numDays = new Date(currentYear, currentMonth + 1, 0).getDate();
   const daysList = Array.from({ length: numDays }, (_, i) => {
     const day = i + 1;

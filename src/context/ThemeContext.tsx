@@ -17,7 +17,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [theme, setThemeState] = useState<ThemeMode>('dark');
 
   useEffect(() => {
-    // Load persisted theme
     const loadTheme = async () => {
       try {
         const sqliteSettings = await SettingsRepository.getSettings();
@@ -67,7 +66,7 @@ export const useTheme = (): ThemeContextValue => {
     return {
       theme: 'dark',
       colors: ThemePalettes.dark,
-      setTheme: async () => {},
+      setTheme: async () => { },
       isDark: true,
     };
   }

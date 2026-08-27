@@ -18,6 +18,7 @@ import { TaskCard } from '../../components/tasks/TaskCard';
 import { PageLockGuard } from '../../components/security/PageLockGuard';
 import { TaskFormModal } from '../../components/tasks/TaskFormModal';
 import { TaskDetailsModal } from '../../components/tasks/TaskDetailsModal';
+import { CustomAlertModal, AlertButton } from '../../components/common/CustomAlertModal';
 import { FloatingActionButton } from '../../components/common/FloatingActionButton';
 import { createTasksStyles } from './TasksScreen.styles';
 
@@ -37,6 +38,19 @@ export const TasksScreen: React.FC = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
   const [editingTask, setEditingTask] = useState<TaskItem | null>(null);
+
+  // Custom Alert Modal State for Delete
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    title: string;
+    message?: string;
+    icon?: keyof typeof Ionicons.glyphMap;
+    iconColor?: string;
+    buttons?: AlertButton[];
+  }>({
+    visible: false,
+    title: '',
+  });
 
   const displayedTasks = useMemo(() => {
     const filtered = TaskService.filterTasks(tasks, filter, searchQuery, selectedCategory);
@@ -60,6 +74,31 @@ export const TasksScreen: React.FC = () => {
     setShowDetailsModal(false);
     setEditingTask(task);
     setShowModal(true);
+  };
+
+  const confirmDeleteTask = (task: TaskItem) => {
+    setAlertConfig({
+      visible: true,
+      title: 'Delete Task',
+      message: `Are you sure you want to delete "${task.title}"? This action cannot be undone.`,
+      icon: 'trash-outline',
+      iconColor: colors.error,
+      buttons: [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete Task',
+          style: 'destructive',
+          icon: 'trash-outline',
+          onPress: () => {
+            deleteTask(task.id);
+            if (selectedTask?.id === task.id) {
+              setShowDetailsModal(false);
+              setSelectedTask(null);
+            }
+          },
+        },
+      ],
+    });
   };
 
   const handleSave = (data: any) => {
@@ -165,7 +204,7 @@ export const TasksScreen: React.FC = () => {
                 onPress={() => handleSelectTask(item)}
                 onToggleComplete={() => toggleTask(item.id)}
                 onEdit={() => handleEdit(item)}
-                onDelete={() => deleteTask(item.id)}
+                onDelete={() => confirmDeleteTask(item)}
               />
             )}
             ListEmptyComponent={
@@ -197,8 +236,7 @@ export const TasksScreen: React.FC = () => {
           }}
           onEdit={handleEdit}
           onDelete={id => {
-            setShowDetailsModal(false);
-            deleteTask(id);
+            if (selectedTask) confirmDeleteTask(selectedTask);
           }}
           onToggleComplete={id => {
             toggleTask(id);
@@ -216,6 +254,17 @@ export const TasksScreen: React.FC = () => {
             setEditingTask(null);
           }}
           onSave={handleSave}
+        />
+
+        {/* Custom Liquid Glass Alert Modal for Task Deletion */}
+        <CustomAlertModal
+          visible={alertConfig.visible}
+          title={alertConfig.title}
+          message={alertConfig.message}
+          icon={alertConfig.icon}
+          iconColor={alertConfig.iconColor}
+          buttons={alertConfig.buttons}
+          onClose={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
         />
       </PageLockGuard>
     </PageContainer>

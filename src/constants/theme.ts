@@ -2,14 +2,12 @@ import { Platform } from 'react-native';
 import { ThemeMode } from '../types';
 
 export interface ThemeColors {
-  // Base background & surfaces
   background: string;
   backgroundSecondary: string;
   surface: string;
   surfaceHighlight: string;
   surfaceSubtle: string;
 
-  // Liquid Glass Tokens (iOS 26)
   glassCard: string;
   glassCardHover: string;
   glassBorder: string;
@@ -19,8 +17,6 @@ export interface ThemeColors {
   card: string;
   cardBorder: string;
   cardHover: string;
-
-  // Primary Brand & Accents
   primary: string;
   primaryLight: string;
   primaryDark: string;
@@ -32,16 +28,12 @@ export interface ThemeColors {
   accentPink: string;
   accentOrange: string;
   accentEmerald: string;
-
-  // Semantic & Priorities
   highPriority: string;
   highPriorityBg: string;
   mediumPriority: string;
   mediumPriorityBg: string;
   lowPriority: string;
   lowPriorityBg: string;
-
-  // Statuses
   success: string;
   successBg: string;
   warning: string;
@@ -50,14 +42,10 @@ export interface ThemeColors {
   errorBg: string;
   info: string;
   infoBg: string;
-
-  // Text
   text: string;
   textSecondary: string;
   textMuted: string;
   textInverse: string;
-
-  // Borders & Overlays
   border: string;
   borderLight: string;
   borderFocus: string;
@@ -304,8 +292,6 @@ export const ThemePalettes: Record<ThemeMode, ThemeColors> = {
     tabBarBackground: 'rgba(16, 9, 6, 0.92)',
   },
 };
-
-// Default fallback color reference
 export const Colors = ThemePalettes.dark;
 
 export const Spacing = {
@@ -355,7 +341,6 @@ export const Typography = {
   },
 };
 
-// Liquid Glass Helper Style presets
 export const LiquidGlass = {
   card: {
     backgroundColor: Colors.glassCard,

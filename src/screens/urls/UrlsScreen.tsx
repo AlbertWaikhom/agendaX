@@ -17,6 +17,7 @@ import { Input } from '../../components/common/Input';
 import { UrlCard } from '../../components/urls/UrlCard';
 import { PageLockGuard } from '../../components/security/PageLockGuard';
 import { UrlFormModal } from '../../components/urls/UrlFormModal';
+import { CustomAlertModal, AlertButton } from '../../components/common/CustomAlertModal';
 import { FloatingActionButton } from '../../components/common/FloatingActionButton';
 import { createUrlsStyles } from './UrlsScreen.styles';
 
@@ -31,6 +32,19 @@ export const UrlsScreen: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingUrl, setEditingUrl] = useState<UrlItem | null>(null);
 
+  // Custom Alert Modal State
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    title: string;
+    message?: string;
+    icon?: keyof typeof Ionicons.glyphMap;
+    iconColor?: string;
+    buttons?: AlertButton[];
+  }>({
+    visible: false,
+    title: '',
+  });
+
   const displayedUrls = useMemo(() => {
     return UrlService.filterUrls(urls, searchQuery, selectedCategory);
   }, [urls, searchQuery, selectedCategory]);
@@ -38,6 +52,27 @@ export const UrlsScreen: React.FC = () => {
   const handleEdit = (url: UrlItem) => {
     setEditingUrl(url);
     setShowModal(true);
+  };
+
+  const confirmDeleteUrl = (url: UrlItem) => {
+    setAlertConfig({
+      visible: true,
+      title: 'Delete Bookmark',
+      message: `Are you sure you want to delete "${url.title}" (${url.url})?`,
+      icon: 'trash-outline',
+      iconColor: colors.error,
+      buttons: [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete Link',
+          style: 'destructive',
+          icon: 'trash-outline',
+          onPress: () => {
+            deleteUrl(url.id);
+          },
+        },
+      ],
+    });
   };
 
   const handleSave = async (data: any) => {
@@ -108,7 +143,7 @@ export const UrlsScreen: React.FC = () => {
             <UrlCard
               item={item}
               onEdit={() => handleEdit(item)}
-              onDelete={() => deleteUrl(item.id)}
+              onDelete={() => confirmDeleteUrl(item)}
             />
           )}
           ListEmptyComponent={
@@ -138,6 +173,17 @@ export const UrlsScreen: React.FC = () => {
           setEditingUrl(null);
         }}
         onSave={handleSave}
+      />
+
+      {/* Custom Liquid Glass Alert Modal for Bookmark Deletion */}
+      <CustomAlertModal
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        icon={alertConfig.icon}
+        iconColor={alertConfig.iconColor}
+        buttons={alertConfig.buttons}
+        onClose={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
       />
       </PageLockGuard>
     </PageContainer>

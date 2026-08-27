@@ -9,8 +9,8 @@ interface DateTimePickerModalProps {
   visible: boolean;
   onClose: () => void;
   onSelect: (date: string, time?: string) => void;
-  initialDate?: string; // YYYY-MM-DD
-  initialTime?: string; // HH:mm
+  initialDate?: string;
+  initialTime?: string;
   mode?: 'date' | 'time' | 'datetime';
 }
 

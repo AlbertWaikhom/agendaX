@@ -47,8 +47,6 @@ export const TaskService = {
   filterTasks(tasks: TaskItem[], filter: TaskFilter, searchQuery: string = '', selectedCategory: string = 'All'): TaskItem[] {
     const today = getTodayDateString();
     let filtered = [...tasks];
-
-    // Filter by tab
     if (filter === 'today') {
       filtered = filtered.filter(t => t.dueDate === today);
     } else if (filter === 'pending') {
@@ -56,13 +54,9 @@ export const TaskService = {
     } else if (filter === 'completed') {
       filtered = filtered.filter(t => t.completed);
     }
-
-    // Filter by Category
     if (selectedCategory && selectedCategory !== 'All') {
       filtered = filtered.filter(t => t.category.toLowerCase() === selectedCategory.toLowerCase());
     }
-
-    // Filter by search query
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
       filtered = filtered.filter(
@@ -78,7 +72,6 @@ export const TaskService = {
 
     if (sortBy === 'dueDate') {
       sorted.sort((a, b) => {
-        // Pending first, then date
         if (a.completed !== b.completed) return a.completed ? 1 : -1;
         const dateA = `${a.dueDate} ${a.dueTime || '23:59'}`;
         const dateB = `${b.dueDate} ${b.dueTime || '23:59'}`;

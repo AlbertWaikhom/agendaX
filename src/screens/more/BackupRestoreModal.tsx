@@ -31,8 +31,6 @@ export const BackupRestoreModal: React.FC<BackupRestoreModalProps> = ({
   const [loadingZipExport, setLoadingZipExport] = useState(false);
   const [loadingImport, setLoadingImport] = useState(false);
   const [exportMessage, setExportMessage] = useState<string | null>(null);
-
-  // Import state
   const [parsedData, setParsedData] = useState<WorkspaceData | null>(null);
   const [previewSummary, setPreviewSummary] = useState<{
     tasksCount: number;

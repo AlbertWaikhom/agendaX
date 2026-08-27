@@ -4,7 +4,7 @@
 
 ![AgendaX Banner](assets/product-logo.png)
 
-### **Next-Gen iOS 26 Liquid Glass Productivity, Expense & Security Manager**
+### **Next-Gen AgendaX Liquid Effect Productivity, Expense & Security Manager**
 
 [![Download APK](https://img.shields.io/badge/⬇️_Download_Android_APK-v1.01_Release-34D399?style=for-the-badge&logo=android&logoColor=white)](https://github.com/AlbertWaikhom/agendaX/raw/main/agendaX-v1.01.apk)
 [![Latest Release](https://img.shields.io/github/v/release/AlbertWaikhom/agendaX?style=for-the-badge&color=818CF8&label=Latest%20Version)](https://github.com/AlbertWaikhom/agendaX/releases/latest)
@@ -36,7 +36,7 @@ Or alternate mirror: **[Download agendaX-v1.apk](https://github.com/AlbertWaikho
 1. **Download**: Tap the download button above on your Android phone.
 2. **Install**: Tap `app-release.apk` in your phone's notification or Downloads folder.
 3. **Allow Permission**: If prompted with *"Install unknown apps"*, tap **Settings** → toggle **Allow from this source**.
-4. **Launch**: Open **AgendaX** and enjoy the next-gen iOS 26 Liquid Glass experience!
+4. **Launch**: Open **AgendaX** and enjoy the next-gen AgendaX Liquid Effect experience!
 
 > **System Compatibility**: Android 8.0 (Oreo) to Android 15+ (API 24 to 36).
 
@@ -44,7 +44,7 @@ Or alternate mirror: **[Download agendaX-v1.apk](https://github.com/AlbertWaikho
 
 ## 📖 About AgendaX
 
-**AgendaX** is an all-in-one personal management and lifestyle optimization application designed to streamline your daily workflow. Built with **iOS 26 Liquid Glass aesthetics**, dynamic lighting refraction, smooth spring micro-animations, and haptic feedback, AgendaX combines calendar scheduling, prioritized task tracking, expense budget analytics in Indian Rupees (**₹**), bookmark/link organization, and military-grade biometric privacy into a single fluid experience.
+**AgendaX** is an all-in-one personal management and lifestyle optimization application designed to streamline your daily workflow. Built with **AgendaX Liquid Effect aesthetics**, dynamic lighting refraction, smooth spring micro-animations, and haptic feedback, AgendaX combines calendar scheduling, prioritized task tracking, expense budget analytics in Indian Rupees (**₹**), bookmark/link organization, and military-grade biometric privacy into a single fluid experience.
 
 Whether you are managing tight work deadlines, planning daily routines, monitoring monthly financial habits, or securing sensitive personal data, AgendaX acts as your reliable offline digital assistant.
 
@@ -81,15 +81,15 @@ Whether you are managing tight work deadlines, planning daily routines, monitori
   - **Custom 4-6 Digit Master PIN** (with default `1234` fallback)
   - **Hybrid Authentication** (Biometrics + PIN Fallback)
 - **Page-Level Protection**: Lock the whole app or protect specific sensitive tabs (e.g. *Expenses*, *Secure URLs*, *Tasks*).
-- **Anti-Tamper PIN Keypad**: Transparent iOS 26 Liquid Glass keypad with ambient light refraction, error shake animation, and haptic impact.
+- **Anti-Tamper PIN Keypad**: Transparent AgendaX Liquid Glass keypad with ambient light refraction, error shake animation, and haptic impact.
 
-### 6. 🎨 iOS 26 Liquid Glass Design System
+### 6. 🎨 AgendaX Liquid Glass Design System
 - **Translucent Glassmorphism**: Specular highlight rims, multi-layered depth, and glowing refraction orbs.
 - **4 Premium Curated Themes**:
-  - 🌌 **Cyber Dark** (Deep OLED Black with Neon Indigo accents)
-  - 🔷 **Midnight Blue** (Executive Navy & Sapphire Glow)
-  - 👑 **Amber Gold** (Warm Cyberpunk Luxury)
-  - ⚡ **Cyberpunk Neon** (Vibrant Electric Violet)
+  - 🌌 **Liquid Dark** (Deep OLED Black with Neon Indigo accents)
+  - 🔷 **Crystal Light** (Executive Crisp Sapphire Glow)
+  - 👑 **Sunset Amber** (Warm Luxury Amber Specular)
+  - ⚡ **Cyber Neon** (Vibrant Electric Cyan Glow)
 - **Apple SF Pro Typography**: Modern, crisp, readable typography hierarchy.
 
 ---
@@ -102,7 +102,7 @@ Whether you are managing tight work deadlines, planning daily routines, monitori
 | **Financial blind spots at month-end** | Tracks daily UPI and card expenses in ₹ with instant category breakdown charts. |
 | **Losing important bookmarks & links** | One-tap vault for repository links, portals, and meeting rooms with notes. |
 | **Privacy on shared phones** | Locks sensitive financial and task data behind fingerprint, Face ID, or PIN. |
-| **Cluttered, ugly productivity apps** | Inspiring iOS 26 Liquid Glass aesthetics with haptic feedback that makes daily planning enjoyable. |
+| **Cluttered, ugly productivity apps** | Inspiring AgendaX Liquid Effect aesthetics with haptic feedback that makes daily planning enjoyable. |
 | **No internet connectivity** | 100% offline functionality with local AsyncStorage persistence. |
 
 ---

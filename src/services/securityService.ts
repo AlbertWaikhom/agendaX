@@ -20,9 +20,7 @@ export const defaultSecuritySettings: SecuritySettings = {
 };
 
 export class SecurityService {
-  /**
-   * Load stored security settings
-   */
+
   static async loadSecuritySettings(): Promise<SecuritySettings> {
     try {
       const sqliteSettings = await SettingsRepository.getSettings();
@@ -40,9 +38,6 @@ export class SecurityService {
     return defaultSecuritySettings;
   }
 
-  /**
-   * Save security settings
-   */
   static async saveSecuritySettings(settings: SecuritySettings): Promise<void> {
     try {
       await SettingsRepository.updateSettings({ security: settings });
@@ -52,9 +47,6 @@ export class SecurityService {
     }
   }
 
-  /**
-   * Check if device has biometrics / system authentication hardware
-   */
   static async checkBiometricsCapability(): Promise<{
     hasHardware: boolean;
     isEnrolled: boolean;
@@ -94,9 +86,6 @@ export class SecurityService {
     }
   }
 
-  /**
-   * Prompt biometric / system unlock
-   */
   static async authenticateBiometric(
     promptMessage: string = 'Unlock AgendaX'
   ): Promise<{ success: boolean; error?: string }> {
@@ -131,9 +120,6 @@ export class SecurityService {
     }
   }
 
-  /**
-   * Verify custom PIN
-   */
   static verifyPin(enteredPin: string, storedPin: string | null): boolean {
     if (!storedPin) return false;
     return enteredPin === storedPin;

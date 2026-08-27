@@ -29,6 +29,7 @@ import { UrlFormModal } from '../../components/urls/UrlFormModal';
 import { ExpenseFormModal } from '../../components/expenses/ExpenseFormModal';
 import { EventDetailsModal } from '../../components/events/EventDetailsModal';
 import { TaskDetailsModal } from '../../components/tasks/TaskDetailsModal';
+import { CustomAlertModal, AlertButton } from '../../components/common/CustomAlertModal';
 import { EventItem, TaskItem } from '../../types';
 import { createDashboardStyles } from './DashboardScreen.styles';
 
@@ -64,6 +65,19 @@ export const DashboardScreen: React.FC = () => {
   const [showEventDetails, setShowEventDetails] = useState(false);
   const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
   const [showTaskDetails, setShowTaskDetails] = useState(false);
+
+  // Custom Alert Modal State for Delete
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    title: string;
+    message?: string;
+    icon?: keyof typeof Ionicons.glyphMap;
+    iconColor?: string;
+    buttons?: AlertButton[];
+  }>({
+    visible: false,
+    title: '',
+  });
 
   // Stagger Animation Values
   const fadeHeader = useRef(new Animated.Value(0)).current;
@@ -661,7 +675,28 @@ export const DashboardScreen: React.FC = () => {
           updateEvent(event);
         }}
         onDelete={id => {
-          deleteEvent(id);
+          if (selectedEvent) {
+            setAlertConfig({
+              visible: true,
+              title: 'Delete Event',
+              message: `Are you sure you want to delete "${selectedEvent.name}"? This action cannot be undone.`,
+              icon: 'trash-outline',
+              iconColor: colors.error,
+              buttons: [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Delete Event',
+                  style: 'destructive',
+                  icon: 'trash-outline',
+                  onPress: () => {
+                    deleteEvent(id);
+                    setShowEventDetails(false);
+                    setSelectedEvent(null);
+                  },
+                },
+              ],
+            });
+          }
         }}
       />
 
@@ -675,7 +710,28 @@ export const DashboardScreen: React.FC = () => {
         }}
         onEdit={() => {}}
         onDelete={id => {
-          deleteTask(id);
+          if (selectedTask) {
+            setAlertConfig({
+              visible: true,
+              title: 'Delete Task',
+              message: `Are you sure you want to delete "${selectedTask.title}"? This action cannot be undone.`,
+              icon: 'trash-outline',
+              iconColor: colors.error,
+              buttons: [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Delete Task',
+                  style: 'destructive',
+                  icon: 'trash-outline',
+                  onPress: () => {
+                    deleteTask(id);
+                    setShowTaskDetails(false);
+                    setSelectedTask(null);
+                  },
+                },
+              ],
+            });
+          }
         }}
         onToggleComplete={id => {
           toggleTask(id);
@@ -683,6 +739,17 @@ export const DashboardScreen: React.FC = () => {
             setSelectedTask({ ...selectedTask, completed: !selectedTask.completed });
           }
         }}
+      />
+
+      {/* Custom Liquid Glass Alert Modal for Dashboard Deletions */}
+      <CustomAlertModal
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        icon={alertConfig.icon}
+        iconColor={alertConfig.iconColor}
+        buttons={alertConfig.buttons}
+        onClose={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
       />
     </PageContainer>
   );
