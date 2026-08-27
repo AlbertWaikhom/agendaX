@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SecuritySettings, LockMode } from '../types';
+import { SettingsRepository } from '../database/repositories/settingsRepository';
 
 let LocalAuthentication: typeof import('expo-local-authentication') | null = null;
 try {
@@ -24,6 +25,11 @@ export class SecurityService {
    */
   static async loadSecuritySettings(): Promise<SecuritySettings> {
     try {
+      const sqliteSettings = await SettingsRepository.getSettings();
+      if (sqliteSettings?.security) {
+        return { ...defaultSecuritySettings, ...sqliteSettings.security };
+      }
+
       const raw = await AsyncStorage.getItem(SECURITY_STORAGE_KEY);
       if (raw) {
         return { ...defaultSecuritySettings, ...JSON.parse(raw) };
@@ -39,6 +45,7 @@ export class SecurityService {
    */
   static async saveSecuritySettings(settings: SecuritySettings): Promise<void> {
     try {
+      await SettingsRepository.updateSettings({ security: settings });
       await AsyncStorage.setItem(SECURITY_STORAGE_KEY, JSON.stringify(settings));
     } catch (e) {
       console.warn('Error saving security settings:', e);

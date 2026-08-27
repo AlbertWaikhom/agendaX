@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ThemeMode } from '../types';
 import { ThemePalettes, ThemeColors } from '../constants/theme';
+import { SettingsRepository } from '../database/repositories/settingsRepository';
 import { Storage, STORAGE_KEYS } from '../storage/asyncStorage';
 
 interface ThemeContextValue {
@@ -19,6 +20,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Load persisted theme
     const loadTheme = async () => {
       try {
+        const sqliteSettings = await SettingsRepository.getSettings();
+        if (sqliteSettings?.theme && ThemePalettes[sqliteSettings.theme]) {
+          setThemeState(sqliteSettings.theme);
+          return;
+        }
+
         const savedSettings = await Storage.getItem<any>(STORAGE_KEYS.SETTINGS, null);
         if (savedSettings && savedSettings.theme && ThemePalettes[savedSettings.theme as ThemeMode]) {
           setThemeState(savedSettings.theme as ThemeMode);
@@ -33,6 +40,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const setTheme = async (newTheme: ThemeMode) => {
     setThemeState(newTheme);
     try {
+      await SettingsRepository.updateSettings({ theme: newTheme });
       const currentSettings = (await Storage.getItem<any>(STORAGE_KEYS.SETTINGS, {})) || {};
       await Storage.setItem(STORAGE_KEYS.SETTINGS, {
         ...currentSettings,

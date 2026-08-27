@@ -23,6 +23,21 @@ export type PaymentMethod = 'Card' | 'Cash' | 'Bank Transfer' | 'UPI' | 'Digital
 
 export type ThemeMode = 'dark' | 'light' | 'cyber' | 'sunset';
 
+export type AttachmentParentType = 'task' | 'event' | 'expense' | 'url' | 'note';
+
+export interface AttachmentItem {
+  id: string;
+  parentType: AttachmentParentType;
+  parentId: string;
+  fileName: string;
+  storedFileName: string;
+  relativePath: string;
+  mimeType: string;
+  fileSize: number;
+  isEncrypted: boolean;
+  createdAt: string;
+}
+
 export interface LocalUser {
   id: string; // e.g. "AGX-8F3A2D91"
   name: string;
@@ -46,6 +61,7 @@ export interface TaskItem {
   completedAt?: string;
   createdAt: string;
   updatedAt: string;
+  attachments?: AttachmentItem[];
 }
 
 export interface EventItem {
@@ -64,6 +80,7 @@ export interface EventItem {
   notificationId?: string;
   createdAt: string;
   updatedAt?: string;
+  attachments?: AttachmentItem[];
 }
 
 export interface ExpenseItem {
@@ -76,6 +93,7 @@ export interface ExpenseItem {
   notes?: string;
   createdAt: string;
   updatedAt?: string;
+  attachments?: AttachmentItem[];
 }
 
 export interface UrlItem {
@@ -86,6 +104,7 @@ export interface UrlItem {
   note?: string;
   createdAt: string;
   updatedAt?: string;
+  attachments?: AttachmentItem[];
 }
 
 export interface NotificationRecord {
@@ -127,6 +146,7 @@ export interface WorkspaceData {
   urls: UrlItem[];
   notifications: NotificationRecord[];
   settings: AppSettings;
+  attachments?: AttachmentItem[];
 }
 
 export interface BackupPayload {
@@ -135,4 +155,29 @@ export interface BackupPayload {
   exportedAt: string;
   workspaceId: string;
   data: WorkspaceData;
+}
+
+export interface ZipBackupManifest {
+  app: 'AgendaX';
+  backupVersion: number;
+  createdAt: string;
+  database: string;
+  mediaDirectory: string;
+  recordCounts: {
+    tasks: number;
+    events: number;
+    expenses: number;
+    urls: number;
+    attachments: number;
+  };
+}
+
+export interface MigrationRecord {
+  id: number;
+  migrationName: string;
+  migrationVersion: number;
+  status: 'pending' | 'in_progress' | 'completed' | 'failed';
+  startedAt: string;
+  completedAt?: string;
+  errorMessage?: string;
 }

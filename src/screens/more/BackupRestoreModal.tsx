@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Typography, BorderRadius, Spacing } from '../../constants/theme';
@@ -25,8 +26,9 @@ export const BackupRestoreModal: React.FC<BackupRestoreModalProps> = ({
   onClose,
 }) => {
   const { colors } = useTheme();
-  const { exportData, importData } = useWorkspace();
+  const { exportData, exportZipData, importMergeData, importReplaceData } = useWorkspace();
   const [loadingExport, setLoadingExport] = useState(false);
+  const [loadingZipExport, setLoadingZipExport] = useState(false);
   const [loadingImport, setLoadingImport] = useState(false);
   const [exportMessage, setExportMessage] = useState<string | null>(null);
 
@@ -37,18 +39,21 @@ export const BackupRestoreModal: React.FC<BackupRestoreModalProps> = ({
     eventsCount: number;
     expensesCount: number;
     urlsCount: number;
+    attachmentsCount?: number;
     userName: string;
     exportedAt: string;
+    format: string;
   } | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
+  const [importSuccessMessage, setImportSuccessMessage] = useState<string | null>(null);
 
-  const handleExport = async () => {
+  const handleExportJson = async () => {
     setLoadingExport(true);
     setExportMessage(null);
     try {
       const result = await exportData();
       if (result.success) {
-        setExportMessage(result.message || 'Backup file generated successfully!');
+        setExportMessage(result.message || 'JSON backup generated successfully!');
       } else {
         setExportMessage(result.error || 'Failed to generate backup');
       }
@@ -59,9 +64,27 @@ export const BackupRestoreModal: React.FC<BackupRestoreModalProps> = ({
     }
   };
 
+  const handleExportZip = async () => {
+    setLoadingZipExport(true);
+    setExportMessage(null);
+    try {
+      const result = await exportZipData();
+      if (result.success) {
+        setExportMessage(result.message || 'Full ZIP backup archive created successfully!');
+      } else {
+        setExportMessage(result.error || 'Failed to generate ZIP backup');
+      }
+    } catch (e: any) {
+      setExportMessage(e?.message || 'ZIP Export error');
+    } finally {
+      setLoadingZipExport(false);
+    }
+  };
+
   const handlePickFile = async () => {
     setLoadingImport(true);
     setImportError(null);
+    setImportSuccessMessage(null);
     setParsedData(null);
     setPreviewSummary(null);
 
@@ -83,26 +106,54 @@ export const BackupRestoreModal: React.FC<BackupRestoreModalProps> = ({
     }
   };
 
-  const handleConfirmRestore = async () => {
+  const handleMergeRestore = async () => {
+    if (!parsedData) return;
+    setLoadingImport(true);
+    setImportError(null);
+    try {
+      const res = await importMergeData(parsedData);
+      if (res.success) {
+        Alert.alert(
+          '✅ Merge Complete',
+          `Imported: ${res.imported.tasks} tasks, ${res.imported.events} events, ${res.imported.expenses} expenses, ${res.imported.urls} URLs.\nSkipped ${res.skippedDuplicates || 0} existing duplicates.`
+        );
+        onClose();
+      } else {
+        setImportError(res.error || 'Failed to merge data.');
+      }
+    } catch (e: any) {
+      setImportError(e?.message || 'Merge failed');
+    } finally {
+      setLoadingImport(false);
+    }
+  };
+
+  const handleReplaceRestore = async () => {
     if (!parsedData) return;
 
     Alert.alert(
-      '⚠️ Restore Workspace Backup',
-      'This action will replace your current workspace data with the selected backup file. Are you sure you want to proceed?',
+      '⚠️ Replace All Workspace Data',
+      'This action will replace all current SQLite tasks, events, and expenses with the backup data. Are you sure?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Restore Now',
+          text: 'Replace All Now',
           style: 'destructive',
           onPress: async () => {
             setLoadingImport(true);
-            const ok = await importData(parsedData);
-            setLoadingImport(false);
-            if (ok) {
-              Alert.alert('✅ Restored Successfully', 'Your workspace has been fully restored.');
-              onClose();
-            } else {
-              setImportError('Failed to restore data into local storage.');
+            setImportError(null);
+            try {
+              const res = await importReplaceData(parsedData);
+              if (res.success) {
+                Alert.alert('✅ Restored Successfully', 'Your workspace has been completely restored from backup.');
+                onClose();
+              } else {
+                setImportError(res.error || 'Failed to replace data in SQLite.');
+              }
+            } catch (e: any) {
+              setImportError(e?.message || 'Restore error');
+            } finally {
+              setLoadingImport(false);
             }
           },
         },
@@ -114,8 +165,8 @@ export const BackupRestoreModal: React.FC<BackupRestoreModalProps> = ({
     <ModalWrapper
       visible={visible}
       onClose={onClose}
-      title="Backup & Restore"
-      subtitle="Export or import your complete local workspace JSON file"
+      title="Backup & Restore Vault"
+      subtitle="100% Offline SQLite export & import (JSON or ZIP Archive)"
     >
       {/* Export Section */}
       <View style={[styles.sectionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -124,20 +175,30 @@ export const BackupRestoreModal: React.FC<BackupRestoreModalProps> = ({
             <Ionicons name="cloud-upload-outline" size={22} color={colors.primary} />
           </View>
           <View style={styles.headerText}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Export Workspace JSON</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Export SQLite Backup</Text>
             <Text style={[styles.sectionDesc, { color: colors.textSecondary }]}>
-              Save all your tasks, events, expenses, URLs, and settings into a standard offline JSON backup file.
+              Save your complete workspace into an offline JSON file or full ZIP archive with media.
             </Text>
           </View>
         </View>
 
-        <Button
-          title="Export Backup File"
-          icon="download-outline"
-          loading={loadingExport}
-          onPress={handleExport}
-          style={{ marginTop: Spacing.md }}
-        />
+        <View style={{ flexDirection: 'row', gap: 10, marginTop: Spacing.md }}>
+          <Button
+            title="Export JSON"
+            icon="document-text-outline"
+            loading={loadingExport}
+            onPress={handleExportJson}
+            style={{ flex: 1 }}
+          />
+          <Button
+            title="Export ZIP"
+            icon="archive-outline"
+            variant="secondary"
+            loading={loadingZipExport}
+            onPress={handleExportZip}
+            style={{ flex: 1 }}
+          />
+        </View>
 
         {exportMessage && (
           <View style={[styles.messageBox, { backgroundColor: colors.successBg, borderColor: colors.success }]}>
@@ -154,17 +215,17 @@ export const BackupRestoreModal: React.FC<BackupRestoreModalProps> = ({
             <Ionicons name="cloud-download-outline" size={22} color={colors.accentPurple} />
           </View>
           <View style={styles.headerText}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Import & Restore JSON</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Import & Restore Backup</Text>
             <Text style={[styles.sectionDesc, { color: colors.textSecondary }]}>
-              Load an existing AgendaX JSON backup file to restore your workspace.
+              Select any AgendaX JSON or ZIP archive to merge or restore into your SQLite database.
             </Text>
           </View>
         </View>
 
         <Button
-          title="Select Backup File"
+          title="Select Backup (JSON / ZIP)"
           variant="secondary"
-          icon="document-text-outline"
+          icon="folder-open-outline"
           loading={loadingImport}
           onPress={handlePickFile}
           style={{ marginTop: Spacing.md }}
@@ -180,35 +241,55 @@ export const BackupRestoreModal: React.FC<BackupRestoreModalProps> = ({
         {/* Backup Summary Preview */}
         {previewSummary && (
           <View style={[styles.previewCard, { backgroundColor: colors.surfaceHighlight, borderColor: colors.borderLight }]}>
-            <Text style={[styles.previewTitle, { color: colors.primaryLight }]}>Backup File Summary</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <Text style={[styles.previewTitle, { color: colors.primaryLight }]}>Backup File Verified</Text>
+              <Text style={{ fontSize: 11, color: colors.accentEmerald, fontWeight: '700' }}>{previewSummary.format}</Text>
+            </View>
+
             <View style={[styles.previewRow, { borderColor: colors.border }]}>
-              <Text style={[styles.previewLabel, { color: colors.textSecondary }]}>Owner:</Text>
+              <Text style={[styles.previewLabel, { color: colors.textSecondary }]}>Workspace User:</Text>
               <Text style={[styles.previewVal, { color: colors.text }]}>{previewSummary.userName}</Text>
             </View>
             <View style={[styles.previewRow, { borderColor: colors.border }]}>
               <Text style={[styles.previewLabel, { color: colors.textSecondary }]}>Tasks:</Text>
-              <Text style={[styles.previewVal, { color: colors.text }]}>{previewSummary.tasksCount} tasks</Text>
+              <Text style={[styles.previewVal, { color: colors.text }]}>{previewSummary.tasksCount} records</Text>
             </View>
             <View style={[styles.previewRow, { borderColor: colors.border }]}>
               <Text style={[styles.previewLabel, { color: colors.textSecondary }]}>Events:</Text>
-              <Text style={[styles.previewVal, { color: colors.text }]}>{previewSummary.eventsCount} events</Text>
+              <Text style={[styles.previewVal, { color: colors.text }]}>{previewSummary.eventsCount} records</Text>
             </View>
             <View style={[styles.previewRow, { borderColor: colors.border }]}>
               <Text style={[styles.previewLabel, { color: colors.textSecondary }]}>Expenses:</Text>
-              <Text style={[styles.previewVal, { color: colors.text }]}>{previewSummary.expensesCount} expenses</Text>
+              <Text style={[styles.previewVal, { color: colors.text }]}>{previewSummary.expensesCount} records</Text>
             </View>
             <View style={[styles.previewRow, { borderColor: colors.border }]}>
               <Text style={[styles.previewLabel, { color: colors.textSecondary }]}>URLs:</Text>
               <Text style={[styles.previewVal, { color: colors.text }]}>{previewSummary.urlsCount} bookmarks</Text>
             </View>
+            {previewSummary.attachmentsCount !== undefined && previewSummary.attachmentsCount > 0 && (
+              <View style={[styles.previewRow, { borderColor: colors.border }]}>
+                <Text style={[styles.previewLabel, { color: colors.textSecondary }]}>Attachments:</Text>
+                <Text style={[styles.previewVal, { color: colors.text }]}>{previewSummary.attachmentsCount} media files</Text>
+              </View>
+            )}
 
-            <Button
-              title="Confirm & Restore Workspace"
-              variant="danger"
-              icon="refresh"
-              onPress={handleConfirmRestore}
-              style={{ marginTop: Spacing.md }}
-            />
+            {/* Merge vs Replace Action Buttons */}
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: Spacing.md }}>
+              <Button
+                title="Merge Data"
+                icon="git-merge-outline"
+                variant="primary"
+                onPress={handleMergeRestore}
+                style={{ flex: 1 }}
+              />
+              <Button
+                title="Replace All"
+                icon="refresh-outline"
+                variant="danger"
+                onPress={handleReplaceRestore}
+                style={{ flex: 1 }}
+              />
+            </View>
           </View>
         )}
       </View>
@@ -269,7 +350,6 @@ const styles = StyleSheet.create({
   previewTitle: {
     fontSize: Typography.fontSize.sm,
     fontWeight: Typography.fontWeight.bold,
-    marginBottom: 8,
   },
   previewRow: {
     flexDirection: 'row',
