@@ -66,7 +66,7 @@ export const CustomAlertModal: React.FC<CustomAlertProps> = ({
               ]}
             >
               {/* Icon Header */}
-              {icon && (
+              {!!icon && (
                 <View
                   style={[
                     styles.iconWrapper,
@@ -126,7 +126,7 @@ export const CustomAlertModal: React.FC<CustomAlertProps> = ({
                       }}
                       activeOpacity={0.75}
                     >
-                      {btn.icon && (
+                      {!!btn.icon && (
                         <Ionicons
                           name={btn.icon}
                           size={18}

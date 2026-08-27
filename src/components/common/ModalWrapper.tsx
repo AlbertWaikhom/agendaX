@@ -66,7 +66,7 @@ export const ModalWrapper: React.FC<ModalWrapperProps> = ({
           <View style={[styles.header, { borderColor: colors.border }]}>
             <View style={styles.titleContainer}>
               <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
-              {subtitle && <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text>}
+              {!!subtitle && <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text>}
             </View>
             <TouchableOpacity
               onPress={onClose}

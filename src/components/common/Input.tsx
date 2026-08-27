@@ -40,7 +40,7 @@ export const Input: React.FC<InputProps> = ({
 
   return (
     <View style={[styles.container, containerStyle]}>
-      {label && <Text style={[styles.label, { color: colors.text }]}>{label}</Text>}
+      {!!label && <Text style={[styles.label, { color: colors.text }]}>{label}</Text>}
       <View
         style={[
           styles.inputWrapper,
@@ -53,7 +53,7 @@ export const Input: React.FC<InputProps> = ({
           !!error && [styles.inputError, { borderColor: colors.error }],
         ]}
       >
-        {icon && (
+        {!!icon && (
           <Ionicons
             name={icon}
             size={20}
@@ -75,13 +75,13 @@ export const Input: React.FC<InputProps> = ({
             <Ionicons name="close-circle" size={18} color={colors.textMuted} style={styles.clearIcon} />
           </TouchableOpacity>
         )}
-        {rightIcon && (
+        {!!rightIcon && (
           <TouchableOpacity onPress={onRightIconPress} disabled={!onRightIconPress}>
             <Ionicons name={rightIcon} size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         )}
       </View>
-      {error && <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>}
+      {!!error && <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>}
     </View>
   );
 };

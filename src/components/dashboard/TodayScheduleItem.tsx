@@ -80,8 +80,8 @@ export const TodayScheduleItem: React.FC<TodayScheduleItemProps> = ({
         )}
 
         <View style={styles.tagsRow}>
-          {item.category && <CategoryPill label={item.category} color={item.color} style={styles.tag} />}
-          {isTask && item.priority && <PriorityBadge priority={item.priority} style={styles.tag} />}
+          {!!item.category && <CategoryPill label={item.category} color={item.color} style={styles.tag} />}
+          {Boolean(isTask && item.priority) && <PriorityBadge priority={item.priority!} style={styles.tag} />}
         </View>
       </View>
 

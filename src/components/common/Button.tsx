@@ -120,12 +120,12 @@ export const Button: React.FC<ButtonProps> = ({
         <ActivityIndicator color={iconColor} size="small" />
       ) : (
         <View style={styles.contentRow}>
-          {icon && iconPosition === 'left' && (
-            <Ionicons name={icon} size={iconSize} color={iconColor} style={styles.leftIcon} />
+          {Boolean(icon && iconPosition === 'left') && (
+            <Ionicons name={icon!} size={iconSize} color={iconColor} style={styles.leftIcon} />
           )}
           <Text style={[getTextStyle(), textStyle]}>{title}</Text>
-          {icon && iconPosition === 'right' && (
-            <Ionicons name={icon} size={iconSize} color={iconColor} style={styles.rightIcon} />
+          {Boolean(icon && iconPosition === 'right') && (
+            <Ionicons name={icon!} size={iconSize} color={iconColor} style={styles.rightIcon} />
           )}
         </View>
       )}
