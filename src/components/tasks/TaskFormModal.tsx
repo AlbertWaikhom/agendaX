@@ -32,6 +32,7 @@ interface TaskFormModalProps {
     url?: string;
     reminderEnabled: boolean;
     reminderTime: string;
+    mediaUri?: string;
   }) => void;
   initialTask?: TaskItem | null;
 }
@@ -58,6 +59,8 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [error, setError] = useState('');
 
+  const [mediaUri, setMediaUri] = useState<string | undefined>(undefined);
+
   useEffect(() => {
     if (initialTask) {
       setTitle(initialTask.title);
@@ -69,6 +72,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
       setUrl(initialTask.url || '');
       setReminderEnabled(initialTask.reminderEnabled);
       setReminderTime(initialTask.reminderTime || '30_min_before');
+      setMediaUri(initialTask.mediaUri);
     } else {
       setTitle('');
       setDescription('');
@@ -80,9 +84,27 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
       setReminderEnabled(false);
       setReminderTime('30_min_before');
       setShowCustomCategory(false);
+      setMediaUri(undefined);
     }
     setError('');
   }, [initialTask, visible]);
+
+  const handlePickMedia = async () => {
+    try {
+      const ImagePicker = await import('expo-image-picker');
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: false,
+        quality: 0.85,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setMediaUri(result.assets[0].uri);
+      }
+    } catch (e) {
+      console.warn('Pick media error:', e);
+    }
+  };
 
   const handleSubmit = () => {
     if (!title.trim()) {
@@ -106,6 +128,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
       url: url.trim() || undefined,
       reminderEnabled,
       reminderTime,
+      mediaUri,
     });
     onClose();
   };
@@ -352,11 +375,35 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
         )}
       </View>
 
+      {/* Optional Photo / Document Attachment */}
+      <View style={{ marginBottom: Spacing.md }}>
+        <Text style={[styles.sectionLabel, { color: colors.text }]}>Attachment (Optional)</Text>
+        {mediaUri ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', padding: 10, borderRadius: 12, backgroundColor: colors.surfaceHighlight, borderWidth: 1, borderColor: colors.glassBorder }}>
+            <Ionicons name="image" size={24} color={colors.primaryLight} />
+            <Text style={{ flex: 1, marginLeft: 10, fontSize: 12, color: colors.text }} numberOfLines={1}>
+              Photo Attached
+            </Text>
+            <TouchableOpacity onPress={() => setMediaUri(undefined)} style={{ padding: 4 }}>
+              <Ionicons name="trash-outline" size={18} color={colors.error} />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity
+            onPress={handlePickMedia}
+            style={{ padding: 12, borderRadius: 12, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.glassBorder, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, backgroundColor: colors.glassCard }}
+          >
+            <Ionicons name="cloud-upload-outline" size={18} color={colors.primaryLight} />
+            <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text }}>Upload Photo or Screenshot</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
       {/* Submit Button */}
       <Button
         title={initialTask ? 'Save Changes' : 'Add Task'}
         onPress={handleSubmit}
-        style={{ marginTop: Spacing.lg }}
+        style={{ marginTop: Spacing.sm }}
       />
 
       {/* Date Time Picker Modal */}

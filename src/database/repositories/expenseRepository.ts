@@ -6,7 +6,7 @@ export const ExpenseRepository = {
     const db = await Database.getDatabaseAsync();
     const rows = await db.getAllAsync<any>(
       `SELECT id, title, amount, category, date, payment_method, notes,
-              created_at, updated_at
+              transaction_id, receipt_uri, created_at, updated_at
        FROM expenses ORDER BY date DESC, created_at DESC;`
     );
 
@@ -18,6 +18,8 @@ export const ExpenseRepository = {
       date: r.date,
       paymentMethod: r.payment_method || undefined,
       notes: r.notes || undefined,
+      transactionId: r.transaction_id || undefined,
+      receiptUri: r.receipt_uri || undefined,
       createdAt: r.created_at,
       updatedAt: r.updated_at || undefined,
     }));
@@ -28,8 +30,8 @@ export const ExpenseRepository = {
     await db.runAsync(
       `INSERT INTO expenses (
          id, title, amount, category, date, payment_method, notes,
-         created_at, updated_at
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+         transaction_id, receipt_uri, created_at, updated_at
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
       [
         expense.id,
         expense.title,
@@ -38,6 +40,8 @@ export const ExpenseRepository = {
         expense.date,
         expense.paymentMethod || null,
         expense.notes || null,
+        expense.transactionId || null,
+        expense.receiptUri || null,
         expense.createdAt,
         expense.updatedAt || null,
       ]
@@ -49,7 +53,7 @@ export const ExpenseRepository = {
     await db.runAsync(
       `UPDATE expenses SET
          title = ?, amount = ?, category = ?, date = ?, payment_method = ?, notes = ?,
-         updated_at = ?
+         transaction_id = ?, receipt_uri = ?, updated_at = ?
        WHERE id = ?;`,
       [
         expense.title,
@@ -58,6 +62,8 @@ export const ExpenseRepository = {
         expense.date,
         expense.paymentMethod || null,
         expense.notes || null,
+        expense.transactionId || null,
+        expense.receiptUri || null,
         expense.updatedAt || null,
         expense.id,
       ]
@@ -76,8 +82,8 @@ export const ExpenseRepository = {
       await db.runAsync(
         `INSERT OR REPLACE INTO expenses (
            id, title, amount, category, date, payment_method, notes,
-           created_at, updated_at
-         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+           transaction_id, receipt_uri, created_at, updated_at
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           exp.id,
           exp.title,
@@ -86,6 +92,8 @@ export const ExpenseRepository = {
           exp.date,
           exp.paymentMethod || null,
           exp.notes || null,
+          exp.transactionId || null,
+          exp.receiptUri || null,
           exp.createdAt,
           exp.updatedAt || null,
         ]

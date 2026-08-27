@@ -8,9 +8,7 @@ import { AttachmentRepository } from '../database/repositories/attachmentReposit
 import { Encryption } from './encryption';
 
 export const MediaStorage = {
-  /**
-   * Pick an image from gallery
-   */
+
   async pickImage(): Promise<{ success: boolean; uri?: string; fileName?: string; mimeType?: string; fileSize?: number; error?: string }> {
     try {
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -41,9 +39,6 @@ export const MediaStorage = {
     }
   },
 
-  /**
-   * Pick any document or media file
-   */
   async pickDocument(): Promise<{ success: boolean; uri?: string; fileName?: string; mimeType?: string; fileSize?: number; error?: string }> {
     try {
       const result = await DocumentPicker.getDocumentAsync({
@@ -68,9 +63,6 @@ export const MediaStorage = {
     }
   },
 
-  /**
-   * Ingest and save an attachment file to AgendaX internal scoped storage
-   */
   async saveAttachment(params: {
     parentType: AttachmentParentType;
     parentId: string;
@@ -128,9 +120,6 @@ export const MediaStorage = {
     return attachment;
   },
 
-  /**
-   * Delete an attachment from SQLite and filesystem
-   */
   async deleteAttachment(attachment: AttachmentItem): Promise<void> {
     try {
       if (Platform.OS !== 'web') {
@@ -146,9 +135,6 @@ export const MediaStorage = {
     await AttachmentRepository.deleteAttachment(attachment.id);
   },
 
-  /**
-   * Cascade delete all attachments for a parent record
-   */
   async deleteAttachmentsForParent(parentType: AttachmentParentType, parentId: string): Promise<void> {
     try {
       const attachments = await AttachmentRepository.getAttachmentsByParent(parentType, parentId);

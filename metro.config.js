@@ -2,10 +2,12 @@ const { getDefaultConfig } = require('expo/metro-config');
 
 const config = getDefaultConfig(__dirname);
 
-// Add 'wasm' to assetExts for expo-sqlite web support
-if (!config.resolver.assetExts.includes('wasm')) {
-  config.resolver.assetExts.push('wasm');
-}
+// Add 'wasm', 'wav', 'mp3' to assetExts for expo-sqlite and audio support
+['wasm', 'wav', 'mp3'].forEach(ext => {
+  if (!config.resolver.assetExts.includes(ext)) {
+    config.resolver.assetExts.push(ext);
+  }
+});
 
 // Ensure server headers for SharedArrayBuffer support in local web development
 config.server = {

@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS tasks (
   notification_id TEXT,
   completed INTEGER NOT NULL DEFAULT 0,
   completed_at TEXT,
+  media_uri TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
@@ -60,6 +61,7 @@ CREATE TABLE IF NOT EXISTS events (
   repeat TEXT NOT NULL DEFAULT 'none',
   color TEXT NOT NULL,
   notification_id TEXT,
+  image_uri TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT
 );
@@ -73,6 +75,8 @@ CREATE TABLE IF NOT EXISTS expenses (
   date TEXT NOT NULL,
   payment_method TEXT,
   notes TEXT,
+  transaction_id TEXT,
+  receipt_uri TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT
 );
@@ -84,6 +88,7 @@ CREATE TABLE IF NOT EXISTS urls (
   url TEXT NOT NULL,
   category TEXT NOT NULL,
   note TEXT,
+  preview_image_uri TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT
 );

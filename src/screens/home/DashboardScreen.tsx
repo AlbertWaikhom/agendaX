@@ -4,6 +4,7 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,7 +17,6 @@ import { getTimeGreeting, getTodayDateString } from '../../utils';
 import { PageContainer } from '../../../components/page/PageContainer';
 import { SectionHeader } from '../../../components/page/SectionHeader';
 import { SummaryCard } from '../../components/dashboard/SummaryCard';
-import { ProgressRing } from '../../components/dashboard/ProgressRing';
 import { TodayScheduleItem, ScheduleItemData } from '../../components/dashboard/TodayScheduleItem';
 import { UpcomingEventCard } from '../../components/dashboard/UpcomingEventCard';
 import { FloatingActionButton } from '../../components/common/FloatingActionButton';
@@ -39,10 +39,12 @@ export const DashboardScreen: React.FC = () => {
     tasks,
     events,
     expenses,
+    settings,
     unreadNotificationsCount,
     toggleTask,
     addTask,
     addEvent,
+    updateEvent,
     addUrl,
     addExpense,
     deleteEvent,
@@ -76,6 +78,10 @@ export const DashboardScreen: React.FC = () => {
     tasks.filter(t => t.reminderEnabled && !t.completed).length +
     events.filter(e => e.reminderEnabled && e.date >= todayStr).length;
 
+  const completionRate = taskStats.total > 0
+    ? Math.round((taskStats.totalCompleted / taskStats.total) * 100)
+    : 0;
+
   // Build today's timeline schedule items
   const scheduleItems: ScheduleItemData[] = [
     ...todayTasks.map(t => ({
@@ -92,28 +98,47 @@ export const DashboardScreen: React.FC = () => {
       type: 'event' as const,
       title: e.name,
       time: e.startTime,
-      color: e.color,
+      endTime: e.endTime,
       location: e.location,
+      color: e.color,
     })),
   ].sort((a, b) => {
-    const timeA = a.time || '23:59';
-    const timeB = b.time || '23:59';
-    return timeA.localeCompare(timeB);
+    if (!a.time && !b.time) return 0;
+    if (!a.time) return 1;
+    if (!b.time) return -1;
+    return a.time.localeCompare(b.time);
   });
+
+  const handleScheduleItemPress = (item: ScheduleItemData) => {
+    if (item.type === 'task') {
+      navigation.navigate('Tasks');
+    } else {
+      const foundEvent = events.find(e => e.id === item.id);
+      if (foundEvent) {
+        setSelectedEvent(foundEvent);
+        setShowEventDetails(true);
+      }
+    }
+  };
+
+  const currencySymbol = settings.currencySymbol || '₹';
 
   return (
     <PageContainer>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {/* Top Header with Greeting & Avatar */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Top Header with Greeting, Workspace ID, and Profile Avatar */}
         <View style={styles.topHeader}>
           <View style={styles.greetingContainer}>
             <View style={styles.greetingRow}>
               <Text style={styles.greetingText}>
-                {getTimeGreeting(user?.name || '')}
+                {getTimeGreeting(user?.name || 'Albert')}
               </Text>
-              <Ionicons name="sparkles" size={18} color={colors.accentOrange} style={styles.greetingIcon} />
             </View>
             <View style={styles.workspaceIdBadge}>
+              <Ionicons name="finger-print" size={13} color={colors.primaryLight} />
               <Text style={styles.workspaceIdText}>
                 Workspace: {user?.id || 'AGX-LOCAL'}
               </Text>
@@ -125,6 +150,7 @@ export const DashboardScreen: React.FC = () => {
               style={styles.glassIconBtn}
               onPress={() => navigation.navigate('Notifications')}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              activeOpacity={0.7}
             >
               <Ionicons name="notifications-outline" size={20} color={colors.text} />
               {unreadNotificationsCount > 0 && (
@@ -136,18 +162,27 @@ export const DashboardScreen: React.FC = () => {
               )}
             </TouchableOpacity>
 
+            {/* Profile Avatar with uploaded photo or initials fallback */}
             <TouchableOpacity
               onPress={() => navigation.navigate('More')}
-              style={[styles.avatarCircle, { backgroundColor: user?.avatarColor || colors.primary }]}
+              style={[
+                styles.avatarCircle,
+                { backgroundColor: user?.avatarColor || colors.primary },
+              ]}
+              activeOpacity={0.8}
             >
-              <Text style={styles.avatarText}>
-                {(user?.name || 'U').charAt(0).toUpperCase()}
-              </Text>
+              {user?.avatarUri ? (
+                <Image source={{ uri: user.avatarUri }} style={styles.avatarImage} />
+              ) : (
+                <Text style={styles.avatarText}>
+                  {(user?.name || 'A').charAt(0).toUpperCase()}
+                </Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* 4 Summary Cards Grid (2x2 Uniform Gap Fixed) */}
+        {/* 2x2 Summary Metrics Grid */}
         <View style={styles.summaryGrid}>
           <SummaryCard
             title="Today's Tasks"
@@ -158,14 +193,14 @@ export const DashboardScreen: React.FC = () => {
           />
           <SummaryCard
             title="Upcoming Events"
-            count={events.filter(e => e.date >= todayStr).length}
+            count={events.length}
             icon="calendar-outline"
             color={colors.accentPurple}
             onPress={() => navigation.navigate('Events')}
           />
           <SummaryCard
             title="Monthly Expenses"
-            count={`₹${Math.round(monthlyExpenseTotal)}`}
+            count={`${currencySymbol}${monthlyExpenseTotal.toFixed(0)}`}
             icon="wallet-outline"
             color={colors.accentEmerald}
             onPress={() => navigation.navigate('Expenses')}
@@ -173,20 +208,82 @@ export const DashboardScreen: React.FC = () => {
           <SummaryCard
             title="Active Reminders"
             count={activeRemindersCount}
-            icon="notifications-outline"
+            icon="alarm-outline"
             color={colors.accentPink}
-            onPress={() => navigation.navigate('Tasks')}
+            onPress={() => navigation.navigate('More')}
           />
         </View>
 
-        {/* Task Completion Progress Glass Card */}
-        <ProgressRing
-          completed={taskStats.totalCompleted}
-          total={taskStats.total}
-          percentage={taskStats.progressPercentage}
-        />
+        {/* Quick Action Shortcuts Bar */}
+        <View style={styles.quickActionsSection}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.quickActionsScroll}
+          >
+            <TouchableOpacity
+              style={styles.quickActionChip}
+              onPress={() => setShowTaskModal(true)}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.quickActionIconBox, { backgroundColor: `${colors.primary}25` }]}>
+                <Ionicons name="add" size={16} color={colors.primaryLight} />
+              </View>
+              <Text style={styles.quickActionText}>New Task</Text>
+            </TouchableOpacity>
 
-        {/* Upcoming Event Section */}
+            <TouchableOpacity
+              style={styles.quickActionChip}
+              onPress={() => setShowExpenseModal(true)}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.quickActionIconBox, { backgroundColor: `${colors.accentEmerald}25` }]}>
+                <Ionicons name="cash-outline" size={14} color={colors.accentEmerald} />
+              </View>
+              <Text style={styles.quickActionText}>Add Expense</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.quickActionChip}
+              onPress={() => setShowEventModal(true)}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.quickActionIconBox, { backgroundColor: `${colors.accentPurple}25` }]}>
+                <Ionicons name="calendar-outline" size={14} color={colors.accentPurple} />
+              </View>
+              <Text style={styles.quickActionText}>New Event</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.quickActionChip}
+              onPress={() => setShowUrlModal(true)}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.quickActionIconBox, { backgroundColor: `${colors.accentCyan}25` }]}>
+                <Ionicons name="bookmark-outline" size={14} color={colors.accentCyan} />
+              </View>
+              <Text style={styles.quickActionText}>Save Link</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+
+        {/* Daily Task Completion Progress Widget */}
+        <View style={styles.glassCard}>
+          <View style={styles.progressHeaderRow}>
+            <Text style={styles.progressTitle}>Task Completion</Text>
+            <View style={styles.progressPercentageTag}>
+              <Text style={styles.progressPercentageText}>{completionRate}%</Text>
+            </View>
+          </View>
+          <Text style={styles.progressSubtext}>
+            {taskStats.todayCompleted} of {taskStats.todayTotal} tasks completed today
+          </Text>
+          <View style={styles.progressBarBg}>
+            <View style={[styles.progressBarFill, { width: `${Math.min(100, Math.max(0, completionRate))}%` }]} />
+          </View>
+        </View>
+
+        {/* Upcoming Event Spotlight */}
         <SectionHeader
           title="Upcoming Event"
           actionText="View All"
@@ -203,7 +300,7 @@ export const DashboardScreen: React.FC = () => {
           onAddEventPress={() => setShowEventModal(true)}
         />
 
-        {/* Today's Schedule Section */}
+        {/* Today's Schedule Timeline */}
         <SectionHeader
           title="Today's Schedule"
           badge={scheduleItems.length}
@@ -213,29 +310,35 @@ export const DashboardScreen: React.FC = () => {
 
         {scheduleItems.length === 0 ? (
           <View style={styles.emptySchedule}>
-            <Ionicons name="sunny-outline" size={32} color={colors.accentOrange} style={styles.emptyScheduleIcon} />
+            <View style={styles.emptyScheduleIcon}>
+              <Ionicons name="sunny-outline" size={36} color={colors.primaryLight} />
+            </View>
             <Text style={styles.emptyScheduleText}>No items scheduled for today</Text>
-            <Text style={styles.emptyScheduleSub}>You're all caught up! Enjoy your day.</Text>
+            <Text style={styles.emptyScheduleSub}>You're all caught up! Enjoy your day or plan ahead.</Text>
+            <TouchableOpacity
+              style={styles.emptyScheduleBtn}
+              onPress={() => setShowTaskModal(true)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="add-circle-outline" size={16} color={colors.primaryLight} />
+              <Text style={styles.emptyScheduleBtnText}>Schedule a Task</Text>
+            </TouchableOpacity>
           </View>
         ) : (
-          scheduleItems.map(item => (
-            <TodayScheduleItem
-              key={`${item.type}-${item.id}`}
-              item={item}
-              onToggleComplete={() => toggleTask(item.id)}
-              onPress={() => {
-                if (item.type === 'event') {
-                  const ev = events.find(e => e.id === item.id);
-                  if (ev) {
-                    setSelectedEvent(ev);
-                    setShowEventDetails(true);
+          <View>
+            {scheduleItems.map(item => (
+              <TodayScheduleItem
+                key={`${item.type}-${item.id}`}
+                item={item}
+                onToggleComplete={() => {
+                  if (item.type === 'task') {
+                    toggleTask(item.id);
                   }
-                } else {
-                  navigation.navigate('Tasks');
-                }
-              }}
-            />
-          ))
+                }}
+                onPress={() => handleScheduleItemPress(item)}
+              />
+            ))}
+          </View>
         )}
       </ScrollView>
 
@@ -252,35 +355,40 @@ export const DashboardScreen: React.FC = () => {
         onSelectExpense={() => setShowExpenseModal(true)}
       />
 
-      {/* Task Creation Modal */}
+      {/* Individual Form Modals */}
       <TaskFormModal
         visible={showTaskModal}
         onClose={() => setShowTaskModal(false)}
-        onSave={data => addTask(data)}
+        onSave={async taskData => {
+          await addTask(taskData);
+        }}
       />
 
-      {/* Event Creation Modal */}
       <EventFormModal
         visible={showEventModal}
         onClose={() => setShowEventModal(false)}
-        onSave={data => addEvent(data)}
+        onSave={async eventData => {
+          await addEvent(eventData);
+        }}
       />
 
-      {/* URL Creation Modal */}
       <UrlFormModal
         visible={showUrlModal}
         onClose={() => setShowUrlModal(false)}
-        onSave={data => addUrl(data)}
+        onSave={async urlData => {
+          await addUrl(urlData);
+        }}
       />
 
-      {/* Expense Creation Modal */}
       <ExpenseFormModal
         visible={showExpenseModal}
         onClose={() => setShowExpenseModal(false)}
-        onSave={data => addExpense(data)}
+        onSave={async expenseData => {
+          await addExpense(expenseData);
+        }}
       />
 
-      {/* Event Details Modal */}
+      {/* Event Details Inspector Modal */}
       <EventDetailsModal
         visible={showEventDetails}
         event={selectedEvent}
@@ -288,11 +396,16 @@ export const DashboardScreen: React.FC = () => {
           setShowEventDetails(false);
           setSelectedEvent(null);
         }}
-        onEdit={ev => {
-          setSelectedEvent(ev);
+        onEdit={event => {
+          setSelectedEvent(event);
+          setShowEventDetails(false);
           setShowEventModal(true);
         }}
-        onDelete={id => deleteEvent(id)}
+        onDelete={async id => {
+          await deleteEvent(id);
+          setShowEventDetails(false);
+          setSelectedEvent(null);
+        }}
       />
     </PageContainer>
   );

@@ -7,7 +7,7 @@ export const TaskRepository = {
     const rows = await db.getAllAsync<any>(
       `SELECT id, title, description, category, priority, due_date, due_time, url,
               reminder_enabled, reminder_time, notification_id, completed, completed_at,
-              created_at, updated_at
+              media_uri, created_at, updated_at
        FROM tasks ORDER BY created_at DESC;`
     );
 
@@ -25,6 +25,7 @@ export const TaskRepository = {
       notificationId: r.notification_id || undefined,
       completed: Boolean(r.completed),
       completedAt: r.completed_at || undefined,
+      mediaUri: r.media_uri || undefined,
       createdAt: r.created_at,
       updatedAt: r.updated_at,
     }));
@@ -36,8 +37,8 @@ export const TaskRepository = {
       `INSERT INTO tasks (
          id, title, description, category, priority, due_date, due_time, url,
          reminder_enabled, reminder_time, notification_id, completed, completed_at,
-         created_at, updated_at
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+         media_uri, created_at, updated_at
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
       [
         task.id,
         task.title,
@@ -52,6 +53,7 @@ export const TaskRepository = {
         task.notificationId || null,
         task.completed ? 1 : 0,
         task.completedAt || null,
+        task.mediaUri || null,
         task.createdAt,
         task.updatedAt,
       ]
@@ -62,9 +64,9 @@ export const TaskRepository = {
     const db = await Database.getDatabaseAsync();
     await db.runAsync(
       `UPDATE tasks SET
-         title = ?, description = ?, category = ?, priority = ?, due_date = ?, due_time = ?, url = ?,
-         reminder_enabled = ?, reminder_time = ?, notification_id = ?, completed = ?, completed_at = ?,
-         updated_at = ?
+         title = ?, description = ?, category = ?, priority = ?, due_date = ?,
+         due_time = ?, url = ?, reminder_enabled = ?, reminder_time = ?,
+         notification_id = ?, completed = ?, completed_at = ?, media_uri = ?, updated_at = ?
        WHERE id = ?;`,
       [
         task.title,
@@ -79,6 +81,7 @@ export const TaskRepository = {
         task.notificationId || null,
         task.completed ? 1 : 0,
         task.completedAt || null,
+        task.mediaUri || null,
         task.updatedAt,
         task.id,
       ]
@@ -93,29 +96,30 @@ export const TaskRepository = {
   async bulkInsertTasks(tasks: TaskItem[]): Promise<void> {
     if (tasks.length === 0) return;
     const db = await Database.getDatabaseAsync();
-    for (const task of tasks) {
+    for (const t of tasks) {
       await db.runAsync(
         `INSERT OR REPLACE INTO tasks (
            id, title, description, category, priority, due_date, due_time, url,
            reminder_enabled, reminder_time, notification_id, completed, completed_at,
-           created_at, updated_at
-         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+           media_uri, created_at, updated_at
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
-          task.id,
-          task.title,
-          task.description || null,
-          task.category,
-          task.priority,
-          task.dueDate,
-          task.dueTime || null,
-          task.url || null,
-          task.reminderEnabled ? 1 : 0,
-          task.reminderTime || null,
-          task.notificationId || null,
-          task.completed ? 1 : 0,
-          task.completedAt || null,
-          task.createdAt,
-          task.updatedAt,
+          t.id,
+          t.title,
+          t.description || null,
+          t.category,
+          t.priority,
+          t.dueDate,
+          t.dueTime || null,
+          t.url || null,
+          t.reminderEnabled ? 1 : 0,
+          t.reminderTime || null,
+          t.notificationId || null,
+          t.completed ? 1 : 0,
+          t.completedAt || null,
+          t.mediaUri || null,
+          t.createdAt,
+          t.updatedAt,
         ]
       );
     }

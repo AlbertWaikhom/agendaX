@@ -22,6 +22,7 @@ export const TaskService = {
     reminderEnabled?: boolean;
     reminderTime?: string;
     notificationId?: string;
+    mediaUri?: string;
   }): TaskItem {
     const now = new Date().toISOString();
     return {
@@ -36,6 +37,7 @@ export const TaskService = {
       reminderEnabled: !!params.reminderEnabled,
       reminderTime: params.reminderTime || 'none',
       notificationId: params.notificationId,
+      mediaUri: params.mediaUri,
       completed: false,
       createdAt: now,
       updatedAt: now,

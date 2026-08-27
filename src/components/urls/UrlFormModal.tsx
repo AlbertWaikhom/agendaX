@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Typography, BorderRadius, Spacing } from '../../constants/theme';
 import { useTheme } from '../../context/ThemeContext';
 import { UrlCategories } from '../../constants/categories';
@@ -18,6 +19,7 @@ interface UrlFormModalProps {
     url: string;
     category: UrlCategory;
     note?: string;
+    previewImageUri?: string;
   }) => void;
   initialItem?: UrlItem | null;
 }
@@ -34,6 +36,7 @@ export const UrlFormModal: React.FC<UrlFormModalProps> = ({
   const [url, setUrl] = useState('');
   const [category, setCategory] = useState<UrlCategory>('Work');
   const [note, setNote] = useState('');
+  const [previewImageUri, setPreviewImageUri] = useState<string | undefined>(undefined);
   const [customCategoryInput, setCustomCategoryInput] = useState('');
   const [showCustomCategory, setShowCustomCategory] = useState(false);
   const [titleError, setTitleError] = useState('');
@@ -45,16 +48,35 @@ export const UrlFormModal: React.FC<UrlFormModalProps> = ({
       setUrl(initialItem.url);
       setCategory(initialItem.category);
       setNote(initialItem.note || '');
+      setPreviewImageUri(initialItem.previewImageUri);
     } else {
       setTitle('');
       setUrl('');
       setCategory('Work');
       setNote('');
+      setPreviewImageUri(undefined);
       setShowCustomCategory(false);
     }
     setTitleError('');
     setUrlError('');
   }, [initialItem, visible]);
+
+  const handlePickPreview = async () => {
+    try {
+      const ImagePicker = await import('expo-image-picker');
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: false,
+        quality: 0.85,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setPreviewImageUri(result.assets[0].uri);
+      }
+    } catch (e) {
+      console.warn('Pick URL thumbnail error:', e);
+    }
+  };
 
   const handleSubmit = () => {
     let hasError = false;
@@ -85,6 +107,7 @@ export const UrlFormModal: React.FC<UrlFormModalProps> = ({
       url: url.trim(),
       category: finalCategory,
       note: note.trim() || undefined,
+      previewImageUri,
     });
     onClose();
   };
@@ -193,10 +216,34 @@ export const UrlFormModal: React.FC<UrlFormModalProps> = ({
         style={{ minHeight: 70, textAlignVertical: 'top' }}
       />
 
+      {/* Optional Bookmark Image Attachment */}
+      <View style={{ marginBottom: Spacing.md }}>
+        <Text style={[styles.sectionLabel, { color: colors.text }]}>Screenshot / Logo (Optional)</Text>
+        {previewImageUri ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', padding: 10, borderRadius: 12, backgroundColor: colors.surfaceHighlight, borderWidth: 1, borderColor: colors.glassBorder }}>
+            <Ionicons name="image" size={24} color={colors.primaryLight} />
+            <Text style={{ flex: 1, marginLeft: 10, fontSize: 12, color: colors.text }} numberOfLines={1}>
+              Thumbnail Attached
+            </Text>
+            <TouchableOpacity onPress={() => setPreviewImageUri(undefined)} style={{ padding: 4 }}>
+              <Ionicons name="trash-outline" size={18} color={colors.error} />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity
+            onPress={handlePickPreview}
+            style={{ padding: 12, borderRadius: 12, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.glassBorder, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, backgroundColor: colors.glassCard }}
+          >
+            <Ionicons name="cloud-upload-outline" size={18} color={colors.primaryLight} />
+            <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text }}>Upload Logo or Screenshot</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
       <Button
         title={initialItem ? 'Update URL' : 'Save URL'}
         onPress={handleSubmit}
-        style={{ marginTop: Spacing.lg }}
+        style={{ marginTop: Spacing.sm }}
       />
     </ModalWrapper>
   );

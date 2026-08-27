@@ -39,7 +39,7 @@ export interface AttachmentItem {
 }
 
 export interface LocalUser {
-  id: string; // e.g. "AGX-8F3A2D91"
+  id: string;
   name: string;
   avatarColor: string;
   avatarUri?: string;
@@ -52,16 +52,17 @@ export interface TaskItem {
   description?: string;
   category: TaskCategory;
   priority: Priority;
-  dueDate: string; // YYYY-MM-DD
-  dueTime?: string; // HH:mm (e.g. "14:30")
+  dueDate: string;
+  dueTime?: string;
   url?: string;
   reminderEnabled: boolean;
-  reminderTime?: string; // e.g. "30_min_before", "1_hour_before", "on_time"
+  reminderTime?: string;
   notificationId?: string;
   completed: boolean;
   completedAt?: string;
   createdAt: string;
   updatedAt: string;
+  mediaUri?: string;
   attachments?: AttachmentItem[];
 }
 
@@ -69,9 +70,9 @@ export interface EventItem {
   id: string;
   name: string;
   description?: string;
-  date: string; // YYYY-MM-DD
-  startTime: string; // HH:mm
-  endTime?: string; // HH:mm
+  date: string;
+  startTime: string;
+  endTime?: string;
   location?: string;
   url?: string;
   reminderEnabled: boolean;
@@ -79,6 +80,7 @@ export interface EventItem {
   repeat: EventRepeat;
   color: string;
   notificationId?: string;
+  imageUri?: string;
   createdAt: string;
   updatedAt?: string;
   attachments?: AttachmentItem[];
@@ -89,9 +91,11 @@ export interface ExpenseItem {
   title: string;
   amount: number;
   category: ExpenseCategory;
-  date: string; // YYYY-MM-DD
+  date: string;
   paymentMethod?: PaymentMethod;
   notes?: string;
+  transactionId?: string;
+  receiptUri?: string;
   createdAt: string;
   updatedAt?: string;
   attachments?: AttachmentItem[];
@@ -103,6 +107,7 @@ export interface UrlItem {
   url: string;
   category: UrlCategory;
   note?: string;
+  previewImageUri?: string;
   createdAt: string;
   updatedAt?: string;
   attachments?: AttachmentItem[];
@@ -123,8 +128,8 @@ export type LockMode = 'biometric_system' | 'custom_pin' | 'both';
 export interface SecuritySettings {
   appLockEnabled: boolean;
   lockMode: LockMode;
-  customPin: string | null; // Stored PIN (4-6 digits)
-  lockedPages: string[]; // List of page IDs: 'Settings', 'Expenses', 'Urls', 'Tasks', 'Events'
+  customPin: string | null;
+  lockedPages: string[];
   biometricsEnabled: boolean;
 }
 
@@ -136,7 +141,7 @@ export interface AppSettings {
   compactView: boolean;
   badgeCountEnabled: boolean;
   currencySymbol?: string;
-  reminderSound?: string; // 'default' | 'chime' | 'bell' | 'ping' | 'cyber'
+  reminderSound?: string;
   security?: SecuritySettings;
 }
 

@@ -22,8 +22,29 @@ export const SCHEMA_MIGRATIONS: SchemaMigration[] = [
       try {
         await db.execAsync('ALTER TABLE users ADD COLUMN avatar_uri TEXT;');
       } catch (e) {
-        // Column may already exist if created on fresh install
+        // Column may already exist
       }
+    },
+  },
+  {
+    version: 3,
+    name: 'add_media_and_transaction_fields',
+    up: async (db: SQLiteDatabase) => {
+      try {
+        await db.execAsync('ALTER TABLE tasks ADD COLUMN media_uri TEXT;');
+      } catch {}
+      try {
+        await db.execAsync('ALTER TABLE events ADD COLUMN image_uri TEXT;');
+      } catch {}
+      try {
+        await db.execAsync('ALTER TABLE expenses ADD COLUMN transaction_id TEXT;');
+      } catch {}
+      try {
+        await db.execAsync('ALTER TABLE expenses ADD COLUMN receipt_uri TEXT;');
+      } catch {}
+      try {
+        await db.execAsync('ALTER TABLE urls ADD COLUMN preview_image_uri TEXT;');
+      } catch {}
     },
   },
 ];

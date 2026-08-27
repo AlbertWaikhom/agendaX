@@ -176,20 +176,23 @@ export const NotificationService = {
   /**
    * Trigger an instant test notification to preview sound and control panel alert
    */
-  async triggerTestReminder(soundTitle?: string): Promise<boolean> {
+  async triggerTestReminder(soundId: string = 'default', soundTitle?: string): Promise<boolean> {
     try {
+      const { SoundService } = await import('./soundService');
+      await SoundService.playTone(soundId);
+
       const hasPermission = await this.requestPermissions();
-      if (!hasPermission) return false;
+      if (!hasPermission) return true; // Audio still plays
 
       await Notifications.scheduleNotificationAsync({
         content: {
           title: '🔔 AgendaX Alarm Test',
-          body: `Reminder alert with sound: ${soundTitle || 'Default Alarm'}. Active in system notification center.`,
+          body: `Reminder alert (${soundTitle || 'Default Alarm'}). Active in notification tray & lockscreen.`,
           sound: 'default',
           priority: Notifications.AndroidNotificationPriority.MAX,
           vibrate: [0, 250, 250, 250],
           color: '#6366F1',
-          data: { type: 'system' },
+          data: { type: 'system', soundId },
         },
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,

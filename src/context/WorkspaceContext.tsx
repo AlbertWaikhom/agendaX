@@ -49,7 +49,7 @@ interface WorkspaceContextValue {
   updateUser: (name: string) => Promise<boolean>;
   updateUserAvatar: (avatarUri: string) => Promise<boolean>;
   removeUserAvatar: () => Promise<boolean>;
-  triggerTestNotification: (soundTitle?: string) => Promise<boolean>;
+  triggerTestNotification: (soundId?: string, soundTitle?: string) => Promise<boolean>;
 
   // Task Operations
   addTask: (params: Parameters<typeof TaskService.createTask>[0]) => Promise<TaskItem>;
@@ -70,13 +70,15 @@ interface WorkspaceContextValue {
     date: string;
     paymentMethod?: string;
     notes?: string;
+    transactionId?: string;
+    receiptUri?: string;
   }) => Promise<ExpenseItem>;
   updateExpense: (expense: ExpenseItem) => Promise<boolean>;
   deleteExpense: (id: string) => Promise<boolean>;
 
   // URL Operations
-  addUrl: (params: { title: string; url: string; category?: string; note?: string }) => Promise<{ success: boolean; error?: string }>;
-  updateUrl: (id: string, params: { title: string; url: string; category?: string; note?: string }) => Promise<{ success: boolean; error?: string }>;
+  addUrl: (params: { title: string; url: string; category?: string; note?: string; previewImageUri?: string }) => Promise<{ success: boolean; error?: string }>;
+  updateUrl: (id: string, params: { title: string; url: string; category?: string; note?: string; previewImageUri?: string }) => Promise<{ success: boolean; error?: string }>;
   deleteUrl: (id: string) => Promise<boolean>;
 
   // Notification Operations
@@ -210,8 +212,8 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return true;
   };
 
-  const triggerTestNotification = async (soundTitle?: string): Promise<boolean> => {
-    return NotificationService.triggerTestReminder(soundTitle);
+  const triggerTestNotification = async (soundId: string = 'default', soundTitle?: string): Promise<boolean> => {
+    return NotificationService.triggerTestReminder(soundId, soundTitle);
   };
 
   // --- Task Handlers ---
@@ -367,6 +369,8 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     date: string;
     paymentMethod?: string;
     notes?: string;
+    transactionId?: string;
+    receiptUri?: string;
   }): Promise<ExpenseItem> => {
     const newExpense: ExpenseItem = {
       id: generateId('exp'),
@@ -376,6 +380,8 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       date: params.date,
       paymentMethod: (params.paymentMethod as any) || 'Card',
       notes: params.notes?.trim(),
+      transactionId: params.transactionId?.trim(),
+      receiptUri: params.receiptUri,
       createdAt: new Date().toISOString(),
     };
 
@@ -399,8 +405,8 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   // --- URL Handlers ---
-  const addUrl = async (params: { title: string; url: string; category?: string; note?: string }) => {
-    const result = UrlService.createUrl(params);
+  const addUrl = async (params: { title: string; url: string; category?: string; note?: string; previewImageUri?: string }) => {
+    const result = UrlService.createUrl(params as any);
     if (!result.success || !result.item) {
       return { success: false, error: result.error };
     }
@@ -409,11 +415,11 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return { success: true };
   };
 
-  const updateUrl = async (id: string, params: { title: string; url: string; category?: string; note?: string }) => {
+  const updateUrl = async (id: string, params: { title: string; url: string; category?: string; note?: string; previewImageUri?: string }) => {
     const existing = urls.find(u => u.id === id);
     if (!existing) return { success: false, error: 'URL not found' };
 
-    const result = UrlService.updateUrl(existing, params);
+    const result = UrlService.updateUrl(existing, params as any);
     if (!result.success || !result.item) {
       return { success: false, error: result.error };
     }

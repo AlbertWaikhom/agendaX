@@ -15,9 +15,7 @@ export interface StorageDirectories {
 }
 
 export const FileStorage = {
-  /**
-   * Ensure all AgendaX storage directories exist
-   */
+
   async ensureDirectoriesAsync(): Promise<void> {
     if (Platform.OS === 'web') return;
 
@@ -56,41 +54,26 @@ export const FileStorage = {
     }
   },
 
-  /**
-   * Get root AgendaX directory URI
-   */
   getRootDirectory(): Directory {
     return new Directory(Paths.document, 'AgendaX');
   },
 
-  /**
-   * Get specific category media directory
-   */
   getMediaDirectory(category: 'images' | 'videos' | 'audio' | 'documents'): Directory {
     const root = this.getRootDirectory();
     const media = new Directory(root, 'media');
     return new Directory(media, category);
   },
 
-  /**
-   * Get backups directory
-   */
   getBackupsDirectory(): Directory {
     const root = this.getRootDirectory();
     return new Directory(root, 'backups');
   },
 
-  /**
-   * Get temp directory
-   */
   getTempDirectory(): Directory {
     const root = this.getRootDirectory();
     return new Directory(root, 'temp');
   },
 
-  /**
-   * Resolve a relative storage path (e.g. 'media/images/photo.jpg') to an absolute file URI
-   */
   resolveUri(relativePath: string): string {
     if (Platform.OS === 'web') return relativePath;
     if (relativePath.startsWith('file://') || relativePath.startsWith('http://') || relativePath.startsWith('https://')) {
@@ -102,9 +85,6 @@ export const FileStorage = {
     return file.uri;
   },
 
-  /**
-   * Clean temp files
-   */
   async cleanTempDirectory(): Promise<void> {
     if (Platform.OS === 'web') return;
     try {

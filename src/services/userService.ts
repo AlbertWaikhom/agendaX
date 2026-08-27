@@ -2,12 +2,12 @@ import { LocalUser } from '../types';
 import { generateWorkspaceId } from '../utils';
 
 const AvatarColors = [
-  '#6366F1', // Indigo
-  '#8B5CF6', // Purple
-  '#EC4899', // Pink
-  '#3B82F6', // Blue
-  '#10B981', // Emerald
-  '#F59E0B', // Amber
+  '#6366F1',
+  '#8B5CF6',
+  '#EC4899',
+  '#3B82F6',
+  '#10B981',
+  '#F59E0B',
 ];
 
 export const UserService = {

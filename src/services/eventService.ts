@@ -17,6 +17,7 @@ export const EventService = {
     repeat?: EventRepeat;
     color?: string;
     notificationId?: string;
+    imageUri?: string;
   }): EventItem {
     const now = new Date().toISOString();
     return {
@@ -33,6 +34,7 @@ export const EventService = {
       repeat: params.repeat || 'none',
       color: params.color || '#6366F1',
       notificationId: params.notificationId,
+      imageUri: params.imageUri,
       createdAt: now,
       updatedAt: now,
     };

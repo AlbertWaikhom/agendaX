@@ -15,6 +15,7 @@ export const createDashboardStyles = (colors: ThemeColors) =>
     },
     greetingContainer: {
       flex: 1,
+      marginRight: Spacing.md,
     },
     greetingRow: {
       flexDirection: 'row',
@@ -25,7 +26,7 @@ export const createDashboardStyles = (colors: ThemeColors) =>
       fontSize: Typography.fontSize.xxl,
       fontWeight: Typography.fontWeight.heavy,
       color: colors.text,
-      letterSpacing: -0.4,
+      letterSpacing: -0.5,
     },
     greetingIcon: {
       marginLeft: 6,
@@ -33,6 +34,7 @@ export const createDashboardStyles = (colors: ThemeColors) =>
     workspaceIdBadge: {
       flexDirection: 'row',
       alignItems: 'center',
+      gap: 5,
       marginTop: 4,
     },
     workspaceIdText: {
@@ -45,15 +47,16 @@ export const createDashboardStyles = (colors: ThemeColors) =>
     headerRight: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 10,
+      gap: 12,
     },
     glassIconBtn: {
       width: 44,
       height: 44,
-      borderRadius: BorderRadius.md,
+      borderRadius: BorderRadius.lg,
       backgroundColor: colors.glassCard,
       borderWidth: 1,
       borderColor: colors.glassBorder,
+      borderTopColor: colors.glassSpecular,
       alignItems: 'center',
       justifyContent: 'center',
       shadowColor: '#000',
@@ -85,7 +88,7 @@ export const createDashboardStyles = (colors: ThemeColors) =>
     avatarCircle: {
       width: 44,
       height: 44,
-      borderRadius: BorderRadius.md,
+      borderRadius: BorderRadius.lg,
       alignItems: 'center',
       justifyContent: 'center',
       borderWidth: 1.5,
@@ -95,6 +98,12 @@ export const createDashboardStyles = (colors: ThemeColors) =>
       shadowOpacity: 0.35,
       shadowRadius: 10,
       elevation: 6,
+      overflow: 'hidden',
+    },
+    avatarImage: {
+      width: '100%',
+      height: '100%',
+      borderRadius: BorderRadius.lg,
     },
     avatarText: {
       fontFamily: Typography.fontFamily,
@@ -103,92 +112,115 @@ export const createDashboardStyles = (colors: ThemeColors) =>
       fontWeight: Typography.fontWeight.bold,
     },
 
-    // 2x2 Summary Grid - Fixes gap issue with uniform spacing
+    // 2x2 Summary Metric Cards Grid
     summaryGrid: {
       flexDirection: 'row',
       flexWrap: 'wrap',
       justifyContent: 'space-between',
       gap: 12,
       marginTop: Spacing.sm,
-      marginBottom: Spacing.lg,
+      marginBottom: Spacing.md,
     },
 
-    // Liquid Glass Card Styling
+    // Quick Actions Bar
+    quickActionsSection: {
+      marginBottom: Spacing.lg,
+    },
+    quickActionsScroll: {
+      paddingVertical: 4,
+    },
+    quickActionChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      borderRadius: BorderRadius.xl,
+      backgroundColor: colors.glassCard,
+      borderWidth: 1,
+      borderColor: colors.glassBorder,
+      borderTopColor: colors.glassSpecular,
+      marginRight: 10,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.15,
+      shadowRadius: 6,
+      elevation: 3,
+    },
+    quickActionIconBox: {
+      width: 26,
+      height: 26,
+      borderRadius: 13,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    quickActionText: {
+      fontFamily: Typography.fontFamily,
+      fontSize: Typography.fontSize.xs,
+      fontWeight: Typography.fontWeight.bold,
+      color: colors.text,
+    },
+
+    // Liquid Glass Daily Progress Card
     glassCard: {
       backgroundColor: colors.glassCard,
       borderRadius: BorderRadius.xl,
       padding: Spacing.lg,
       borderWidth: 1,
       borderColor: colors.glassBorder,
+      borderTopColor: colors.glassSpecular,
       marginBottom: Spacing.lg,
-      shadowColor: '#000',
+      shadowColor: colors.primary,
       shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.25,
+      shadowOpacity: 0.2,
       shadowRadius: 16,
       elevation: 6,
     },
-
-    // Quick Expense Preview Widget
-    expenseWidget: {
-      backgroundColor: colors.glassCard,
-      borderRadius: BorderRadius.xl,
-      padding: Spacing.lg,
-      borderWidth: 1,
-      borderColor: colors.glassBorder,
-      marginBottom: Spacing.lg,
-      shadowColor: colors.accentEmerald,
-      shadowOffset: { width: 0, height: 6 },
-      shadowOpacity: 0.15,
-      shadowRadius: 14,
-      elevation: 5,
-    },
-    expenseWidgetHeader: {
+    progressHeaderRow: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       marginBottom: Spacing.sm,
     },
-    expenseWidgetTitleRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-    },
-    expenseWidgetTitle: {
+    progressTitle: {
       fontFamily: Typography.fontFamily,
-      fontSize: Typography.fontSize.sm,
-      fontWeight: Typography.fontWeight.semibold,
-      color: colors.textSecondary,
-    },
-    expenseWidgetAmount: {
-      fontFamily: Typography.fontFamily,
-      fontSize: Typography.fontSize.xxl,
-      fontWeight: Typography.fontWeight.heavy,
+      fontSize: Typography.fontSize.md,
+      fontWeight: Typography.fontWeight.bold,
       color: colors.text,
-      letterSpacing: -0.5,
-      marginTop: 2,
     },
-    expenseWidgetSubtext: {
+    progressPercentageTag: {
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: BorderRadius.full,
+      backgroundColor: `${colors.primary}25`,
+      borderWidth: 1,
+      borderColor: `${colors.primary}40`,
+    },
+    progressPercentageText: {
+      fontFamily: Typography.fontFamily,
+      fontSize: Typography.fontSize.xs,
+      fontWeight: Typography.fontWeight.heavy,
+      color: colors.primaryLight,
+    },
+    progressSubtext: {
       fontFamily: Typography.fontFamily,
       fontSize: Typography.fontSize.xs,
       color: colors.textMuted,
-      marginTop: 4,
+      marginBottom: Spacing.sm,
     },
-    expenseViewBtn: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-      paddingHorizontal: Spacing.sm,
-      paddingVertical: Spacing.xs,
-      borderRadius: BorderRadius.sm,
+    progressBarBg: {
+      height: 8,
+      borderRadius: 4,
       backgroundColor: colors.surfaceHighlight,
+      overflow: 'hidden',
     },
-    expenseViewText: {
-      fontFamily: Typography.fontFamily,
-      fontSize: Typography.fontSize.xs,
-      color: colors.primaryLight,
-      fontWeight: Typography.fontWeight.semibold,
+    progressBarFill: {
+      height: '100%',
+      borderRadius: 4,
+      backgroundColor: colors.primary,
     },
 
+    // Empty Schedule State
     emptySchedule: {
       backgroundColor: colors.glassCard,
       borderRadius: BorderRadius.xl,
@@ -197,6 +229,7 @@ export const createDashboardStyles = (colors: ThemeColors) =>
       justifyContent: 'center',
       borderWidth: 1,
       borderColor: colors.glassBorder,
+      borderTopColor: colors.glassSpecular,
       marginBottom: Spacing.md,
     },
     emptyScheduleIcon: {
@@ -215,5 +248,23 @@ export const createDashboardStyles = (colors: ThemeColors) =>
       color: colors.textMuted,
       marginTop: 4,
       textAlign: 'center',
+    },
+    emptyScheduleBtn: {
+      marginTop: Spacing.md,
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.sm,
+      borderRadius: BorderRadius.lg,
+      backgroundColor: colors.surfaceHighlight,
+      borderWidth: 1,
+      borderColor: colors.glassBorder,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    emptyScheduleBtnText: {
+      fontFamily: Typography.fontFamily,
+      fontSize: Typography.fontSize.xs,
+      fontWeight: Typography.fontWeight.bold,
+      color: colors.primaryLight,
     },
   });

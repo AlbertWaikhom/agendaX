@@ -4,11 +4,11 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  Alert,
   Switch,
   Linking,
   Image,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
@@ -28,6 +28,8 @@ import { SecuritySettingsModal } from '../../components/security/SecuritySetting
 import { ThemeMode } from '../../types';
 import { FileStorage } from '../../storage/fileStorage';
 import { RINGTONE_OPTIONS } from '../../services/notificationService';
+import { UpdateService, UpdateCheckResult, CURRENT_APP_VERSION } from '../../services/updateService';
+import { CustomAlertModal, AlertButton } from '../../components/common/CustomAlertModal';
 import { createMoreStyles } from './MoreScreen.styles';
 
 const THEME_OPTIONS: { id: ThemeMode; name: string; bg: string; accent: string; previewCard: string }[] = [
@@ -86,6 +88,20 @@ export const MoreScreen: React.FC = () => {
   const [showAppSettingsModal, setShowAppSettingsModal] = useState(false);
   const [showSecurityModal, setShowSecurityModal] = useState(false);
   const [isTestingSound, setIsTestingSound] = useState(false);
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+
+  // Custom Liquid Glass Alert Dialog State
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    title: string;
+    message?: string;
+    icon?: keyof typeof Ionicons.glyphMap;
+    iconColor?: string;
+    buttons?: AlertButton[];
+  }>({
+    visible: false,
+    title: '',
+  });
 
   const handleCopyId = async () => {
     if (user?.id) {
@@ -108,20 +124,33 @@ export const MoreScreen: React.FC = () => {
 
   const handleAvatarPress = () => {
     if (user?.avatarUri) {
-      Alert.alert('Profile Picture', 'Customize your local profile photo', [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Upload New Photo',
-          onPress: () => handlePickAvatar(),
-        },
-        {
-          text: 'Remove Photo',
-          style: 'destructive',
-          onPress: async () => {
-            await removeUserAvatar();
+      setAlertConfig({
+        visible: true,
+        title: 'Profile Picture',
+        message: 'Customize your local profile photo or avatar',
+        icon: 'camera',
+        iconColor: colors.primaryLight,
+        buttons: [
+          {
+            text: 'Upload New Photo',
+            style: 'primary',
+            icon: 'image-outline',
+            onPress: () => handlePickAvatar(),
           },
-        },
-      ]);
+          {
+            text: 'Remove Photo',
+            style: 'destructive',
+            icon: 'trash-outline',
+            onPress: async () => {
+              await removeUserAvatar();
+            },
+          },
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+        ],
+      });
     } else {
       handlePickAvatar();
     }
@@ -131,7 +160,13 @@ export const MoreScreen: React.FC = () => {
     try {
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
-        Alert.alert('Permission Denied', 'Please allow gallery access to set your profile picture.');
+        setAlertConfig({
+          visible: true,
+          title: 'Permission Required',
+          message: 'Please allow gallery access to set your profile picture.',
+          icon: 'lock-closed-outline',
+          iconColor: colors.warning,
+        });
         return;
       }
 
@@ -150,10 +185,13 @@ export const MoreScreen: React.FC = () => {
 
       // Validate 10MB size limit (10 * 1024 * 1024 bytes)
       if (asset.fileSize && asset.fileSize > 10 * 1024 * 1024) {
-        Alert.alert(
-          '⚠️ File Too Large',
-          `The selected image is ${(asset.fileSize / (1024 * 1024)).toFixed(1)} MB. Maximum allowed size is 10 MB.`
-        );
+        setAlertConfig({
+          visible: true,
+          title: 'File Too Large',
+          message: `The selected photo is ${(asset.fileSize / (1024 * 1024)).toFixed(1)} MB. Maximum allowed size is 10 MB.`,
+          icon: 'alert-circle-outline',
+          iconColor: colors.error,
+        });
         return;
       }
 
@@ -171,35 +209,113 @@ export const MoreScreen: React.FC = () => {
 
       const finalUri = Platform.OS === 'web' ? asset.uri : destFile.uri;
       await updateUserAvatar(finalUri);
-      Alert.alert('✅ Profile Updated', 'Your profile picture has been saved.');
+      setAlertConfig({
+        visible: true,
+        title: 'Profile Updated',
+        message: 'Your profile picture has been saved successfully.',
+        icon: 'checkmark-circle-outline',
+        iconColor: colors.success,
+      });
     } catch (e: any) {
       console.warn('[MoreScreen] Avatar pick error:', e);
-      Alert.alert('Error', e?.message || 'Failed to update profile photo');
+      setAlertConfig({
+        visible: true,
+        title: 'Upload Failed',
+        message: e?.message || 'Could not save profile picture',
+        icon: 'close-circle-outline',
+        iconColor: colors.error,
+      });
     }
   };
 
   const handleTestSound = async (soundId: string, soundName: string) => {
     setIsTestingSound(true);
     await updateSettings({ reminderSound: soundId });
-    await triggerTestNotification(soundName);
+    await triggerTestNotification(soundId, soundName);
     setTimeout(() => setIsTestingSound(false), 1500);
   };
 
+  const handleCheckUpdates = async () => {
+    setIsCheckingUpdate(true);
+    const result = await UpdateService.checkForUpdates();
+    setIsCheckingUpdate(false);
+
+    if (result.hasUpdate) {
+      setAlertConfig({
+        visible: true,
+        title: `🚀 Update Available: v${result.latestVersion}`,
+        message: `${result.releaseTitle}\n\n${result.releaseNotes?.substring(0, 180)}...\n\nClick below to download the latest APK from GitHub.`,
+        icon: 'arrow-down-circle',
+        iconColor: colors.accentEmerald,
+        buttons: [
+          {
+            text: `Download v${result.latestVersion} APK`,
+            style: 'primary',
+            icon: 'download-outline',
+            onPress: () => handleOpenLink(result.downloadUrl),
+          },
+          {
+            text: 'View on GitHub',
+            style: 'default',
+            icon: 'logo-github',
+            onPress: () => handleOpenLink('https://github.com/AlbertWaikhom/agendaX/releases'),
+          },
+          {
+            text: 'Later',
+            style: 'cancel',
+          },
+        ],
+      });
+    } else if (result.isError) {
+      setAlertConfig({
+        visible: true,
+        title: 'Offline / Network Unavailable',
+        message: 'Could not connect to GitHub to check for updates. AgendaX is running 100% offline.',
+        icon: 'cloud-offline-outline',
+        iconColor: colors.textMuted,
+        buttons: [
+          {
+            text: 'Open GitHub Directly',
+            style: 'default',
+            onPress: () => handleOpenLink('https://github.com/AlbertWaikhom/agendaX/releases'),
+          },
+          { text: 'OK', style: 'primary' },
+        ],
+      });
+    } else {
+      setAlertConfig({
+        visible: true,
+        title: 'You are Up to Date! ✨',
+        message: `You are running the latest version of AgendaX (v${CURRENT_APP_VERSION}) with full offline SQLite storage.`,
+        icon: 'checkmark-done-circle',
+        iconColor: colors.success,
+        buttons: [{ text: 'Great', style: 'primary' }],
+      });
+    }
+  };
+
   const handleClearAllData = () => {
-    Alert.alert(
-      '🚨 WIPE ALL DATA',
-      'This will permanently delete your local SQLite database, all tasks, events, expenses, attachments, and saved URLs.\n\nThis action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
+    setAlertConfig({
+      visible: true,
+      title: '🚨 Wipe All Data',
+      message: 'This will permanently delete your local SQLite database, tasks, events, expenses, attachments, and settings.\n\nThis action cannot be undone.',
+      icon: 'trash',
+      iconColor: colors.error,
+      buttons: [
         {
           text: 'Wipe Everything',
           style: 'destructive',
+          icon: 'trash-outline',
           onPress: async () => {
             await clearWorkspace();
           },
         },
-      ]
-    );
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+      ],
+    });
   };
 
   return (
@@ -348,7 +464,29 @@ export const MoreScreen: React.FC = () => {
                 </View>
                 <View>
                   <Text style={styles.menuTitle}>Alarms, Alerts & Ringtones</Text>
-                  <Text style={styles.menuSubtitle}>Ringtone sounds, control panel alerts & haptics</Text>
+                  <Text style={styles.menuSubtitle}>Offline audio tones & control panel alerts</Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+            </TouchableOpacity>
+
+            {/* Online Version & Update Checker */}
+            <TouchableOpacity
+              style={styles.menuItem}
+              activeOpacity={0.7}
+              onPress={handleCheckUpdates}
+            >
+              <View style={styles.menuItemLeft}>
+                <View style={[styles.menuIconBox, { backgroundColor: '#38BDF820' }]}>
+                  {isCheckingUpdate ? (
+                    <ActivityIndicator size="small" color="#38BDF8" />
+                  ) : (
+                    <Ionicons name="sparkles" size={18} color="#38BDF8" />
+                  )}
+                </View>
+                <View>
+                  <Text style={styles.menuTitle}>Check for GitHub Updates</Text>
+                  <Text style={styles.menuSubtitle}>Online release lookup • Current: v{CURRENT_APP_VERSION}</Text>
                 </View>
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
@@ -502,7 +640,7 @@ export const MoreScreen: React.FC = () => {
           <View style={styles.footer}>
             <Text style={styles.footerAppTitle}>AgendaX</Text>
             <Text style={styles.footerTagline}>Plan. Track. Achieve.</Text>
-            <Text style={styles.footerVersion}>v1.01 • 100% Offline SQLite Engine</Text>
+            <Text style={styles.footerVersion}>v{CURRENT_APP_VERSION} • 100% Offline SQLite Engine</Text>
           </View>
         </ScrollView>
 
@@ -582,10 +720,10 @@ export const MoreScreen: React.FC = () => {
             {/* Alarm Ringtone Selector */}
             <View style={{ marginTop: 4 }}>
               <Text style={{ fontFamily: 'SF Pro Display', fontSize: 14, fontWeight: '700', color: colors.text, marginBottom: 4 }}>
-                Reminder Alarm Ringtone
+                Offline Alarm Ringtone
               </Text>
               <Text style={{ fontFamily: 'SF Pro Display', fontSize: 12, color: colors.textMuted, marginBottom: 8 }}>
-                Select the sound when your scheduled reminders trigger
+                Select offline sound tone for scheduled task and event alerts
               </Text>
 
               <View style={styles.ringtoneGrid}>
@@ -595,7 +733,10 @@ export const MoreScreen: React.FC = () => {
                     <TouchableOpacity
                       key={opt.id}
                       style={[styles.ringtoneItem, isSelected && styles.ringtoneItemActive]}
-                      onPress={() => updateSettings({ reminderSound: opt.id })}
+                      onPress={async () => {
+                        await updateSettings({ reminderSound: opt.id });
+                        handleTestSound(opt.id, opt.name);
+                      }}
                       activeOpacity={0.7}
                     >
                       <View style={styles.ringtoneItemLeft}>
@@ -626,11 +767,11 @@ export const MoreScreen: React.FC = () => {
                   justifyContent: 'center',
                   gap: 8,
                   marginTop: 14,
-                  paddingVertical: 10,
+                  paddingVertical: 12,
                   borderRadius: 12,
-                  backgroundColor: `${colors.primary}20`,
+                  backgroundColor: `${colors.primary}25`,
                   borderWidth: 1,
-                  borderColor: `${colors.primary}40`,
+                  borderColor: `${colors.primary}50`,
                 }}
                 onPress={() => {
                   const currentOpt = RINGTONE_OPTIONS.find(o => o.id === (settings.reminderSound || 'default'));
@@ -638,14 +779,25 @@ export const MoreScreen: React.FC = () => {
                 }}
                 activeOpacity={0.7}
               >
-                <Ionicons name="volume-high-outline" size={18} color={colors.primaryLight} />
+                <Ionicons name="volume-high" size={18} color={colors.primaryLight} />
                 <Text style={{ fontFamily: 'SF Pro Display', fontSize: 13, fontWeight: '700', color: colors.primaryLight }}>
-                  {isTestingSound ? 'Testing Alarm...' : 'Test Alarm Notification in System Tray'}
+                  {isTestingSound ? 'Playing Tone & Notification...' : 'Play Ringtone & Show Notification'}
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
         </ModalWrapper>
+
+        {/* Global Custom Alert Dialog */}
+        <CustomAlertModal
+          visible={alertConfig.visible}
+          title={alertConfig.title}
+          message={alertConfig.message}
+          icon={alertConfig.icon}
+          iconColor={alertConfig.iconColor}
+          buttons={alertConfig.buttons}
+          onClose={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
+        />
       </PageLockGuard>
     </PageContainer>
   );

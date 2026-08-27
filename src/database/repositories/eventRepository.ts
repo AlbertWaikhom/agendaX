@@ -7,7 +7,7 @@ export const EventRepository = {
     const rows = await db.getAllAsync<any>(
       `SELECT id, name, description, date, start_time, end_time, location, url,
               reminder_enabled, reminder_time, repeat, color, notification_id,
-              created_at, updated_at
+              image_uri, created_at, updated_at
        FROM events ORDER BY date ASC, start_time ASC;`
     );
 
@@ -25,6 +25,7 @@ export const EventRepository = {
       repeat: r.repeat as any,
       color: r.color,
       notificationId: r.notification_id || undefined,
+      imageUri: r.image_uri || undefined,
       createdAt: r.created_at,
       updatedAt: r.updated_at || undefined,
     }));
@@ -36,8 +37,8 @@ export const EventRepository = {
       `INSERT INTO events (
          id, name, description, date, start_time, end_time, location, url,
          reminder_enabled, reminder_time, repeat, color, notification_id,
-         created_at, updated_at
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+         image_uri, created_at, updated_at
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
       [
         event.id,
         event.name,
@@ -52,6 +53,7 @@ export const EventRepository = {
         event.repeat,
         event.color,
         event.notificationId || null,
+        event.imageUri || null,
         event.createdAt,
         event.updatedAt || null,
       ]
@@ -62,9 +64,9 @@ export const EventRepository = {
     const db = await Database.getDatabaseAsync();
     await db.runAsync(
       `UPDATE events SET
-         name = ?, description = ?, date = ?, start_time = ?, end_time = ?, location = ?, url = ?,
-         reminder_enabled = ?, reminder_time = ?, repeat = ?, color = ?, notification_id = ?,
-         updated_at = ?
+         name = ?, description = ?, date = ?, start_time = ?, end_time = ?,
+         location = ?, url = ?, reminder_enabled = ?, reminder_time = ?,
+         repeat = ?, color = ?, notification_id = ?, image_uri = ?, updated_at = ?
        WHERE id = ?;`,
       [
         event.name,
@@ -79,6 +81,7 @@ export const EventRepository = {
         event.repeat,
         event.color,
         event.notificationId || null,
+        event.imageUri || null,
         event.updatedAt || null,
         event.id,
       ]
@@ -93,29 +96,30 @@ export const EventRepository = {
   async bulkInsertEvents(events: EventItem[]): Promise<void> {
     if (events.length === 0) return;
     const db = await Database.getDatabaseAsync();
-    for (const event of events) {
+    for (const e of events) {
       await db.runAsync(
         `INSERT OR REPLACE INTO events (
            id, name, description, date, start_time, end_time, location, url,
            reminder_enabled, reminder_time, repeat, color, notification_id,
-           created_at, updated_at
-         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+           image_uri, created_at, updated_at
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
-          event.id,
-          event.name,
-          event.description || null,
-          event.date,
-          event.startTime,
-          event.endTime || null,
-          event.location || null,
-          event.url || null,
-          event.reminderEnabled ? 1 : 0,
-          event.reminderTime || null,
-          event.repeat,
-          event.color,
-          event.notificationId || null,
-          event.createdAt,
-          event.updatedAt || null,
+          e.id,
+          e.name,
+          e.description || null,
+          e.date,
+          e.startTime,
+          e.endTime || null,
+          e.location || null,
+          e.url || null,
+          e.reminderEnabled ? 1 : 0,
+          e.reminderTime || null,
+          e.repeat,
+          e.color,
+          e.notificationId || null,
+          e.imageUri || null,
+          e.createdAt,
+          e.updatedAt || null,
         ]
       );
     }

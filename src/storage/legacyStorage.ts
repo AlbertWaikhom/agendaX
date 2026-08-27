@@ -25,16 +25,13 @@ export const LEGACY_KEYS = {
 };
 
 export const LegacyStorage = {
-  /**
-   * Check if any legacy data exists in AsyncStorage
-   */
+
   async hasLegacyData(): Promise<boolean> {
     try {
       const keys = await AsyncStorage.getAllKeys();
       const legacyKeysFound = keys.filter(k => k.startsWith('@agendax_'));
       if (legacyKeysFound.length === 0) return false;
 
-      // Check if there are actual records in key lists
       const [tasksRaw, eventsRaw, expensesRaw, userRaw] = await Promise.all([
         AsyncStorage.getItem(LEGACY_KEYS.TASKS),
         AsyncStorage.getItem(LEGACY_KEYS.EVENTS),
@@ -54,9 +51,6 @@ export const LegacyStorage = {
     }
   },
 
-  /**
-   * Load entire legacy workspace from AsyncStorage
-   */
   async loadLegacyWorkspace(): Promise<WorkspaceData | null> {
     try {
       const [userRaw, tasksRaw, eventsRaw, expensesRaw, urlsRaw, notifsRaw, settingsRaw, secRaw] =
