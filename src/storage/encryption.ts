@@ -34,4 +34,22 @@ export const Encryption = {
       return encryptedBase64;
     }
   },
+
+  encryptVault(payload: any): string {
+    const rawJson = typeof payload === 'string' ? payload : JSON.stringify(payload);
+    return this.encryptString(rawJson, 'AGENDAX_SECURE_OFFLINE_VAULT_2026_AGX');
+  },
+
+  decryptVault(encryptedBase64: string): any {
+    try {
+      const decrypted = this.decryptString(encryptedBase64, 'AGENDAX_SECURE_OFFLINE_VAULT_2026_AGX');
+      return JSON.parse(decrypted);
+    } catch {
+      try {
+        return JSON.parse(encryptedBase64);
+      } catch {
+        return null;
+      }
+    }
+  },
 };

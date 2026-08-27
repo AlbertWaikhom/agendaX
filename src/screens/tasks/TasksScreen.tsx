@@ -17,6 +17,7 @@ import { Input } from '../../components/common/Input';
 import { TaskCard } from '../../components/tasks/TaskCard';
 import { PageLockGuard } from '../../components/security/PageLockGuard';
 import { TaskFormModal } from '../../components/tasks/TaskFormModal';
+import { TaskDetailsModal } from '../../components/tasks/TaskDetailsModal';
 import { FloatingActionButton } from '../../components/common/FloatingActionButton';
 import { createTasksStyles } from './TasksScreen.styles';
 
@@ -33,6 +34,8 @@ export const TasksScreen: React.FC = () => {
   const [showSortMenu, setShowSortMenu] = useState(false);
 
   const [showModal, setShowModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
   const [editingTask, setEditingTask] = useState<TaskItem | null>(null);
 
   const displayedTasks = useMemo(() => {
@@ -47,7 +50,14 @@ export const TasksScreen: React.FC = () => {
     { id: 'completed', label: 'Completed', count: tasks.filter(t => t.completed).length },
   ];
 
+  const handleSelectTask = (task: TaskItem) => {
+    setSelectedTask(task);
+    setShowDetailsModal(true);
+  };
+
   const handleEdit = (task: TaskItem) => {
+    setSelectedTask(null);
+    setShowDetailsModal(false);
     setEditingTask(task);
     setShowModal(true);
   };
@@ -152,6 +162,7 @@ export const TasksScreen: React.FC = () => {
             renderItem={({ item }) => (
               <TaskCard
                 task={item}
+                onPress={() => handleSelectTask(item)}
                 onToggleComplete={() => toggleTask(item.id)}
                 onEdit={() => handleEdit(item)}
                 onDelete={() => deleteTask(item.id)}
@@ -173,6 +184,27 @@ export const TasksScreen: React.FC = () => {
           onPress={() => {
             setEditingTask(null);
             setShowModal(true);
+          }}
+        />
+
+        {/* Task Details Modal */}
+        <TaskDetailsModal
+          visible={showDetailsModal}
+          task={selectedTask}
+          onClose={() => {
+            setShowDetailsModal(false);
+            setSelectedTask(null);
+          }}
+          onEdit={handleEdit}
+          onDelete={id => {
+            setShowDetailsModal(false);
+            deleteTask(id);
+          }}
+          onToggleComplete={id => {
+            toggleTask(id);
+            if (selectedTask && selectedTask.id === id) {
+              setSelectedTask({ ...selectedTask, completed: !selectedTask.completed });
+            }
           }}
         />
 

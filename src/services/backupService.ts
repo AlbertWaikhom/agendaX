@@ -5,27 +5,34 @@ import { File, Paths } from 'expo-file-system';
 import JSZip from 'jszip';
 import { WorkspaceData, BackupPayload, ZipBackupManifest } from '../types';
 import { FileStorage } from '../storage/fileStorage';
+import { Encryption } from '../storage/encryption';
 
 export const BackupService = {
   /**
-   * Create backup payload from current workspace
+   * Create encrypted backup payload from current workspace
    */
-  generateBackupPayload(workspace: WorkspaceData): BackupPayload {
+  generateBackupPayload(workspace: WorkspaceData): any {
+    const rawData = {
+      user: workspace.user,
+      tasks: workspace.tasks || [],
+      events: workspace.events || [],
+      expenses: workspace.expenses || [],
+      urls: workspace.urls || [],
+      notifications: workspace.notifications || [],
+      settings: workspace.settings,
+      attachments: workspace.attachments || [],
+    };
+
+    const encryptedData = Encryption.encryptVault(rawData);
+
     return {
       version: '1.01',
       app: 'AgendaX',
+      vaultVersion: 1,
+      isEncrypted: true,
       exportedAt: new Date().toISOString(),
       workspaceId: workspace.user?.id || 'UNKNOWN',
-      data: {
-        user: workspace.user,
-        tasks: workspace.tasks || [],
-        events: workspace.events || [],
-        expenses: workspace.expenses || [],
-        urls: workspace.urls || [],
-        notifications: workspace.notifications || [],
-        settings: workspace.settings,
-        attachments: workspace.attachments || [],
-      },
+      encryptedPayload: encryptedData,
     };
   },
 
@@ -277,7 +284,10 @@ export const BackupService = {
       let workspaceData: WorkspaceData | null = null;
       let exportedAt = '';
 
-      if (parsed.app === 'AgendaX' && parsed.data) {
+      if (parsed.isEncrypted && parsed.encryptedPayload) {
+        workspaceData = Encryption.decryptVault(parsed.encryptedPayload);
+        exportedAt = parsed.exportedAt || 'Encrypted Vault';
+      } else if (parsed.app === 'AgendaX' && parsed.data) {
         workspaceData = parsed.data;
         exportedAt = parsed.exportedAt || 'Unknown date';
       } else if (parsed.user || parsed.tasks || parsed.events) {
