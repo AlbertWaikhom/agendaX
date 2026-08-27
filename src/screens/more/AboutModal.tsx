@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Typography, BorderRadius, Spacing } from '../../constants/theme';
 import { useTheme } from '../../context/ThemeContext';
 import { ModalWrapper } from '../../components/common/ModalWrapper';
+import { Button } from '../../components/common/Button';
 
 interface AboutModalProps {
   visible: boolean;
@@ -26,7 +27,33 @@ export const AboutModal: React.FC<AboutModalProps> = ({ visible, onClose }) => {
           resizeMode="contain"
         />
         <Text style={[styles.tagline, { color: colors.primaryLight }]}>Plan. Track. Achieve.</Text>
-        <Text style={[styles.version, { color: colors.textMuted }]}>Version 1.01 • Production Release</Text>
+        <Text style={[styles.version, { color: colors.textMuted }]}>Version 1.01 • Production Release (SQLite Edition)</Text>
+      </View>
+
+      {/* Direct APK Download Card */}
+      <View
+        style={[
+          styles.card,
+          {
+            backgroundColor: `${colors.primary}15`,
+            borderColor: colors.primary,
+          },
+        ]}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+          <Ionicons name="logo-android" size={22} color={colors.primaryLight} />
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: 0 }]}>Offline Standalone APK</Text>
+            <Text style={{ fontSize: 11, color: colors.textMuted }}>Direct high-speed repository download (~90 MB)</Text>
+          </View>
+        </View>
+
+        <Button
+          title="Download APK v1.01"
+          icon="download-outline"
+          onPress={() => handleOpenLink('https://github.com/AlbertWaikhom/agendaX/raw/main/agendaX-v1.01.apk')}
+          style={{ marginTop: 6 }}
+        />
       </View>
 
       {/* Developer Profile Card */}
@@ -94,12 +121,15 @@ export const AboutModal: React.FC<AboutModalProps> = ({ visible, onClose }) => {
       >
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Privacy & Architecture</Text>
         <Text style={[styles.sectionBody, { color: colors.textSecondary }]}>
-          AgendaX is engineered with a strict <Text style={{ color: colors.primaryLight, fontWeight: '700' }}>Local-First</Text> architecture.
+          AgendaX is engineered with a strict <Text style={{ color: colors.primaryLight, fontWeight: '700' }}>Local-First SQLite</Text> architecture.
           {'\n\n'}
-          • Zero remote server or cloud database dependency.{'\n'}
-          • 100% of your tasks, events, expenses, and URLs are kept in isolated local JSON storage on this device.{'\n'}
+          • 100% Zero remote server, cloud, or analytics dependency.{'\n'}
+          • Relational SQLite database (`agendax.db`) with WAL performance mode.{'\n'}
+          • High-priority Android alarm notifications with custom ringtone selection.{'\n'}
+          • Profile picture personalization up to 10MB.{'\n'}
+          • Scoped media attachment vault with cascade file cleanup.{'\n'}
           • Biometric, fingerprint, face ID, and custom PIN security protection.{'\n'}
-          • Full JSON data export and restore capability anytime.
+          • Full JSON & ZIP archive backup/restore with Merge & Replace capabilities.
         </Text>
       </View>
 
@@ -114,29 +144,29 @@ export const AboutModal: React.FC<AboutModalProps> = ({ visible, onClose }) => {
           },
         ]}
       >
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Core Features</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Core Highlights</Text>
         <View style={styles.bulletRow}>
-          <Ionicons name="checkmark-circle" size={16} color={colors.primary} />
+          <Ionicons name="server" size={16} color={colors.primary} />
           <Text style={[styles.bulletText, { color: colors.textSecondary }]}>
-            Task Manager with priorities, categories, and reminders
+            Local SQLite Database (`agendax.db`)
           </Text>
         </View>
         <View style={styles.bulletRow}>
-          <Ionicons name="calendar" size={16} color={colors.accentPurple} />
+          <Ionicons name="alarm" size={16} color={colors.accentEmerald} />
           <Text style={[styles.bulletText, { color: colors.textSecondary }]}>
-            Interactive Calendar Strip with Event Inspector
+            Android System Alarms & Custom Ringtones
           </Text>
         </View>
         <View style={styles.bulletRow}>
-          <Ionicons name="wallet" size={16} color={colors.accentEmerald} />
+          <Ionicons name="person-circle" size={16} color={colors.accentPurple} />
           <Text style={[styles.bulletText, { color: colors.textSecondary }]}>
-            Monthly Expenses with 6-Month Comparison Graphs
+            Custom Profile Picture (up to 10MB)
           </Text>
         </View>
         <View style={styles.bulletRow}>
-          <Ionicons name="link" size={16} color={colors.accentCyan} />
+          <Ionicons name="attach" size={16} color={colors.accentCyan} />
           <Text style={[styles.bulletText, { color: colors.textSecondary }]}>
-            Important Link Vault with clipboard integration
+            Media & Document File Attachments
           </Text>
         </View>
         <View style={styles.bulletRow}>

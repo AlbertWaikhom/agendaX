@@ -15,6 +15,17 @@ export const SCHEMA_MIGRATIONS: SchemaMigration[] = [
       // Version 1 tables are generated in schema.ts CREATE_TABLES_SQL
     },
   },
+  {
+    version: 2,
+    name: 'add_user_avatar_uri',
+    up: async (db: SQLiteDatabase) => {
+      try {
+        await db.execAsync('ALTER TABLE users ADD COLUMN avatar_uri TEXT;');
+      } catch (e) {
+        // Column may already exist if created on fresh install
+      }
+    },
+  },
 ];
 
 export const Migrations = {

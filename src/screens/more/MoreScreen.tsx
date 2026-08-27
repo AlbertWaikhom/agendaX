@@ -7,9 +7,13 @@ import {
   Alert,
   Switch,
   Linking,
+  Image,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
+import * as ImagePicker from 'expo-image-picker';
+import { File } from 'expo-file-system';
 import { useTheme } from '../../context/ThemeContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { useSecurity } from '../../context/SecurityContext';
@@ -22,6 +26,8 @@ import { BackupRestoreModal } from './BackupRestoreModal';
 import { AboutModal } from './AboutModal';
 import { SecuritySettingsModal } from '../../components/security/SecuritySettingsModal';
 import { ThemeMode } from '../../types';
+import { FileStorage } from '../../storage/fileStorage';
+import { RINGTONE_OPTIONS } from '../../services/notificationService';
 import { createMoreStyles } from './MoreScreen.styles';
 
 const THEME_OPTIONS: { id: ThemeMode; name: string; bg: string; accent: string; previewCard: string }[] = [
@@ -63,6 +69,9 @@ export const MoreScreen: React.FC = () => {
     user,
     settings,
     updateUser,
+    updateUserAvatar,
+    removeUserAvatar,
+    triggerTestNotification,
     updateSettings,
     clearWorkspace,
   } = useWorkspace();
@@ -76,6 +85,7 @@ export const MoreScreen: React.FC = () => {
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [showAppSettingsModal, setShowAppSettingsModal] = useState(false);
   const [showSecurityModal, setShowSecurityModal] = useState(false);
+  const [isTestingSound, setIsTestingSound] = useState(false);
 
   const handleCopyId = async () => {
     if (user?.id) {
@@ -96,10 +106,89 @@ export const MoreScreen: React.FC = () => {
     }
   };
 
+  const handleAvatarPress = () => {
+    if (user?.avatarUri) {
+      Alert.alert('Profile Picture', 'Customize your local profile photo', [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Upload New Photo',
+          onPress: () => handlePickAvatar(),
+        },
+        {
+          text: 'Remove Photo',
+          style: 'destructive',
+          onPress: async () => {
+            await removeUserAvatar();
+          },
+        },
+      ]);
+    } else {
+      handlePickAvatar();
+    }
+  };
+
+  const handlePickAvatar = async () => {
+    try {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert('Permission Denied', 'Please allow gallery access to set your profile picture.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.85,
+      });
+
+      if (result.canceled || !result.assets || result.assets.length === 0) {
+        return;
+      }
+
+      const asset = result.assets[0];
+
+      // Validate 10MB size limit (10 * 1024 * 1024 bytes)
+      if (asset.fileSize && asset.fileSize > 10 * 1024 * 1024) {
+        Alert.alert(
+          '⚠️ File Too Large',
+          `The selected image is ${(asset.fileSize / (1024 * 1024)).toFixed(1)} MB. Maximum allowed size is 10 MB.`
+        );
+        return;
+      }
+
+      await FileStorage.ensureDirectoriesAsync();
+      const imagesDir = FileStorage.getMediaDirectory('images');
+      const storedFileName = `profile_${user?.id || 'default'}.jpg`;
+      const destFile = new File(imagesDir, storedFileName);
+
+      if (Platform.OS !== 'web') {
+        const sourceFile = new File(asset.uri);
+        if (sourceFile.exists) {
+          sourceFile.copy(destFile);
+        }
+      }
+
+      const finalUri = Platform.OS === 'web' ? asset.uri : destFile.uri;
+      await updateUserAvatar(finalUri);
+      Alert.alert('✅ Profile Updated', 'Your profile picture has been saved.');
+    } catch (e: any) {
+      console.warn('[MoreScreen] Avatar pick error:', e);
+      Alert.alert('Error', e?.message || 'Failed to update profile photo');
+    }
+  };
+
+  const handleTestSound = async (soundId: string, soundName: string) => {
+    setIsTestingSound(true);
+    await updateSettings({ reminderSound: soundId });
+    await triggerTestNotification(soundName);
+    setTimeout(() => setIsTestingSound(false), 1500);
+  };
+
   const handleClearAllData = () => {
     Alert.alert(
       '🚨 WIPE ALL DATA',
-      'This will permanently delete your local workspace, all tasks, events, expenses, and saved URLs.\n\nThis action cannot be undone.',
+      'This will permanently delete your local SQLite database, all tasks, events, expenses, attachments, and saved URLs.\n\nThis action cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -120,16 +209,27 @@ export const MoreScreen: React.FC = () => {
           {/* Page Header */}
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Workspace & Settings</Text>
-            <Text style={styles.headerSubtitle}>Customize themes, preferences, and security</Text>
+            <Text style={styles.headerSubtitle}>Customize themes, profile, alerts & security</Text>
           </View>
 
           {/* User Profile Glass Hero Card */}
           <View style={styles.profileCard}>
-            <View style={[styles.avatarWrapper, { backgroundColor: user?.avatarColor || colors.primary }]}>
-              <Text style={styles.avatarText}>
-                {(user?.name || 'A').charAt(0).toUpperCase()}
-              </Text>
-            </View>
+            <TouchableOpacity
+              style={[styles.avatarWrapper, { backgroundColor: user?.avatarColor || colors.primary }]}
+              onPress={handleAvatarPress}
+              activeOpacity={0.8}
+            >
+              {user?.avatarUri ? (
+                <Image source={{ uri: user.avatarUri }} style={styles.avatarImage} />
+              ) : (
+                <Text style={styles.avatarText}>
+                  {(user?.name || 'A').charAt(0).toUpperCase()}
+                </Text>
+              )}
+              <View style={styles.avatarCameraBadge}>
+                <Ionicons name="camera" size={10} color="#FFFFFF" />
+              </View>
+            </TouchableOpacity>
 
             <View style={styles.profileInfo}>
               <Text style={styles.profileName}>{user?.name || 'Workspace User'}</Text>
@@ -218,6 +318,7 @@ export const MoreScreen: React.FC = () => {
               <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
             </TouchableOpacity>
 
+            {/* Backup & Restore */}
             <TouchableOpacity
               style={styles.menuItem}
               activeOpacity={0.7}
@@ -228,13 +329,14 @@ export const MoreScreen: React.FC = () => {
                   <Ionicons name="cloud-download-outline" size={18} color={colors.primaryLight} />
                 </View>
                 <View>
-                  <Text style={styles.menuTitle}>JSON Backup & Restore</Text>
-                  <Text style={styles.menuSubtitle}>Export offline workspace or restore from file</Text>
+                  <Text style={styles.menuTitle}>SQLite Backup & Restore</Text>
+                  <Text style={styles.menuSubtitle}>Export offline database or restore ZIP/JSON</Text>
                 </View>
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
             </TouchableOpacity>
 
+            {/* Preferences & Alarm Ringtone */}
             <TouchableOpacity
               style={styles.menuItem}
               activeOpacity={0.7}
@@ -242,16 +344,35 @@ export const MoreScreen: React.FC = () => {
             >
               <View style={styles.menuItemLeft}>
                 <View style={[styles.menuIconBox, { backgroundColor: `${colors.accentPurple}20` }]}>
-                  <Ionicons name="options-outline" size={18} color={colors.accentPurple} />
+                  <Ionicons name="notifications-circle-outline" size={18} color={colors.accentPurple} />
                 </View>
                 <View>
-                  <Text style={styles.menuTitle}>Preferences & Alerts</Text>
-                  <Text style={styles.menuSubtitle}>Sound, badges, and notifications</Text>
+                  <Text style={styles.menuTitle}>Alarms, Alerts & Ringtones</Text>
+                  <Text style={styles.menuSubtitle}>Ringtone sounds, control panel alerts & haptics</Text>
                 </View>
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
             </TouchableOpacity>
 
+            {/* Direct APK Download URL */}
+            <TouchableOpacity
+              style={styles.menuItem}
+              activeOpacity={0.7}
+              onPress={() => handleOpenLink('https://github.com/AlbertWaikhom/agendaX/raw/main/agendaX-v1.01.apk')}
+            >
+              <View style={styles.menuItemLeft}>
+                <View style={[styles.menuIconBox, { backgroundColor: '#34D39920' }]}>
+                  <Ionicons name="logo-android" size={18} color="#34D399" />
+                </View>
+                <View>
+                  <Text style={styles.menuTitle}>Download Standalone APK (v1.01)</Text>
+                  <Text style={styles.menuSubtitle}>100% Offline APK file (~90 MB direct link)</Text>
+                </View>
+              </View>
+              <Ionicons name="download-outline" size={18} color="#34D399" />
+            </TouchableOpacity>
+
+            {/* About AgendaX */}
             <TouchableOpacity
               style={styles.menuItem}
               activeOpacity={0.7}
@@ -262,13 +383,14 @@ export const MoreScreen: React.FC = () => {
                   <Ionicons name="information-circle-outline" size={18} color={colors.accentCyan} />
                 </View>
                 <View>
-                  <Text style={styles.menuTitle}>About agendax (AgendaX)</Text>
-                  <Text style={styles.menuSubtitle}>Local architecture & developer info</Text>
+                  <Text style={styles.menuTitle}>About AgendaX</Text>
+                  <Text style={styles.menuSubtitle}>Offline architecture, features & developer info</Text>
                 </View>
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
             </TouchableOpacity>
 
+            {/* Reset Workspace */}
             <TouchableOpacity
               style={[styles.menuItem, styles.menuItemLast]}
               activeOpacity={0.7}
@@ -280,7 +402,7 @@ export const MoreScreen: React.FC = () => {
                 </View>
                 <View>
                   <Text style={[styles.menuTitle, { color: colors.error }]}>Reset Workspace</Text>
-                  <Text style={styles.menuSubtitle}>Permanently wipe all local device data</Text>
+                  <Text style={styles.menuSubtitle}>Permanently wipe all SQLite database data</Text>
                 </View>
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.error} />
@@ -378,9 +500,9 @@ export const MoreScreen: React.FC = () => {
 
           {/* Footer */}
           <View style={styles.footer}>
-            <Text style={styles.footerAppTitle}>agendax</Text>
+            <Text style={styles.footerAppTitle}>AgendaX</Text>
             <Text style={styles.footerTagline}>Plan. Track. Achieve.</Text>
-            <Text style={styles.footerVersion}>v1.01 • 100% Offline Local Engine</Text>
+            <Text style={styles.footerVersion}>v1.01 • 100% Offline SQLite Engine</Text>
           </View>
         </ScrollView>
 
@@ -413,21 +535,22 @@ export const MoreScreen: React.FC = () => {
         {/* About Modal */}
         <AboutModal visible={showAboutModal} onClose={() => setShowAboutModal(false)} />
 
-        {/* App Preferences Modal */}
+        {/* App Preferences & Alarms Modal */}
         <ModalWrapper
           visible={showAppSettingsModal}
           onClose={() => setShowAppSettingsModal(false)}
-          title="Preferences"
-          subtitle="Adjust local app options"
+          title="Alarms & Preferences"
+          subtitle="Configure system alarms, ringtones, and alerts"
         >
-          <View style={{ gap: 16, paddingVertical: 8 }}>
+          <View style={{ gap: 18, paddingVertical: 8 }}>
+            {/* Notification Toggle */}
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <View>
+              <View style={{ flex: 1, paddingRight: 10 }}>
                 <Text style={{ fontFamily: 'SF Pro Display', fontSize: 15, fontWeight: '600', color: colors.text }}>
-                  Notifications
+                  System Notifications & Alarms
                 </Text>
                 <Text style={{ fontFamily: 'SF Pro Display', fontSize: 12, color: colors.textMuted }}>
-                  Allow local schedule alerts
+                  High-priority alerts in Android notification center & lockscreen
                 </Text>
               </View>
               <Switch
@@ -438,13 +561,14 @@ export const MoreScreen: React.FC = () => {
               />
             </View>
 
+            {/* Haptic Feedback Toggle */}
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <View>
                 <Text style={{ fontFamily: 'SF Pro Display', fontSize: 15, fontWeight: '600', color: colors.text }}>
                   Haptic Feedback
                 </Text>
                 <Text style={{ fontFamily: 'SF Pro Display', fontSize: 12, color: colors.textMuted }}>
-                  Vibration on button presses
+                  Tactile vibration on interactions
                 </Text>
               </View>
               <Switch
@@ -453,6 +577,72 @@ export const MoreScreen: React.FC = () => {
                 trackColor={{ false: colors.surfaceHighlight, true: colors.primary }}
                 thumbColor="#FFFFFF"
               />
+            </View>
+
+            {/* Alarm Ringtone Selector */}
+            <View style={{ marginTop: 4 }}>
+              <Text style={{ fontFamily: 'SF Pro Display', fontSize: 14, fontWeight: '700', color: colors.text, marginBottom: 4 }}>
+                Reminder Alarm Ringtone
+              </Text>
+              <Text style={{ fontFamily: 'SF Pro Display', fontSize: 12, color: colors.textMuted, marginBottom: 8 }}>
+                Select the sound when your scheduled reminders trigger
+              </Text>
+
+              <View style={styles.ringtoneGrid}>
+                {RINGTONE_OPTIONS.map(opt => {
+                  const isSelected = (settings.reminderSound || 'default') === opt.id;
+                  return (
+                    <TouchableOpacity
+                      key={opt.id}
+                      style={[styles.ringtoneItem, isSelected && styles.ringtoneItemActive]}
+                      onPress={() => updateSettings({ reminderSound: opt.id })}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.ringtoneItemLeft}>
+                        <Ionicons
+                          name={opt.icon as any}
+                          size={18}
+                          color={isSelected ? colors.primaryLight : colors.textMuted}
+                        />
+                        <Text style={[styles.ringtoneItemText, isSelected && styles.ringtoneItemTextActive]}>
+                          {opt.name}
+                        </Text>
+                      </View>
+                      <Ionicons
+                        name={isSelected ? 'radio-button-on' : 'radio-button-off'}
+                        size={18}
+                        color={isSelected ? colors.primary : colors.textMuted}
+                      />
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {/* Test Alert Sound Button */}
+              <TouchableOpacity
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  marginTop: 14,
+                  paddingVertical: 10,
+                  borderRadius: 12,
+                  backgroundColor: `${colors.primary}20`,
+                  borderWidth: 1,
+                  borderColor: `${colors.primary}40`,
+                }}
+                onPress={() => {
+                  const currentOpt = RINGTONE_OPTIONS.find(o => o.id === (settings.reminderSound || 'default'));
+                  handleTestSound(currentOpt?.id || 'default', currentOpt?.name || 'Default Alarm');
+                }}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="volume-high-outline" size={18} color={colors.primaryLight} />
+                <Text style={{ fontFamily: 'SF Pro Display', fontSize: 13, fontWeight: '700', color: colors.primaryLight }}>
+                  {isTestingSound ? 'Testing Alarm...' : 'Test Alarm Notification in System Tray'}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </ModalWrapper>

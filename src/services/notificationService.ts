@@ -3,7 +3,17 @@ import * as Notifications from 'expo-notifications';
 import { NotificationRecord } from '../types';
 import { generateUniqueId } from '../utils';
 
-// Configure notification behavior
+export const NOTIFICATION_CHANNEL_ID = 'agendax_reminders';
+
+export const RINGTONE_OPTIONS = [
+  { id: 'default', name: 'Default System Alarm', icon: 'alarm-outline' },
+  { id: 'chime', name: 'Gentle Chime', icon: 'musical-notes-outline' },
+  { id: 'bell', name: 'Classic Bell', icon: 'notifications-outline' },
+  { id: 'ping', name: 'Crystal Ping', icon: 'sparkles-outline' },
+  { id: 'cyber', name: 'Cyber Pulse', icon: 'hardware-chip-outline' },
+];
+
+// Configure foreground notification behavior
 try {
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -20,15 +30,49 @@ try {
 
 export const NotificationService = {
   /**
-   * Request local notification permissions
+   * Initialize Android high-priority notification channel
+   */
+  async initNotificationChannel(): Promise<void> {
+    if (Platform.OS !== 'android') return;
+
+    try {
+      await Notifications.setNotificationChannelAsync(NOTIFICATION_CHANNEL_ID, {
+        name: 'AgendaX Reminders & Alarms',
+        description: 'Critical task and event alarm notifications with sound and vibration',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#6366F1',
+        enableLights: true,
+        enableVibrate: true,
+        showBadge: true,
+        sound: 'default',
+        lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+        bypassDnd: false,
+      });
+      console.log('[NotificationService] Android notification channel initialized.');
+    } catch (e) {
+      console.warn('[NotificationService] Channel creation warning:', e);
+    }
+  },
+
+  /**
+   * Request local notification permissions (including Android 13+ POST_NOTIFICATIONS)
    */
   async requestPermissions(): Promise<boolean> {
     if (Platform.OS === 'web') return false;
     try {
+      await this.initNotificationChannel();
+
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
       if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
+        const { status } = await Notifications.requestPermissionsAsync({
+          ios: {
+            allowAlert: true,
+            allowBadge: true,
+            allowSound: true,
+          },
+        });
         finalStatus = status;
       }
       return finalStatus === 'granted';
@@ -57,8 +101,12 @@ export const NotificationService = {
       const target = new Date(year, month - 1, day, hours, minutes, 0, 0);
 
       // Apply offset
-      if (reminderTime === '10_min_before') {
+      if (reminderTime === '5_min_before') {
+        target.setMinutes(target.getMinutes() - 5);
+      } else if (reminderTime === '10_min_before') {
         target.setMinutes(target.getMinutes() - 10);
+      } else if (reminderTime === '15_min_before') {
+        target.setMinutes(target.getMinutes() - 15);
       } else if (reminderTime === '30_min_before') {
         target.setMinutes(target.getMinutes() - 30);
       } else if (reminderTime === '1_hour_before') {
@@ -79,7 +127,7 @@ export const NotificationService = {
   },
 
   /**
-   * Schedule a local notification for a task or event
+   * Schedule a local notification for a task or event with Android channel and high priority
    */
   async scheduleReminder(params: {
     title: string;
@@ -89,6 +137,7 @@ export const NotificationService = {
     reminderTime?: string;
     type: 'task' | 'event';
     referenceId: string;
+    sound?: string;
   }): Promise<string | undefined> {
     try {
       const triggerDate = this.calculateTriggerDate(params.date, params.time, params.reminderTime);
@@ -101,7 +150,10 @@ export const NotificationService = {
         content: {
           title: params.title,
           body: params.body,
-          sound: true,
+          sound: params.sound || 'default',
+          priority: Notifications.AndroidNotificationPriority.MAX,
+          vibrate: [0, 250, 250, 250],
+          color: '#6366F1',
           data: {
             type: params.type,
             referenceId: params.referenceId,
@@ -110,6 +162,7 @@ export const NotificationService = {
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.DATE,
           date: triggerDate,
+          channelId: NOTIFICATION_CHANNEL_ID,
         },
       });
 
@@ -117,6 +170,38 @@ export const NotificationService = {
     } catch (e) {
       console.warn('[NotificationService] Schedule error:', e);
       return undefined;
+    }
+  },
+
+  /**
+   * Trigger an instant test notification to preview sound and control panel alert
+   */
+  async triggerTestReminder(soundTitle?: string): Promise<boolean> {
+    try {
+      const hasPermission = await this.requestPermissions();
+      if (!hasPermission) return false;
+
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: '🔔 AgendaX Alarm Test',
+          body: `Reminder alert with sound: ${soundTitle || 'Default Alarm'}. Active in system notification center.`,
+          sound: 'default',
+          priority: Notifications.AndroidNotificationPriority.MAX,
+          vibrate: [0, 250, 250, 250],
+          color: '#6366F1',
+          data: { type: 'system' },
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+          seconds: 1,
+          channelId: NOTIFICATION_CHANNEL_ID,
+        },
+      });
+
+      return true;
+    } catch (e) {
+      console.warn('[NotificationService] Test alert error:', e);
+      return false;
     }
   },
 

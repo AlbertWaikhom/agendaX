@@ -37,6 +37,10 @@ export const Database = {
       // Execute schema creation
       await db.execAsync(CREATE_TABLES_SQL);
 
+      // Run any pending schema migrations
+      const { Migrations } = await import('./migrations');
+      await Migrations.runSchemaMigrations(db);
+
       dbInstance = db;
       isInitializing = false;
       return db;

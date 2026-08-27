@@ -47,6 +47,9 @@ interface WorkspaceContextValue {
   // User/Workspace lifecycle
   initializeUser: (name: string) => Promise<boolean>;
   updateUser: (name: string) => Promise<boolean>;
+  updateUserAvatar: (avatarUri: string) => Promise<boolean>;
+  removeUserAvatar: () => Promise<boolean>;
+  triggerTestNotification: (soundTitle?: string) => Promise<boolean>;
 
   // Task Operations
   addTask: (params: Parameters<typeof TaskService.createTask>[0]) => Promise<TaskItem>;
@@ -189,6 +192,26 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     await UserRepository.updateUser(updatedUser);
     setUser(updatedUser);
     return true;
+  };
+
+  const updateUserAvatar = async (avatarUri: string): Promise<boolean> => {
+    if (!user) return false;
+    const updatedUser: LocalUser = { ...user, avatarUri };
+    await UserRepository.updateUser(updatedUser);
+    setUser(updatedUser);
+    return true;
+  };
+
+  const removeUserAvatar = async (): Promise<boolean> => {
+    if (!user) return false;
+    const updatedUser: LocalUser = { ...user, avatarUri: undefined };
+    await UserRepository.updateUser(updatedUser);
+    setUser(updatedUser);
+    return true;
+  };
+
+  const triggerTestNotification = async (soundTitle?: string): Promise<boolean> => {
+    return NotificationService.triggerTestReminder(soundTitle);
   };
 
   // --- Task Handlers ---
@@ -538,6 +561,9 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         unreadNotificationsCount,
         initializeUser,
         updateUser,
+        updateUserAvatar,
+        removeUserAvatar,
+        triggerTestNotification,
         addTask,
         updateTask,
         deleteTask,

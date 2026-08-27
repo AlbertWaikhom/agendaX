@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   avatar_color TEXT NOT NULL,
+  avatar_uri TEXT,
   created_at TEXT NOT NULL
 );
 

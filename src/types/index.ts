@@ -42,6 +42,7 @@ export interface LocalUser {
   id: string; // e.g. "AGX-8F3A2D91"
   name: string;
   avatarColor: string;
+  avatarUri?: string;
   createdAt: string;
 }
 
@@ -135,6 +136,7 @@ export interface AppSettings {
   compactView: boolean;
   badgeCountEnabled: boolean;
   currencySymbol?: string;
+  reminderSound?: string; // 'default' | 'chime' | 'bell' | 'ping' | 'cyber'
   security?: SecuritySettings;
 }
 
