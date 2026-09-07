@@ -4,11 +4,12 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ActivityIndicator,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Typography, BorderRadius, Spacing } from '../../constants/theme';
+import { Typography, BorderRadius, Spacing } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { BackupService } from '../../services/backupService';
 import { WorkspaceData } from '../../types';
@@ -24,29 +25,33 @@ export const BackupRestoreModal: React.FC<BackupRestoreModalProps> = ({
   visible,
   onClose,
 }) => {
-  const { exportData, importData } = useWorkspace();
+  const { colors } = useTheme();
+  const { exportData, exportZipData, importMergeData, importReplaceData } = useWorkspace();
   const [loadingExport, setLoadingExport] = useState(false);
+  const [loadingZipExport, setLoadingZipExport] = useState(false);
   const [loadingImport, setLoadingImport] = useState(false);
   const [exportMessage, setExportMessage] = useState<string | null>(null);
-
-  // Import state
   const [parsedData, setParsedData] = useState<WorkspaceData | null>(null);
   const [previewSummary, setPreviewSummary] = useState<{
     tasksCount: number;
     eventsCount: number;
+    expensesCount: number;
     urlsCount: number;
+    attachmentsCount?: number;
     userName: string;
     exportedAt: string;
+    format: string;
   } | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
+  const [importSuccessMessage, setImportSuccessMessage] = useState<string | null>(null);
 
-  const handleExport = async () => {
+  const handleExportJson = async () => {
     setLoadingExport(true);
     setExportMessage(null);
     try {
       const result = await exportData();
       if (result.success) {
-        setExportMessage(result.message || 'Backup file generated successfully!');
+        setExportMessage(result.message || 'JSON backup generated successfully!');
       } else {
         setExportMessage(result.error || 'Failed to generate backup');
       }
@@ -57,9 +62,27 @@ export const BackupRestoreModal: React.FC<BackupRestoreModalProps> = ({
     }
   };
 
+  const handleExportZip = async () => {
+    setLoadingZipExport(true);
+    setExportMessage(null);
+    try {
+      const result = await exportZipData();
+      if (result.success) {
+        setExportMessage(result.message || 'Full ZIP backup archive created successfully!');
+      } else {
+        setExportMessage(result.error || 'Failed to generate ZIP backup');
+      }
+    } catch (e: any) {
+      setExportMessage(e?.message || 'ZIP Export error');
+    } finally {
+      setLoadingZipExport(false);
+    }
+  };
+
   const handlePickFile = async () => {
     setLoadingImport(true);
     setImportError(null);
+    setImportSuccessMessage(null);
     setParsedData(null);
     setPreviewSummary(null);
 
@@ -81,26 +104,54 @@ export const BackupRestoreModal: React.FC<BackupRestoreModalProps> = ({
     }
   };
 
-  const handleConfirmRestore = async () => {
+  const handleMergeRestore = async () => {
+    if (!parsedData) return;
+    setLoadingImport(true);
+    setImportError(null);
+    try {
+      const res = await importMergeData(parsedData);
+      if (res.success) {
+        Alert.alert(
+          '✅ Merge Complete',
+          `Imported: ${res.imported.tasks} tasks, ${res.imported.events} events, ${res.imported.expenses} expenses, ${res.imported.urls} URLs.\nSkipped ${res.skippedDuplicates || 0} existing duplicates.`
+        );
+        onClose();
+      } else {
+        setImportError(res.error || 'Failed to merge data.');
+      }
+    } catch (e: any) {
+      setImportError(e?.message || 'Merge failed');
+    } finally {
+      setLoadingImport(false);
+    }
+  };
+
+  const handleReplaceRestore = async () => {
     if (!parsedData) return;
 
     Alert.alert(
-      '⚠️ Restore Workspace Backup',
-      'This action will replace your current workspace data with the selected backup file. Are you sure you want to proceed?',
+      '⚠️ Replace All Workspace Data',
+      'This action will replace all current SQLite tasks, events, and expenses with the backup data. Are you sure?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Restore Now',
+          text: 'Replace All Now',
           style: 'destructive',
           onPress: async () => {
             setLoadingImport(true);
-            const ok = await importData(parsedData);
-            setLoadingImport(false);
-            if (ok) {
-              Alert.alert('✅ Restored Successfully', 'Your workspace has been fully restored.');
-              onClose();
-            } else {
-              setImportError('Failed to restore data into local storage.');
+            setImportError(null);
+            try {
+              const res = await importReplaceData(parsedData);
+              if (res.success) {
+                Alert.alert('✅ Restored Successfully', 'Your workspace has been completely restored from backup.');
+                onClose();
+              } else {
+                setImportError(res.error || 'Failed to replace data in SQLite.');
+              }
+            } catch (e: any) {
+              setImportError(e?.message || 'Restore error');
+            } finally {
+              setLoadingImport(false);
             }
           },
         },
@@ -112,97 +163,131 @@ export const BackupRestoreModal: React.FC<BackupRestoreModalProps> = ({
     <ModalWrapper
       visible={visible}
       onClose={onClose}
-      title="Backup & Restore"
-      subtitle="Export or import your complete local workspace JSON file"
+      title="Backup & Restore Vault"
+      subtitle="100% Offline SQLite export & import (JSON or ZIP Archive)"
     >
       {/* Export Section */}
-      <View style={styles.sectionCard}>
+      <View style={[styles.sectionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <View style={styles.sectionHeader}>
-          <View style={[styles.iconCircle, { backgroundColor: `${Colors.primary}20` }]}>
-            <Ionicons name="cloud-upload-outline" size={22} color={Colors.primary} />
+          <View style={[styles.iconCircle, { backgroundColor: `${colors.primary}20` }]}>
+            <Ionicons name="cloud-upload-outline" size={22} color={colors.primary} />
           </View>
           <View style={styles.headerText}>
-            <Text style={styles.sectionTitle}>Export Workspace JSON</Text>
-            <Text style={styles.sectionDesc}>
-              Save all your tasks, events, URLs, and settings into a standard offline JSON backup file.
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Export SQLite Backup</Text>
+            <Text style={[styles.sectionDesc, { color: colors.textSecondary }]}>
+              Save your complete workspace into an offline JSON file or full ZIP archive with media.
             </Text>
           </View>
         </View>
 
-        <Button
-          title="Export Backup File"
-          icon="download-outline"
-          loading={loadingExport}
-          onPress={handleExport}
-          style={{ marginTop: Spacing.md }}
-        />
+        <View style={{ flexDirection: 'row', gap: 10, marginTop: Spacing.md }}>
+          <Button
+            title="Export JSON"
+            icon="document-text-outline"
+            loading={loadingExport}
+            onPress={handleExportJson}
+            style={{ flex: 1 }}
+          />
+          <Button
+            title="Export ZIP"
+            icon="archive-outline"
+            variant="secondary"
+            loading={loadingZipExport}
+            onPress={handleExportZip}
+            style={{ flex: 1 }}
+          />
+        </View>
 
         {exportMessage && (
-          <View style={styles.messageBox}>
-            <Ionicons name="checkmark-circle-outline" size={16} color={Colors.success} />
-            <Text style={styles.messageText}>{exportMessage}</Text>
+          <View style={[styles.messageBox, { backgroundColor: colors.successBg, borderColor: colors.success }]}>
+            <Ionicons name="checkmark-circle-outline" size={16} color={colors.success} />
+            <Text style={[styles.messageText, { color: colors.success }]}>{exportMessage}</Text>
           </View>
         )}
       </View>
 
       {/* Import Section */}
-      <View style={styles.sectionCard}>
+      <View style={[styles.sectionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <View style={styles.sectionHeader}>
-          <View style={[styles.iconCircle, { backgroundColor: `${Colors.accentPurple}20` }]}>
-            <Ionicons name="cloud-download-outline" size={22} color={Colors.accentPurple} />
+          <View style={[styles.iconCircle, { backgroundColor: `${colors.accentPurple}20` }]}>
+            <Ionicons name="cloud-download-outline" size={22} color={colors.accentPurple} />
           </View>
           <View style={styles.headerText}>
-            <Text style={styles.sectionTitle}>Import & Restore JSON</Text>
-            <Text style={styles.sectionDesc}>
-              Load an existing AgendaX JSON backup file to restore your workspace.
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Import & Restore Backup</Text>
+            <Text style={[styles.sectionDesc, { color: colors.textSecondary }]}>
+              Select any AgendaX JSON or ZIP archive to merge or restore into your SQLite database.
             </Text>
           </View>
         </View>
 
         <Button
-          title="Select Backup File"
+          title="Select Backup (JSON / ZIP)"
           variant="secondary"
-          icon="document-text-outline"
+          icon="folder-open-outline"
           loading={loadingImport}
           onPress={handlePickFile}
           style={{ marginTop: Spacing.md }}
         />
 
         {importError && (
-          <View style={[styles.messageBox, { backgroundColor: Colors.errorBg, borderColor: Colors.error }]}>
-            <Ionicons name="alert-circle-outline" size={16} color={Colors.error} />
-            <Text style={[styles.messageText, { color: Colors.error }]}>{importError}</Text>
+          <View style={[styles.messageBox, { backgroundColor: colors.errorBg, borderColor: colors.error }]}>
+            <Ionicons name="alert-circle-outline" size={16} color={colors.error} />
+            <Text style={[styles.messageText, { color: colors.error }]}>{importError}</Text>
           </View>
         )}
 
         {/* Backup Summary Preview */}
         {previewSummary && (
-          <View style={styles.previewCard}>
-            <Text style={styles.previewTitle}>Backup File Summary</Text>
-            <View style={styles.previewRow}>
-              <Text style={styles.previewLabel}>Owner:</Text>
-              <Text style={styles.previewVal}>{previewSummary.userName}</Text>
-            </View>
-            <View style={styles.previewRow}>
-              <Text style={styles.previewLabel}>Tasks:</Text>
-              <Text style={styles.previewVal}>{previewSummary.tasksCount} tasks</Text>
-            </View>
-            <View style={styles.previewRow}>
-              <Text style={styles.previewLabel}>Events:</Text>
-              <Text style={styles.previewVal}>{previewSummary.eventsCount} events</Text>
-            </View>
-            <View style={styles.previewRow}>
-              <Text style={styles.previewLabel}>URLs:</Text>
-              <Text style={styles.previewVal}>{previewSummary.urlsCount} bookmarks</Text>
+          <View style={[styles.previewCard, { backgroundColor: colors.surfaceHighlight, borderColor: colors.borderLight }]}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <Text style={[styles.previewTitle, { color: colors.primaryLight }]}>Backup File Verified</Text>
+              <Text style={{ fontSize: 11, color: colors.accentEmerald, fontWeight: '700' }}>{previewSummary.format}</Text>
             </View>
 
-            <Button
-              title="Confirm & Restore Workspace"
-              variant="danger"
-              icon="refresh"
-              onPress={handleConfirmRestore}
-              style={{ marginTop: Spacing.md }}
-            />
+            <View style={[styles.previewRow, { borderColor: colors.border }]}>
+              <Text style={[styles.previewLabel, { color: colors.textSecondary }]}>Workspace User:</Text>
+              <Text style={[styles.previewVal, { color: colors.text }]}>{previewSummary.userName}</Text>
+            </View>
+            <View style={[styles.previewRow, { borderColor: colors.border }]}>
+              <Text style={[styles.previewLabel, { color: colors.textSecondary }]}>Tasks:</Text>
+              <Text style={[styles.previewVal, { color: colors.text }]}>{previewSummary.tasksCount} records</Text>
+            </View>
+            <View style={[styles.previewRow, { borderColor: colors.border }]}>
+              <Text style={[styles.previewLabel, { color: colors.textSecondary }]}>Events:</Text>
+              <Text style={[styles.previewVal, { color: colors.text }]}>{previewSummary.eventsCount} records</Text>
+            </View>
+            <View style={[styles.previewRow, { borderColor: colors.border }]}>
+              <Text style={[styles.previewLabel, { color: colors.textSecondary }]}>Expenses:</Text>
+              <Text style={[styles.previewVal, { color: colors.text }]}>{previewSummary.expensesCount} records</Text>
+            </View>
+            <View style={[styles.previewRow, { borderColor: colors.border }]}>
+              <Text style={[styles.previewLabel, { color: colors.textSecondary }]}>URLs:</Text>
+              <Text style={[styles.previewVal, { color: colors.text }]}>{previewSummary.urlsCount} bookmarks</Text>
+            </View>
+            {previewSummary.attachmentsCount !== undefined && previewSummary.attachmentsCount > 0 && (
+              <View style={[styles.previewRow, { borderColor: colors.border }]}>
+                <Text style={[styles.previewLabel, { color: colors.textSecondary }]}>Attachments:</Text>
+                <Text style={[styles.previewVal, { color: colors.text }]}>{previewSummary.attachmentsCount} media files</Text>
+              </View>
+            )}
+
+            {/* Merge vs Replace Action Buttons */}
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: Spacing.md }}>
+              <Button
+                title="Merge Data"
+                icon="git-merge-outline"
+                variant="primary"
+                onPress={handleMergeRestore}
+                style={{ flex: 1 }}
+              />
+              <Button
+                title="Replace All"
+                icon="refresh-outline"
+                variant="danger"
+                onPress={handleReplaceRestore}
+                style={{ flex: 1 }}
+              />
+            </View>
           </View>
         )}
       </View>
@@ -212,11 +297,9 @@ export const BackupRestoreModal: React.FC<BackupRestoreModalProps> = ({
 
 const styles = StyleSheet.create({
   sectionCard: {
-    backgroundColor: Colors.surface,
     borderRadius: BorderRadius.lg,
     padding: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.border,
     marginBottom: Spacing.lg,
   },
   sectionHeader: {
@@ -237,58 +320,46 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: Typography.fontSize.md,
     fontWeight: Typography.fontWeight.bold,
-    color: Colors.text,
   },
   sectionDesc: {
     fontSize: Typography.fontSize.xs,
-    color: Colors.textSecondary,
     marginTop: 3,
     lineHeight: 17,
   },
   messageBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.successBg,
     padding: Spacing.sm,
     borderRadius: BorderRadius.sm,
     marginTop: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.success,
   },
   messageText: {
     fontSize: Typography.fontSize.xs,
-    color: Colors.success,
     marginLeft: 6,
     flex: 1,
   },
   previewCard: {
-    backgroundColor: Colors.surfaceHighlight,
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
     marginTop: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.borderLight,
   },
   previewTitle: {
     fontSize: Typography.fontSize.sm,
     fontWeight: Typography.fontWeight.bold,
-    color: Colors.primaryLight,
-    marginBottom: 8,
   },
   previewRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingVertical: 4,
     borderBottomWidth: 1,
-    borderColor: Colors.border,
   },
   previewLabel: {
     fontSize: Typography.fontSize.xs,
-    color: Colors.textSecondary,
   },
   previewVal: {
     fontSize: Typography.fontSize.xs,
     fontWeight: Typography.fontWeight.semibold,
-    color: Colors.text,
   },
 });

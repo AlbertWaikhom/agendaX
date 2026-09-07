@@ -73,8 +73,6 @@ export const LockScreenOverlay: React.FC<LockScreenOverlayProps> = ({
   const [enteredPin, setEnteredPin] = useState<string>('');
   const [errorMsg, setErrorMsg] = useState<string>('');
   const [shakeAnim] = useState(new Animated.Value(0));
-
-  // Trigger biometric prompt on mount if supported
   useEffect(() => {
     if (visible) {
       setEnteredPin('');
@@ -126,8 +124,6 @@ export const LockScreenOverlay: React.FC<LockScreenOverlayProps> = ({
     setErrorMsg('');
     const newPin = enteredPin + item.num;
     setEnteredPin(newPin);
-
-    // Auto verify if pin length matches custom PIN length
     const validPin = securitySettings.customPin || '1234';
     if (newPin.length >= validPin.length) {
       if (newPin === validPin || unlockAppWithPin(newPin) || newPin === '1234') {
@@ -155,7 +151,7 @@ export const LockScreenOverlay: React.FC<LockScreenOverlayProps> = ({
   return (
     <Modal visible={visible} transparent animationType="fade" statusBarTranslucent>
       <View style={[styles.overlay, { backgroundColor: isDark ? 'rgba(5, 8, 16, 0.94)' : 'rgba(240, 244, 250, 0.94)' }]}>
-        {/* Dynamic iOS 26 Ambient Glowing Orbs for Translucent Glass Refraction */}
+        {/* Dynamic AgendaX Ambient Glowing Orbs for Translucent Glass Refraction */}
         <View style={[styles.ambientOrb1, { backgroundColor: colors.primary }]} />
         <View style={[styles.ambientOrb2, { backgroundColor: colors.accentPurple || '#8B5CF6' }]} />
         <View style={[styles.ambientOrb3, { backgroundColor: colors.accentCyan || '#06B6D4' }]} />
@@ -210,18 +206,18 @@ export const LockScreenOverlay: React.FC<LockScreenOverlayProps> = ({
                         borderColor: filled
                           ? colors.primaryLight
                           : isDark
-                          ? 'rgba(255, 255, 255, 0.25)'
-                          : 'rgba(0, 0, 0, 0.2)',
+                            ? 'rgba(255, 255, 255, 0.25)'
+                            : 'rgba(0, 0, 0, 0.2)',
                         borderTopColor: filled
                           ? colors.primaryLight
                           : isDark
-                          ? 'rgba(255, 255, 255, 0.6)'
-                          : 'rgba(255, 255, 255, 0.9)',
+                            ? 'rgba(255, 255, 255, 0.6)'
+                            : 'rgba(255, 255, 255, 0.9)',
                         backgroundColor: filled
                           ? colors.primaryLight
                           : isDark
-                          ? 'rgba(255, 255, 255, 0.06)'
-                          : 'rgba(255, 255, 255, 0.5)',
+                            ? 'rgba(255, 255, 255, 0.06)'
+                            : 'rgba(255, 255, 255, 0.5)',
                       },
                       filled && {
                         shadowColor: colors.primaryLight,

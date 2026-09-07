@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SecuritySettings, LockMode } from '../types';
+import { SettingsRepository } from '../database/repositories/settingsRepository';
 
 let LocalAuthentication: typeof import('expo-local-authentication') | null = null;
 try {
@@ -19,11 +20,14 @@ export const defaultSecuritySettings: SecuritySettings = {
 };
 
 export class SecurityService {
-  /**
-   * Load stored security settings
-   */
+
   static async loadSecuritySettings(): Promise<SecuritySettings> {
     try {
+      const sqliteSettings = await SettingsRepository.getSettings();
+      if (sqliteSettings?.security) {
+        return { ...defaultSecuritySettings, ...sqliteSettings.security };
+      }
+
       const raw = await AsyncStorage.getItem(SECURITY_STORAGE_KEY);
       if (raw) {
         return { ...defaultSecuritySettings, ...JSON.parse(raw) };
@@ -34,20 +38,15 @@ export class SecurityService {
     return defaultSecuritySettings;
   }
 
-  /**
-   * Save security settings
-   */
   static async saveSecuritySettings(settings: SecuritySettings): Promise<void> {
     try {
+      await SettingsRepository.updateSettings({ security: settings });
       await AsyncStorage.setItem(SECURITY_STORAGE_KEY, JSON.stringify(settings));
     } catch (e) {
       console.warn('Error saving security settings:', e);
     }
   }
 
-  /**
-   * Check if device has biometrics / system authentication hardware
-   */
   static async checkBiometricsCapability(): Promise<{
     hasHardware: boolean;
     isEnrolled: boolean;
@@ -87,9 +86,6 @@ export class SecurityService {
     }
   }
 
-  /**
-   * Prompt biometric / system unlock
-   */
   static async authenticateBiometric(
     promptMessage: string = 'Unlock AgendaX'
   ): Promise<{ success: boolean; error?: string }> {
@@ -124,9 +120,6 @@ export class SecurityService {
     }
   }
 
-  /**
-   * Verify custom PIN
-   */
   static verifyPin(enteredPin: string, storedPin: string | null): boolean {
     if (!storedPin) return false;
     return enteredPin === storedPin;

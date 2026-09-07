@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Linking, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Typography, BorderRadius, Spacing } from '../../constants/theme';
 import { useTheme } from '../../context/ThemeContext';
@@ -9,6 +9,7 @@ import { formatDatePretty, formatTimePretty } from '../../utils';
 
 interface TaskCardProps {
   task: TaskItem;
+  onPress?: () => void;
   onToggleComplete: () => void;
   onEdit: () => void;
   onDelete: () => void;
@@ -16,6 +17,7 @@ interface TaskCardProps {
 
 export const TaskCard: React.FC<TaskCardProps> = ({
   task,
+  onPress,
   onToggleComplete,
   onEdit,
   onDelete,
@@ -29,7 +31,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   };
 
   return (
-    <View
+    <TouchableOpacity
+      activeOpacity={0.85}
+      onPress={onPress}
       style={[
         styles.card,
         {
@@ -75,6 +79,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           ) : null}
         </View>
 
+        {/* Attached Photo Thumbnail */}
+        {task.mediaUri ? (
+          <View style={styles.thumbWrapper}>
+            <Image source={{ uri: task.mediaUri }} style={styles.thumbImage} />
+          </View>
+        ) : null}
+
         {/* Actions Menu */}
         <View style={styles.actionsRow}>
           <TouchableOpacity
@@ -102,6 +113,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         </View>
 
         <View style={styles.metaGroup}>
+          {task.mediaUri ? (
+            <View style={[styles.reminderIcon, { backgroundColor: `${colors.accentCyan}20` }]}>
+              <Ionicons name="image-outline" size={12} color={colors.accentCyan} />
+            </View>
+          ) : null}
+
           {task.reminderEnabled && (
             <View style={[styles.reminderIcon, { backgroundColor: `${colors.accentPink}20` }]}>
               <Ionicons name="notifications-outline" size={12} color={colors.accentPink} />
@@ -127,7 +144,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           </View>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
@@ -183,6 +200,19 @@ const styles = StyleSheet.create({
   descCompleted: {
     textDecorationLine: 'line-through',
     opacity: 0.8,
+  },
+  thumbWrapper: {
+    width: 44,
+    height: 44,
+    borderRadius: BorderRadius.md,
+    overflow: 'hidden',
+    marginRight: Spacing.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  thumbImage: {
+    width: '100%',
+    height: '100%',
   },
   actionsRow: {
     flexDirection: 'row',

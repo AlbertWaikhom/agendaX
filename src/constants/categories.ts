@@ -16,14 +16,14 @@ export const UrlCategories = [
 ];
 
 export const EventColors = [
-  '#6366F1', // Indigo
-  '#8B5CF6', // Purple
-  '#EC4899', // Pink
-  '#3B82F6', // Blue
-  '#06B6D4', // Cyan
-  '#10B981', // Emerald
-  '#F59E0B', // Amber
-  '#EF4444', // Red
+  '#6366F1',
+  '#8B5CF6',
+  '#EC4899',
+  '#3B82F6',
+  '#06B6D4',
+  '#10B981',
+  '#F59E0B',
+  '#EF4444',
 ];
 
 export const ReminderOptions = [

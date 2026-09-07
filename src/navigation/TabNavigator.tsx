@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Typography } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
@@ -28,11 +29,16 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
 export const TabNavigator: React.FC = () => {
   const { colors } = useTheme();
   const { tasks } = useWorkspace();
+  const insets = useSafeAreaInsets();
   const pendingTasksCount = tasks.filter(t => !t.completed).length;
+
+  const bottomPadding = insets.bottom > 0 ? insets.bottom + 4 : (Platform.OS === 'ios' ? 24 : 10);
+  const tabHeight = 56 + bottomPadding;
 
   return (
     <Tab.Navigator
       initialRouteName="Home"
+      safeAreaInsets={{ bottom: insets.bottom }}
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarActiveTintColor: colors.primaryLight,
@@ -42,6 +48,8 @@ export const TabNavigator: React.FC = () => {
           {
             backgroundColor: colors.tabBarBackground,
             borderTopColor: colors.glassBorder,
+            height: tabHeight,
+            paddingBottom: bottomPadding,
           },
         ],
         tabBarLabelStyle: styles.tabBarLabel,
@@ -131,9 +139,7 @@ export const TabNavigator: React.FC = () => {
 const styles = StyleSheet.create({
   tabBar: {
     borderTopWidth: 1,
-    height: Platform.OS === 'ios' ? 88 : 68,
     paddingTop: 6,
-    paddingBottom: Platform.OS === 'ios' ? 28 : 10,
     elevation: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },

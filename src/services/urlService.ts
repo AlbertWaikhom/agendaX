@@ -7,6 +7,7 @@ export const UrlService = {
     url: string;
     category?: UrlCategory;
     note?: string;
+    previewImageUri?: string;
   }): { success: boolean; item?: UrlItem; error?: string } {
     if (!params.title || !params.title.trim()) {
       return { success: false, error: 'Title is required' };
@@ -23,6 +24,7 @@ export const UrlService = {
       url: normalizeUrl(params.url),
       category: params.category || 'Work',
       note: params.note?.trim() || '',
+      previewImageUri: params.previewImageUri,
       createdAt: now,
       updatedAt: now,
     };
@@ -37,6 +39,7 @@ export const UrlService = {
       url: string;
       category?: UrlCategory;
       note?: string;
+      previewImageUri?: string;
     }
   ): { success: boolean; item?: UrlItem; error?: string } {
     if (!params.title || !params.title.trim()) {
@@ -53,6 +56,7 @@ export const UrlService = {
       url: normalizeUrl(params.url),
       category: params.category || existing.category,
       note: params.note !== undefined ? params.note.trim() : existing.note,
+      previewImageUri: params.previewImageUri !== undefined ? params.previewImageUri : existing.previewImageUri,
       updatedAt: new Date().toISOString(),
     };
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, StyleProp, ViewStyle } from 'react-native';
-import { Colors, BorderRadius, Spacing } from '../../constants/theme';
+import { BorderRadius, Spacing } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 interface CardProps {
   children: React.ReactNode;
@@ -15,16 +16,18 @@ export const Card: React.FC<CardProps> = ({
   onPress,
   variant = 'default',
 }) => {
+  const { colors } = useTheme();
+
   const getVariantStyle = (): ViewStyle => {
     switch (variant) {
       case 'surface':
-        return { backgroundColor: Colors.surface, borderColor: Colors.border };
+        return { backgroundColor: colors.surface, borderColor: colors.border };
       case 'highlight':
-        return { backgroundColor: Colors.surfaceHighlight, borderColor: Colors.borderLight };
+        return { backgroundColor: colors.surfaceHighlight, borderColor: colors.borderLight };
       case 'outlined':
-        return { backgroundColor: 'transparent', borderColor: Colors.border };
+        return { backgroundColor: 'transparent', borderColor: colors.border };
       default:
-        return { backgroundColor: Colors.card, borderColor: Colors.cardBorder };
+        return { backgroundColor: colors.card, borderColor: colors.cardBorder };
     }
   };
 

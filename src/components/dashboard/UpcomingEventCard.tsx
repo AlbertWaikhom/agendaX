@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Typography, BorderRadius, Spacing } from '../../constants/theme';
+import { Typography, BorderRadius, Spacing } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { EventItem } from '../../types';
 import { formatDatePretty, formatTimePretty } from '../../utils';
 
@@ -16,16 +17,21 @@ export const UpcomingEventCard: React.FC<UpcomingEventCardProps> = ({
   onPress,
   onAddEventPress,
 }) => {
+  const { colors } = useTheme();
+
   if (!event) {
     return (
-      <View style={styles.emptyContainer}>
-        <Ionicons name="calendar-outline" size={32} color={Colors.textMuted} />
-        <Text style={styles.emptyTitle}>No Upcoming Events</Text>
-        <Text style={styles.emptySubtitle}>Keep your schedule organized by adding your next event</Text>
+      <View style={[styles.emptyContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <Ionicons name="calendar-outline" size={32} color={colors.textMuted} />
+        <Text style={[styles.emptyTitle, { color: colors.textSecondary }]}>No Upcoming Events</Text>
+        <Text style={[styles.emptySubtitle, { color: colors.textMuted }]}>Keep your schedule organized by adding your next event</Text>
         {onAddEventPress && (
-          <TouchableOpacity onPress={onAddEventPress} style={styles.addBtn}>
-            <Ionicons name="add-circle-outline" size={16} color={Colors.primaryLight} />
-            <Text style={styles.addBtnText}>Schedule an Event</Text>
+          <TouchableOpacity
+            onPress={onAddEventPress}
+            style={[styles.addBtn, { backgroundColor: colors.surfaceHighlight, borderColor: colors.borderLight }]}
+          >
+            <Ionicons name="add-circle-outline" size={16} color={colors.primaryLight} />
+            <Text style={[styles.addBtnText, { color: colors.primaryLight }]}>Schedule an Event</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -38,41 +44,48 @@ export const UpcomingEventCard: React.FC<UpcomingEventCardProps> = ({
     <TouchableOpacity
       activeOpacity={0.8}
       onPress={onPress}
-      style={[styles.container, { borderLeftColor: event.color || Colors.primary }]}
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.card,
+          borderColor: colors.cardBorder,
+          borderLeftColor: event.color || colors.primary,
+        },
+      ]}
     >
       <View style={styles.topRow}>
-        <View style={styles.dateBadge}>
-          <Ionicons name="time-outline" size={14} color={Colors.primaryLight} />
-          <Text style={styles.dateBadgeText}>{formatDatePretty(event.date)}</Text>
+        <View style={[styles.dateBadge, { backgroundColor: `${colors.primary}20` }]}>
+          <Ionicons name="time-outline" size={14} color={colors.primaryLight} />
+          <Text style={[styles.dateBadgeText, { color: colors.primaryLight }]}>{formatDatePretty(event.date)}</Text>
         </View>
         {event.reminderEnabled && (
-          <View style={styles.reminderBadge}>
-            <Ionicons name="notifications-outline" size={12} color={Colors.accentPink} />
-            <Text style={styles.reminderBadgeText}>Reminder set</Text>
+          <View style={[styles.reminderBadge, { backgroundColor: `${colors.accentPink}20` }]}>
+            <Ionicons name="notifications-outline" size={12} color={colors.accentPink} />
+            <Text style={[styles.reminderBadgeText, { color: colors.accentPink }]}>Reminder set</Text>
           </View>
         )}
       </View>
 
-      <Text style={styles.title} numberOfLines={2}>
+      <Text style={[styles.title, { color: colors.text }]} numberOfLines={2}>
         {event.name}
       </Text>
 
       {event.description ? (
-        <Text style={styles.description} numberOfLines={2}>
+        <Text style={[styles.description, { color: colors.textSecondary }]} numberOfLines={2}>
           {event.description}
         </Text>
       ) : null}
 
-      <View style={styles.footerRow}>
+      <View style={[styles.footerRow, { borderColor: colors.divider }]}>
         <View style={styles.timeInfo}>
-          <Ionicons name="time-outline" size={14} color={Colors.textSecondary} />
-          <Text style={styles.footerText}>{timeFormatted}</Text>
+          <Ionicons name="time-outline" size={14} color={colors.textSecondary} />
+          <Text style={[styles.footerText, { color: colors.textSecondary }]}>{timeFormatted}</Text>
         </View>
 
         {event.location ? (
           <View style={styles.locationInfo}>
-            <Ionicons name="location-outline" size={14} color={Colors.textSecondary} />
-            <Text style={styles.footerText} numberOfLines={1}>
+            <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
+            <Text style={[styles.footerText, { color: colors.textSecondary }]} numberOfLines={1}>
               {event.location}
             </Text>
           </View>
@@ -84,34 +97,28 @@ export const UpcomingEventCard: React.FC<UpcomingEventCardProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.card,
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     borderWidth: 1,
-    borderColor: Colors.cardBorder,
     borderLeftWidth: 4,
     marginBottom: Spacing.md,
   },
   emptyContainer: {
-    backgroundColor: Colors.surface,
     borderRadius: BorderRadius.lg,
     padding: Spacing.xl,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: Colors.border,
     borderStyle: 'dashed',
     marginBottom: Spacing.md,
   },
   emptyTitle: {
     fontSize: Typography.fontSize.md,
     fontWeight: Typography.fontWeight.semibold,
-    color: Colors.textSecondary,
     marginTop: 8,
   },
   emptySubtitle: {
     fontSize: Typography.fontSize.xs,
-    color: Colors.textMuted,
     textAlign: 'center',
     marginTop: 4,
     marginBottom: 12,
@@ -119,17 +126,14 @@ const styles = StyleSheet.create({
   addBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surfaceHighlight,
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: BorderRadius.full,
     borderWidth: 1,
-    borderColor: Colors.borderLight,
   },
   addBtnText: {
     fontSize: Typography.fontSize.xs,
     fontWeight: Typography.fontWeight.semibold,
-    color: Colors.primaryLight,
     marginLeft: 6,
   },
   topRow: {
@@ -141,7 +145,6 @@ const styles = StyleSheet.create({
   dateBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: `${Colors.primary}20`,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: BorderRadius.sm,
@@ -149,32 +152,27 @@ const styles = StyleSheet.create({
   dateBadgeText: {
     fontSize: Typography.fontSize.xs,
     fontWeight: Typography.fontWeight.bold,
-    color: Colors.primaryLight,
     marginLeft: 4,
   },
   reminderBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: `${Colors.accentPink}20`,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: BorderRadius.sm,
   },
   reminderBadgeText: {
     fontSize: Typography.fontSize.xs,
-    color: Colors.accentPink,
     marginLeft: 4,
   },
   title: {
     fontSize: Typography.fontSize.lg,
     fontWeight: Typography.fontWeight.bold,
-    color: Colors.text,
     letterSpacing: -0.3,
     marginBottom: 4,
   },
   description: {
     fontSize: Typography.fontSize.xs,
-    color: Colors.textSecondary,
     marginBottom: 10,
     lineHeight: 18,
   },
@@ -196,7 +194,6 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: Typography.fontSize.xs,
-    color: Colors.textSecondary,
     marginLeft: 4,
   },
 });

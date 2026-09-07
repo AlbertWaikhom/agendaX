@@ -12,6 +12,7 @@ import { useWorkspace } from '../../context/WorkspaceContext';
 import { NotificationRecord } from '../../types';
 import { formatDatePretty } from '../../utils';
 import { PageContainer } from '../../../components/page/PageContainer';
+import { CustomAlertModal, AlertButton } from '../../components/common/CustomAlertModal';
 import { createNotificationsStyles } from './NotificationsScreen.styles';
 
 export const NotificationsScreen: React.FC = () => {
@@ -27,7 +28,57 @@ export const NotificationsScreen: React.FC = () => {
     clearAllNotifications,
   } = useWorkspace();
 
+  // Custom Alert Modal State
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    title: string;
+    message?: string;
+    icon?: keyof typeof Ionicons.glyphMap;
+    iconColor?: string;
+    buttons?: AlertButton[];
+  }>({
+    visible: false,
+    title: '',
+  });
+
   const unreadCount = notifications.filter(n => !n.read).length;
+
+  const confirmClearAll = () => {
+    setAlertConfig({
+      visible: true,
+      title: 'Clear Notifications',
+      message: 'Are you sure you want to remove all notifications?',
+      icon: 'trash-outline',
+      iconColor: colors.error,
+      buttons: [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear All',
+          style: 'destructive',
+          icon: 'trash-outline',
+          onPress: () => clearAllNotifications(),
+        },
+      ],
+    });
+  };
+
+  const confirmDeleteOne = (item: NotificationRecord) => {
+    setAlertConfig({
+      visible: true,
+      title: 'Delete Notification',
+      message: `Delete "${item.title}"?`,
+      icon: 'trash-outline',
+      iconColor: colors.error,
+      buttons: [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => deleteNotification(item.id),
+        },
+      ],
+    });
+  };
 
   const renderItem = ({ item }: { item: NotificationRecord }) => {
     let iconName: keyof typeof Ionicons.glyphMap = 'notifications-outline';
@@ -65,7 +116,7 @@ export const NotificationsScreen: React.FC = () => {
         </View>
 
         <TouchableOpacity
-          onPress={() => deleteNotification(item.id)}
+          onPress={() => confirmDeleteOne(item)}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
           <Ionicons name="close" size={16} color={colors.textMuted} />
@@ -98,7 +149,7 @@ export const NotificationsScreen: React.FC = () => {
               </TouchableOpacity>
             )}
             {notifications.length > 0 && (
-              <TouchableOpacity style={styles.headerActionBtn} onPress={clearAllNotifications}>
+              <TouchableOpacity style={styles.headerActionBtn} onPress={confirmClearAll}>
                 <Text style={[styles.headerActionText, { color: colors.error }]}>Clear</Text>
               </TouchableOpacity>
             )}
@@ -119,6 +170,17 @@ export const NotificationsScreen: React.FC = () => {
               <Text style={styles.emptySub}>All your reminders and schedule updates will appear here.</Text>
             </View>
           }
+        />
+
+        {/* Custom Alert Modal for Notifications */}
+        <CustomAlertModal
+          visible={alertConfig.visible}
+          title={alertConfig.title}
+          message={alertConfig.message}
+          icon={alertConfig.icon}
+          iconColor={alertConfig.iconColor}
+          buttons={alertConfig.buttons}
+          onClose={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
         />
       </View>
     </PageContainer>

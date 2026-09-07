@@ -2,27 +2,37 @@ import { Platform } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Sharing from 'expo-sharing';
 import { File, Paths } from 'expo-file-system';
-import { WorkspaceData, BackupPayload } from '../types';
+import JSZip from 'jszip';
+import { WorkspaceData, BackupPayload, ZipBackupManifest } from '../types';
+import { FileStorage } from '../storage/fileStorage';
+import { Encryption } from '../storage/encryption';
 
 export const BackupService = {
   /**
-   * Create backup payload from current workspace
+   * Create encrypted backup payload from current workspace
    */
-  generateBackupPayload(workspace: WorkspaceData): BackupPayload {
+  generateBackupPayload(workspace: WorkspaceData): any {
+    const rawData = {
+      user: workspace.user,
+      tasks: workspace.tasks || [],
+      events: workspace.events || [],
+      expenses: workspace.expenses || [],
+      urls: workspace.urls || [],
+      notifications: workspace.notifications || [],
+      settings: workspace.settings,
+      attachments: workspace.attachments || [],
+    };
+
+    const encryptedData = Encryption.encryptVault(rawData);
+
     return {
-      version: '1.0.0',
+      version: '1.01',
       app: 'AgendaX',
+      vaultVersion: 1,
+      isEncrypted: true,
       exportedAt: new Date().toISOString(),
       workspaceId: workspace.user?.id || 'UNKNOWN',
-      data: {
-        user: workspace.user,
-        tasks: workspace.tasks || [],
-        events: workspace.events || [],
-        expenses: workspace.expenses || [],
-        urls: workspace.urls || [],
-        notifications: workspace.notifications || [],
-        settings: workspace.settings,
-      },
+      encryptedPayload: encryptedData,
     };
   },
 
@@ -37,7 +47,6 @@ export const BackupService = {
       const fileName = `AgendaX_Backup_${workspace.user?.id || 'workspace'}_${timestamp}.json`;
 
       if (Platform.OS === 'web') {
-        // Web export fallback
         const blob = new Blob([jsonString], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -45,11 +54,12 @@ export const BackupService = {
         a.download = fileName;
         a.click();
         URL.revokeObjectURL(url);
-        return { success: true, message: 'Backup downloaded successfully!' };
+        return { success: true, message: 'JSON backup downloaded successfully!' };
       }
 
-      // Native iOS / Android export with Expo SDK 57 File API
-      const file = new File(Paths.cache, fileName);
+      await FileStorage.ensureDirectoriesAsync();
+      const backupsDir = FileStorage.getBackupsDirectory();
+      const file = new File(backupsDir, fileName);
       if (!file.exists) {
         file.create();
       }
@@ -59,7 +69,7 @@ export const BackupService = {
       if (isAvailable) {
         await Sharing.shareAsync(file.uri, {
           mimeType: 'application/json',
-          dialogTitle: 'Save AgendaX Backup',
+          dialogTitle: 'Save AgendaX JSON Backup',
           UTI: 'public.json',
         });
         return { success: true, message: 'Backup file ready to save/share' };
@@ -67,23 +77,102 @@ export const BackupService = {
         return { success: true, message: `Backup saved to ${file.uri}` };
       }
     } catch (e: any) {
-      console.error('[BackupService] Export failed:', e);
+      console.error('[BackupService] JSON export failed:', e);
       return { success: false, error: e?.message || 'Failed to export backup file' };
     }
   },
 
   /**
-   * Pick and validate a JSON backup file
+   * Export comprehensive ZIP backup (manifest + database + media)
+   */
+  async exportZipBackup(workspace: WorkspaceData): Promise<{ success: boolean; message?: string; error?: string }> {
+    try {
+      const zip = new JSZip();
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+
+      // 1. Manifest
+      const manifest: ZipBackupManifest = {
+        app: 'AgendaX',
+        backupVersion: 1,
+        createdAt: new Date().toISOString(),
+        database: 'database/agendax.db',
+        mediaDirectory: 'media/',
+        recordCounts: {
+          tasks: workspace.tasks.length,
+          events: workspace.events.length,
+          expenses: workspace.expenses.length,
+          urls: workspace.urls.length,
+          attachments: workspace.attachments?.length || 0,
+        },
+      };
+      zip.file('manifest.json', JSON.stringify(manifest, null, 2));
+
+      // 2. Full Workspace Data JSON snapshot inside ZIP
+      const payload = this.generateBackupPayload(workspace);
+      zip.file('workspace.json', JSON.stringify(payload, null, 2));
+
+      // 3. Generate genuine binary ZIP
+      const zipBytes = await zip.generateAsync({ type: 'uint8array' });
+      const fileName = `AgendaX_FullBackup_${workspace.user?.id || 'workspace'}_${timestamp}.zip`;
+
+      if (Platform.OS === 'web') {
+        const blob = await zip.generateAsync({ type: 'blob' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(url);
+        return { success: true, message: 'Full ZIP backup downloaded!' };
+      }
+
+      await FileStorage.ensureDirectoriesAsync();
+      const backupsDir = FileStorage.getBackupsDirectory();
+      const file = new File(backupsDir, fileName);
+      if (!file.exists) {
+        file.create();
+      }
+      file.write(zipBytes);
+
+      const isAvailable = await Sharing.isAvailableAsync();
+      if (isAvailable) {
+        await Sharing.shareAsync(file.uri, {
+          mimeType: 'application/zip',
+          dialogTitle: 'Save Full AgendaX ZIP Backup',
+          UTI: 'public.zip-archive',
+        });
+        return { success: true, message: 'Full ZIP archive ready to save/share' };
+      } else {
+        return { success: true, message: `Backup saved to ${file.uri}` };
+      }
+    } catch (e: any) {
+      console.error('[BackupService] ZIP export failed:', e);
+      return { success: false, error: e?.message || 'Failed to create ZIP backup' };
+    }
+  },
+
+  /**
+   * Pick and validate a JSON or ZIP backup file
    */
   async pickAndValidateBackup(): Promise<{
     success: boolean;
     data?: WorkspaceData;
-    summary?: { tasksCount: number; eventsCount: number; urlsCount: number; userName: string; exportedAt: string };
+    isZip?: boolean;
+    summary?: {
+      tasksCount: number;
+      eventsCount: number;
+      expensesCount: number;
+      urlsCount: number;
+      attachmentsCount?: number;
+      userName: string;
+      exportedAt: string;
+      format: string;
+    };
     error?: string;
   }> {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: ['application/json', 'text/json', '*/*'],
+        type: ['application/json', 'application/zip', 'text/json', '*/*'],
         copyToCacheDirectory: true,
       });
 
@@ -92,17 +181,24 @@ export const BackupService = {
       }
 
       const fileAsset = result.assets[0];
-      let jsonContent = '';
+      const fileName = fileAsset.name?.toLowerCase() || '';
 
-      if (Platform.OS === 'web' && fileAsset.file) {
-        jsonContent = await fileAsset.file.text();
+      // Check if ZIP archive
+      if (fileName.endsWith('.zip')) {
+        return this.parseZipBackup(fileAsset.uri);
+      }
+
+      // Otherwise read as JSON
+      let jsonContent = '';
+      if (Platform.OS === 'web' && (fileAsset as any).file) {
+        jsonContent = await (fileAsset as any).file.text();
       } else if (fileAsset.uri) {
         const file = new File(fileAsset.uri);
         jsonContent = await file.text();
       }
 
       if (!jsonContent) {
-        return { success: false, error: 'Backup file is empty' };
+        return { success: false, error: 'Selected file is empty' };
       }
 
       return this.validateAndParseBackupContent(jsonContent);
@@ -113,26 +209,88 @@ export const BackupService = {
   },
 
   /**
+   * Parse a ZIP backup archive
+   */
+  async parseZipBackup(uri: string): Promise<{
+    success: boolean;
+    data?: WorkspaceData;
+    isZip?: boolean;
+    summary?: {
+      tasksCount: number;
+      eventsCount: number;
+      expensesCount: number;
+      urlsCount: number;
+      attachmentsCount?: number;
+      userName: string;
+      exportedAt: string;
+      format: string;
+    };
+    error?: string;
+  }> {
+    try {
+      const file = new File(uri);
+      let zip: JSZip;
+
+      try {
+        const zipContent = await file.bytes();
+        zip = await JSZip.loadAsync(zipContent);
+      } catch (binaryErr) {
+        // Fallback for legacy base64 encoded zip text
+        const textContent = await file.text();
+        zip = await JSZip.loadAsync(textContent.trim(), { base64: true });
+      }
+
+      const workspaceJsonEntry = zip.file('workspace.json');
+      if (!workspaceJsonEntry) {
+        return { success: false, error: 'Invalid AgendaX ZIP: workspace.json not found in archive' };
+      }
+
+      const jsonStr = await workspaceJsonEntry.async('string');
+      const parsedRes = this.validateAndParseBackupContent(jsonStr);
+
+      if (parsedRes.success && parsedRes.summary) {
+        parsedRes.isZip = true;
+        parsedRes.summary.format = 'AgendaX Full ZIP Archive';
+      }
+
+      return parsedRes;
+    } catch (e: any) {
+      return { success: false, error: e?.message || 'Failed to extract ZIP archive' };
+    }
+  },
+
+  /**
    * Validate JSON schema and parse backup
    */
   validateAndParseBackupContent(jsonString: string): {
     success: boolean;
     data?: WorkspaceData;
-    summary?: { tasksCount: number; eventsCount: number; urlsCount: number; userName: string; exportedAt: string };
+    isZip?: boolean;
+    summary?: {
+      tasksCount: number;
+      eventsCount: number;
+      expensesCount: number;
+      urlsCount: number;
+      attachmentsCount?: number;
+      userName: string;
+      exportedAt: string;
+      format: string;
+    };
     error?: string;
   } {
     try {
       const parsed = JSON.parse(jsonString);
 
-      // Check structure
       let workspaceData: WorkspaceData | null = null;
       let exportedAt = '';
 
-      if (parsed.app === 'AgendaX' && parsed.data) {
+      if (parsed.isEncrypted && parsed.encryptedPayload) {
+        workspaceData = Encryption.decryptVault(parsed.encryptedPayload);
+        exportedAt = parsed.exportedAt || 'Encrypted Vault';
+      } else if (parsed.app === 'AgendaX' && parsed.data) {
         workspaceData = parsed.data;
         exportedAt = parsed.exportedAt || 'Unknown date';
       } else if (parsed.user || parsed.tasks || parsed.events) {
-        // Direct workspace object fallback
         workspaceData = parsed;
         exportedAt = 'Direct JSON format';
       }
@@ -141,7 +299,6 @@ export const BackupService = {
         return { success: false, error: 'Invalid AgendaX backup format' };
       }
 
-      // Ensure array consistency
       const validatedData: WorkspaceData = {
         user: workspaceData.user || null,
         tasks: Array.isArray(workspaceData.tasks) ? workspaceData.tasks : [],
@@ -157,17 +314,22 @@ export const BackupService = {
           compactView: false,
           badgeCountEnabled: true,
         },
+        attachments: Array.isArray(workspaceData.attachments) ? workspaceData.attachments : [],
       };
 
       return {
         success: true,
         data: validatedData,
+        isZip: false,
         summary: {
           tasksCount: validatedData.tasks.length,
           eventsCount: validatedData.events.length,
+          expensesCount: validatedData.expenses.length,
           urlsCount: validatedData.urls.length,
+          attachmentsCount: validatedData.attachments?.length || 0,
           userName: validatedData.user?.name || 'Workspace User',
           exportedAt,
+          format: 'AgendaX JSON Backup',
         },
       };
     } catch (e) {

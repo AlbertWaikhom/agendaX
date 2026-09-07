@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Typography } from '../../src/constants/theme';
+import { Typography } from '../../src/constants/theme';
+import { useTheme } from '../../src/context/ThemeContext';
 
 interface PageHeaderProps {
   title: string;
@@ -23,25 +24,27 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   rightAction,
   leftAction,
 }) => {
+  const { colors } = useTheme();
+
   return (
     <View style={styles.container}>
       <View style={styles.titleSection}>
         {leftAction && (
           <TouchableOpacity
-            style={styles.actionBtn}
+            style={[styles.actionBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
             onPress={leftAction.onPress}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             accessibilityLabel="Back action"
           >
-            <Ionicons name={leftAction.icon} size={22} color={Colors.text} />
+            <Ionicons name={leftAction.icon} size={22} color={colors.text} />
           </TouchableOpacity>
         )}
         <View style={styles.textContainer}>
-          <Text style={styles.title} numberOfLines={1}>
+          <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
             {title}
           </Text>
           {subtitle && (
-            <Text style={styles.subtitle} numberOfLines={1}>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]} numberOfLines={1}>
               {subtitle}
             </Text>
           )}
@@ -50,14 +53,14 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 
       {rightAction && (
         <TouchableOpacity
-          style={styles.actionBtn}
+          style={[styles.actionBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
           onPress={rightAction.onPress}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           accessibilityLabel="Header action"
         >
-          <Ionicons name={rightAction.icon} size={22} color={Colors.text} />
+          <Ionicons name={rightAction.icon} size={22} color={colors.text} />
           {rightAction.badgeCount !== undefined && rightAction.badgeCount > 0 && (
-            <View style={styles.badge}>
+            <View style={[styles.badge, { backgroundColor: colors.primary, borderColor: colors.background }]}>
               <Text style={styles.badgeText}>
                 {rightAction.badgeCount > 99 ? '99+' : rightAction.badgeCount}
               </Text>
@@ -88,21 +91,17 @@ const styles = StyleSheet.create({
   title: {
     fontSize: Typography.fontSize.xxl,
     fontWeight: Typography.fontWeight.bold,
-    color: Colors.text,
     letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: Typography.fontSize.sm,
-    color: Colors.textSecondary,
     marginTop: 2,
   },
   actionBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: Colors.cardBorder,
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 8,
@@ -111,7 +110,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -4,
     right: -4,
-    backgroundColor: Colors.primary,
     borderRadius: 10,
     minWidth: 18,
     height: 18,
@@ -119,7 +117,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 4,
     borderWidth: 1.5,
-    borderColor: Colors.background,
   },
   badgeText: {
     color: '#FFF',

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Colors, Typography, BorderRadius, Spacing } from '../../constants/theme';
+import { Typography, BorderRadius, Spacing } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 interface ProgressRingProps {
   completed: number;
@@ -13,24 +14,30 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
   total,
   percentage,
 }) => {
+  const { colors } = useTheme();
   const clampedPercentage = Math.min(Math.max(percentage, 0), 100);
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
       <View style={styles.headerRow}>
         <View>
-          <Text style={styles.title}>Task Completion</Text>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.title, { color: colors.text }]}>Task Completion</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
             {total === 0 ? 'No tasks scheduled' : `${completed} of ${total} tasks completed`}
           </Text>
         </View>
-        <View style={styles.percentageBadge}>
-          <Text style={styles.percentageText}>{clampedPercentage}%</Text>
+        <View
+          style={[
+            styles.percentageBadge,
+            { backgroundColor: `${colors.primary}25`, borderColor: `${colors.primary}60` },
+          ]}
+        >
+          <Text style={[styles.percentageText, { color: colors.primaryLight }]}>{clampedPercentage}%</Text>
         </View>
       </View>
 
       {/* Progress Track */}
-      <View style={styles.track}>
+      <View style={[styles.track, { backgroundColor: colors.surfaceHighlight }]}>
         <View
           style={[
             styles.fill,
@@ -38,10 +45,10 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
               width: `${clampedPercentage}%`,
               backgroundColor:
                 clampedPercentage === 100
-                  ? Colors.success
+                  ? colors.success
                   : clampedPercentage > 50
-                  ? Colors.primaryLight
-                  : Colors.primary,
+                  ? colors.primaryLight
+                  : colors.primary,
             },
           ]}
         />
@@ -52,11 +59,9 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.surface,
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     borderWidth: 1,
-    borderColor: Colors.cardBorder,
     marginBottom: Spacing.md,
   },
   headerRow: {
@@ -68,29 +73,23 @@ const styles = StyleSheet.create({
   title: {
     fontSize: Typography.fontSize.md,
     fontWeight: Typography.fontWeight.bold,
-    color: Colors.text,
   },
   subtitle: {
     fontSize: Typography.fontSize.xs,
-    color: Colors.textSecondary,
     marginTop: 2,
   },
   percentageBadge: {
-    backgroundColor: `${Colors.primary}25`,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: BorderRadius.full,
     borderWidth: 1,
-    borderColor: `${Colors.primary}60`,
   },
   percentageText: {
     fontSize: Typography.fontSize.sm,
     fontWeight: Typography.fontWeight.heavy,
-    color: Colors.primaryLight,
   },
   track: {
     height: 8,
-    backgroundColor: Colors.surfaceHighlight,
     borderRadius: 4,
     overflow: 'hidden',
   },

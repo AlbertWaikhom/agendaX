@@ -19,6 +19,8 @@ import { Button } from '../common/Button';
 import { ModalWrapper } from '../common/ModalWrapper';
 import { DateTimePickerModal } from '../common/DateTimePickerModal';
 
+import { MediaStorage } from '../../storage/mediaStorage';
+
 interface EventFormModalProps {
   visible: boolean;
   onClose: () => void;
@@ -34,6 +36,7 @@ interface EventFormModalProps {
     reminderTime: string;
     repeat: EventRepeat;
     color: string;
+    imageUri?: string;
   }) => void;
   initialEvent?: EventItem | null;
   defaultDate?: string;
@@ -59,6 +62,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
   const [reminderTime, setReminderTime] = useState('30_min_before');
   const [repeat, setRepeat] = useState<EventRepeat>('none');
   const [color, setColor] = useState('#6366F1');
+  const [imageUri, setImageUri] = useState<string | undefined>(undefined);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [timePickerTarget, setTimePickerTarget] = useState<'start' | 'end'>('start');
   const [showTimePicker, setShowTimePicker] = useState(false);
@@ -77,6 +81,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
       setReminderTime(initialEvent.reminderTime || '30_min_before');
       setRepeat(initialEvent.repeat || 'none');
       setColor(initialEvent.color || '#6366F1');
+      setImageUri(initialEvent.imageUri);
     } else {
       setName('');
       setDescription('');
@@ -89,9 +94,21 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
       setReminderTime('30_min_before');
       setRepeat('none');
       setColor('#6366F1');
+      setImageUri(undefined);
     }
     setError('');
   }, [initialEvent, defaultDate, visible]);
+
+  const handlePickImage = async () => {
+    try {
+      const res = await MediaStorage.pickImage('event pass/photo');
+      if (res.success && res.uri) {
+        setImageUri(res.uri);
+      }
+    } catch (e) {
+      console.warn('Pick event image error:', e);
+    }
+  };
 
   const handleSubmit = () => {
     if (!name.trim()) {
@@ -113,6 +130,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
       reminderTime,
       repeat,
       color,
+      imageUri,
     });
     onClose();
   };
@@ -358,11 +376,35 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
         )}
       </View>
 
+      {/* Optional Event Photo / Ticket Attachment */}
+      <View style={{ marginBottom: Spacing.md }}>
+        <Text style={[styles.sectionLabel, { color: colors.text }]}>Event Photo / Pass (Optional)</Text>
+        {imageUri ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', padding: 10, borderRadius: 12, backgroundColor: colors.surfaceHighlight, borderWidth: 1, borderColor: colors.glassBorder }}>
+            <Ionicons name="image" size={24} color={colors.primaryLight} />
+            <Text style={{ flex: 1, marginLeft: 10, fontSize: 12, color: colors.text }} numberOfLines={1}>
+              Photo Attached
+            </Text>
+            <TouchableOpacity onPress={() => setImageUri(undefined)} style={{ padding: 4 }}>
+              <Ionicons name="trash-outline" size={18} color={colors.error} />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity
+            onPress={handlePickImage}
+            style={{ padding: 12, borderRadius: 12, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.glassBorder, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, backgroundColor: colors.glassCard }}
+          >
+            <Ionicons name="cloud-upload-outline" size={18} color={colors.primaryLight} />
+            <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text }}>Upload Ticket or Venue Photo</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
       {/* Submit Button */}
       <Button
         title={initialEvent ? 'Update Event' : 'Create Event'}
         onPress={handleSubmit}
-        style={{ marginTop: Spacing.lg }}
+        style={{ marginTop: Spacing.sm }}
       />
 
       {/* Date Picker Modal */}

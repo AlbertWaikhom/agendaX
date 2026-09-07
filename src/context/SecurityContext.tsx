@@ -49,7 +49,6 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   });
   const [activeUnlockPrompt, setActiveUnlockPrompt] = useState<UnlockPromptState | null>(null);
 
-  // Initialize security settings & biometrics
   useEffect(() => {
     const initSecurity = async () => {
       const [settings, bio] = await Promise.all([
@@ -59,7 +58,6 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setSecuritySettings(settings);
       setBiometricsInfo(bio);
 
-      // If app lock is enabled, lock app upon start
       if (settings.appLockEnabled) {
         setIsAppLocked(true);
       }
@@ -67,14 +65,12 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     initSecurity();
   }, []);
 
-  // Auto-lock when app goes to background / resumes
   useEffect(() => {
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
       if (nextAppState === 'background') {
         if (securitySettings.appLockEnabled) {
           setIsAppLocked(true);
         }
-        // Relock protected pages on background
         setUnlockedPages([]);
       }
     };
@@ -144,7 +140,6 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const requestPageUnlock = (pageId: string, pageTitle: string = pageId): Promise<boolean> => {
     return new Promise(resolve => {
-      // First try biometrics if enabled in mode
       if (
         securitySettings.lockMode === 'biometric_system' ||
         securitySettings.lockMode === 'both'
@@ -156,7 +151,6 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
               resolve(true);
               return;
             }
-            // If biometrics failed or cancelled and custom PIN exists, open PIN prompt
             if (securitySettings.customPin) {
               setActiveUnlockPrompt({
                 visible: true,
@@ -178,7 +172,6 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
       }
 
-      // Open Custom PIN prompt
       setActiveUnlockPrompt({
         visible: true,
         title: `Unlock ${pageTitle}`,

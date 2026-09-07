@@ -105,7 +105,7 @@ graph TD
 - **Page-Wise Protection**: Choose to lock the whole app or protect sensitive sub-modules (e.g. *Expenses*, *Secure URLs*, *Tasks*).
 - **Anti-Tamper Liquid Glass Keypad**: Translucent keypad with specular highlights, light refraction, error shake physics, and haptic impact.
 
-### 6. 🎨 iOS 26 Liquid Glass Design System
+### 6. 🎨 AgendaX Liquid Glass Design System
 - **Translucent Glassmorphism**: Specular highlight borders, multi-layered depth, and glowing refraction orbs.
 - **4 Curated Liquid Effect Themes**:
   - 🌌 **Cyber Dark**: Deep OLED Black with Neon Indigo accents.

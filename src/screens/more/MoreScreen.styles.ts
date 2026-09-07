@@ -231,4 +231,57 @@ export const createMoreStyles = (colors: ThemeColors) =>
       color: colors.textMuted,
       marginTop: 4,
     },
+
+    // Avatar & Ringtone Styles
+    avatarImage: {
+      width: '100%',
+      height: '100%',
+      borderRadius: BorderRadius.lg,
+    },
+    avatarCameraBadge: {
+      position: 'absolute',
+      bottom: -4,
+      right: -4,
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1.5,
+      borderColor: colors.surface,
+    },
+    ringtoneGrid: {
+      gap: 8,
+      marginTop: 8,
+    },
+    ringtoneItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: Spacing.sm,
+      borderRadius: BorderRadius.md,
+      backgroundColor: colors.surfaceHighlight,
+      borderWidth: 1,
+      borderColor: colors.borderLight,
+    },
+    ringtoneItemActive: {
+      borderColor: colors.primary,
+      backgroundColor: `${colors.primary}15`,
+    },
+    ringtoneItemLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
+    ringtoneItemText: {
+      fontFamily: Typography.fontFamily,
+      fontSize: Typography.fontSize.sm,
+      color: colors.text,
+      fontWeight: Typography.fontWeight.medium,
+    },
+    ringtoneItemTextActive: {
+      color: colors.primaryLight,
+      fontWeight: Typography.fontWeight.bold,
+    },
   });

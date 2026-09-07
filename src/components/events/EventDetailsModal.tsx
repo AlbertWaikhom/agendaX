@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Share, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Typography, BorderRadius, Spacing } from '../../constants/theme';
+import { Typography, BorderRadius, Spacing } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { EventItem } from '../../types';
 import { formatDatePretty, formatTimePretty } from '../../utils';
 import { ModalWrapper } from '../common/ModalWrapper';
@@ -22,6 +23,7 @@ export const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
   onEdit,
   onDelete,
 }) => {
+  const { colors } = useTheme();
   if (!event) return null;
 
   const timeFormatted = `${formatTimePretty(event.startTime)}${event.endTime ? ` - ${formatTimePretty(event.endTime)}` : ''}`;
@@ -47,20 +49,20 @@ export const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
   return (
     <ModalWrapper visible={visible} onClose={onClose} title="Event Details">
       {/* Category color bar banner */}
-      <View style={[styles.colorBanner, { backgroundColor: event.color || Colors.primary }]} />
+      <View style={[styles.colorBanner, { backgroundColor: event.color || colors.primary }]} />
 
-      <Text style={styles.title}>{event.name}</Text>
+      <Text style={[styles.title, { color: colors.text }]}>{event.name}</Text>
 
       {/* Main Meta Information */}
-      <View style={styles.detailsCard}>
+      <View style={[styles.detailsCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         {/* Date & Time */}
-        <View style={styles.metaRow}>
-          <View style={styles.iconCircle}>
-            <Ionicons name="calendar-outline" size={18} color={Colors.primaryLight} />
+        <View style={[styles.metaRow, { borderColor: colors.divider }]}>
+          <View style={[styles.iconCircle, { backgroundColor: colors.surfaceHighlight }]}>
+            <Ionicons name="calendar-outline" size={18} color={colors.primaryLight} />
           </View>
           <View style={styles.metaTextGroup}>
-            <Text style={styles.metaLabel}>Date & Time</Text>
-            <Text style={styles.metaValue}>
+            <Text style={[styles.metaLabel, { color: colors.textMuted }]}>Date & Time</Text>
+            <Text style={[styles.metaValue, { color: colors.text }]}>
               {formatDatePretty(event.date)} • {timeFormatted}
             </Text>
           </View>
@@ -68,38 +70,38 @@ export const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
 
         {/* Location */}
         {event.location ? (
-          <View style={styles.metaRow}>
-            <View style={styles.iconCircle}>
-              <Ionicons name="location-outline" size={18} color={Colors.accentPink} />
+          <View style={[styles.metaRow, { borderColor: colors.divider }]}>
+            <View style={[styles.iconCircle, { backgroundColor: colors.surfaceHighlight }]}>
+              <Ionicons name="location-outline" size={18} color={colors.accentPink} />
             </View>
             <View style={styles.metaTextGroup}>
-              <Text style={styles.metaLabel}>Location</Text>
-              <Text style={styles.metaValue}>{event.location}</Text>
+              <Text style={[styles.metaLabel, { color: colors.textMuted }]}>Location</Text>
+              <Text style={[styles.metaValue, { color: colors.text }]}>{event.location}</Text>
             </View>
           </View>
         ) : null}
 
         {/* Repeat */}
-        <View style={styles.metaRow}>
-          <View style={styles.iconCircle}>
-            <Ionicons name="repeat-outline" size={18} color={Colors.accentCyan} />
+        <View style={[styles.metaRow, { borderColor: colors.divider }]}>
+          <View style={[styles.iconCircle, { backgroundColor: colors.surfaceHighlight }]}>
+            <Ionicons name="repeat-outline" size={18} color={colors.accentCyan} />
           </View>
           <View style={styles.metaTextGroup}>
-            <Text style={styles.metaLabel}>Repeat</Text>
-            <Text style={styles.metaValue}>
+            <Text style={[styles.metaLabel, { color: colors.textMuted }]}>Repeat</Text>
+            <Text style={[styles.metaValue, { color: colors.text }]}>
               {event.repeat === 'none' ? 'Does not repeat' : `Repeats ${event.repeat}`}
             </Text>
           </View>
         </View>
 
         {/* Reminder */}
-        <View style={styles.metaRow}>
-          <View style={styles.iconCircle}>
-            <Ionicons name="notifications-outline" size={18} color={Colors.mediumPriority} />
+        <View style={[styles.metaRow, { borderColor: colors.divider }]}>
+          <View style={[styles.iconCircle, { backgroundColor: colors.surfaceHighlight }]}>
+            <Ionicons name="notifications-outline" size={18} color={colors.mediumPriority} />
           </View>
           <View style={styles.metaTextGroup}>
-            <Text style={styles.metaLabel}>Reminder</Text>
-            <Text style={styles.metaValue}>
+            <Text style={[styles.metaLabel, { color: colors.textMuted }]}>Reminder</Text>
+            <Text style={[styles.metaValue, { color: colors.text }]}>
               {event.reminderEnabled ? `Set (${event.reminderTime?.replace(/_/g, ' ') || 'at event time'})` : 'Disabled'}
             </Text>
           </View>
@@ -107,26 +109,26 @@ export const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
 
         {/* URL */}
         {event.url ? (
-          <TouchableOpacity onPress={handleOpenUrl} style={styles.metaRow}>
-            <View style={styles.iconCircle}>
-              <Ionicons name="link-outline" size={18} color={Colors.accentBlue} />
+          <TouchableOpacity onPress={handleOpenUrl} style={[styles.metaRow, { borderColor: colors.divider }]}>
+            <View style={[styles.iconCircle, { backgroundColor: colors.surfaceHighlight }]}>
+              <Ionicons name="link-outline" size={18} color={colors.accentBlue} />
             </View>
             <View style={styles.metaTextGroup}>
-              <Text style={styles.metaLabel}>Attached Link</Text>
-              <Text style={[styles.metaValue, styles.linkValue]} numberOfLines={1}>
+              <Text style={[styles.metaLabel, { color: colors.textMuted }]}>Attached Link</Text>
+              <Text style={[styles.metaValue, styles.linkValue, { color: colors.accentBlue }]} numberOfLines={1}>
                 {event.url}
               </Text>
             </View>
-            <Ionicons name="open-outline" size={16} color={Colors.accentBlue} />
+            <Ionicons name="open-outline" size={16} color={colors.accentBlue} />
           </TouchableOpacity>
         ) : null}
       </View>
 
       {/* Description */}
       {event.description ? (
-        <View style={styles.descriptionCard}>
-          <Text style={styles.descLabel}>Notes & Description</Text>
-          <Text style={styles.description}>{event.description}</Text>
+        <View style={[styles.descriptionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.descLabel, { color: colors.textSecondary }]}>Notes & Description</Text>
+          <Text style={[styles.description, { color: colors.text }]}>{event.description}</Text>
         </View>
       ) : null}
 
@@ -174,16 +176,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: Typography.fontSize.xxl,
     fontWeight: Typography.fontWeight.heavy,
-    color: Colors.text,
     letterSpacing: -0.5,
     marginBottom: Spacing.lg,
   },
   detailsCard: {
-    backgroundColor: Colors.surface,
     borderRadius: BorderRadius.lg,
     padding: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.border,
     marginBottom: Spacing.md,
   },
   metaRow: {
@@ -191,13 +190,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: Spacing.sm + 2,
     borderBottomWidth: 1,
-    borderColor: Colors.divider,
   },
   iconCircle: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: Colors.surfaceHighlight,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: Spacing.md,
@@ -207,36 +204,29 @@ const styles = StyleSheet.create({
   },
   metaLabel: {
     fontSize: Typography.fontSize.xs,
-    color: Colors.textMuted,
     marginBottom: 2,
   },
   metaValue: {
     fontSize: Typography.fontSize.sm,
     fontWeight: Typography.fontWeight.semibold,
-    color: Colors.text,
   },
   linkValue: {
-    color: Colors.accentBlue,
     textDecorationLine: 'underline',
   },
   descriptionCard: {
-    backgroundColor: Colors.surface,
     borderRadius: BorderRadius.lg,
     padding: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.border,
     marginBottom: Spacing.lg,
   },
   descLabel: {
     fontSize: Typography.fontSize.xs,
     fontWeight: Typography.fontWeight.semibold,
-    color: Colors.textSecondary,
     marginBottom: 6,
     textTransform: 'uppercase',
   },
   description: {
     fontSize: Typography.fontSize.sm,
-    color: Colors.text,
     lineHeight: 20,
   },
   actionsGrid: {
