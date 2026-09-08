@@ -8,6 +8,9 @@ import { SecurityProvider, useSecurity } from './src/context/SecurityContext';
 import { LockScreenOverlay } from './src/components/security/LockScreenOverlay';
 import { AppNavigator } from './src/navigation/AppNavigator';
 
+import { TourProvider } from './src/context/TourContext';
+import { SpotlightTourOverlay } from './src/components/tour/SpotlightTourOverlay';
+
 interface ErrorBoundaryProps {
   children: ReactNode;
 }
@@ -66,6 +69,7 @@ const AppContent: React.FC = () => {
     <>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <AppNavigator />
+      <SpotlightTourOverlay />
 
       {/* Full App Lock Screen */}
       <LockScreenOverlay
@@ -101,7 +105,9 @@ export default function App() {
         <ThemeProvider>
           <SecurityProvider>
             <WorkspaceProvider>
-              <AppContent />
+              <TourProvider>
+                <AppContent />
+              </TourProvider>
             </WorkspaceProvider>
           </SecurityProvider>
         </ThemeProvider>

@@ -154,6 +154,7 @@ export interface AppSettings {
   currencySymbol?: string;
   reminderSound?: string;
   security?: SecuritySettings;
+  hasCompletedTour?: boolean;
 }
 
 export interface WorkspaceData {

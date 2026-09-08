@@ -31,6 +31,7 @@ import { NoteFormModal } from '../../components/notepad/NoteFormModal';
 import { EventDetailsModal } from '../../components/events/EventDetailsModal';
 import { TaskDetailsModal } from '../../components/tasks/TaskDetailsModal';
 import { CustomAlertModal, AlertButton } from '../../components/common/CustomAlertModal';
+import { useTour } from '../../context/TourContext';
 import { EventItem, TaskItem } from '../../types';
 import { createDashboardStyles } from './DashboardScreen.styles';
 
@@ -38,6 +39,12 @@ export const DashboardScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
   const styles = useMemo(() => createDashboardStyles(colors), [colors]);
+  const { registerTarget, startTour, isTourActive } = useTour();
+
+  const headerRef = useRef<View>(null);
+  const progressRef = useRef<View>(null);
+  const bentoRef = useRef<View>(null);
+  const fabRef = useRef<View>(null);
 
   const {
     user,
@@ -202,6 +209,16 @@ export const DashboardScreen: React.FC = () => {
     }).start();
   }, [completionRate]);
 
+  // Auto-launch guided product tour on first app launch
+  useEffect(() => {
+    if (settings && settings.hasCompletedTour === false && !isTourActive) {
+      const timer = setTimeout(() => {
+        startTour();
+      }, 700);
+      return () => clearTimeout(timer);
+    }
+  }, [settings?.hasCompletedTour, isTourActive, startTour]);
+
   const handleScheduleItemPress = (item: ScheduleItemData) => {
     Haptics.selectionAsync().catch(() => { });
     if (item.type === 'event') {
@@ -238,6 +255,13 @@ export const DashboardScreen: React.FC = () => {
       >
         {/* 1. Hero Header with Stagger Animation */}
         <Animated.View
+          ref={headerRef}
+          collapsable={false}
+          onLayout={() => {
+            headerRef.current?.measureInWindow((x, y, width, height) => {
+              if (width > 0 && height > 0) registerTarget('header', { x, y, width, height });
+            });
+          }}
           style={[
             styles.topHeader,
             {
@@ -306,6 +330,13 @@ export const DashboardScreen: React.FC = () => {
 
         {/* 2. Bento Stat Grid with Stagger & Spring */}
         <Animated.View
+          ref={bentoRef}
+          collapsable={false}
+          onLayout={() => {
+            bentoRef.current?.measureInWindow((x, y, width, height) => {
+              if (width > 0 && height > 0) registerTarget('bento', { x, y, width, height });
+            });
+          }}
           style={[
             styles.summaryGrid,
             {
@@ -365,6 +396,13 @@ export const DashboardScreen: React.FC = () => {
 
         {/* 3. Daily Focus & Animated Progress Bar */}
         <Animated.View
+          ref={progressRef}
+          collapsable={false}
+          onLayout={() => {
+            progressRef.current?.measureInWindow((x, y, width, height) => {
+              if (width > 0 && height > 0) registerTarget('progress', { x, y, width, height });
+            });
+          }}
           style={[
             styles.progressCard,
             {
@@ -621,7 +659,15 @@ export const DashboardScreen: React.FC = () => {
       </ScrollView>
 
       {/* Floating Action Button */}
-      <FloatingActionButton onPress={() => setShowQuickModal(true)} />
+      <FloatingActionButton
+        ref={fabRef}
+        onPress={() => setShowQuickModal(true)}
+        onLayout={() => {
+          fabRef.current?.measureInWindow((x, y, width, height) => {
+            if (width > 0 && height > 0) registerTarget('fab', { x, y, width, height });
+          });
+        }}
+      />
 
       {/* Quick Action Matrix Modal */}
       <QuickCreateModal

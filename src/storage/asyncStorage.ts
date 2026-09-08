@@ -30,6 +30,7 @@ export const defaultSettings: AppSettings = {
   compactView: false,
   badgeCountEnabled: true,
   currencySymbol: '₹',
+  hasCompletedTour: false,
 };
 
 export const initialWorkspaceData: WorkspaceData = {

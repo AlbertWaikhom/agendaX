@@ -27,14 +27,28 @@ export type RootTabParamList = {
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
+import { useTour } from '../context/TourContext';
+import { Dimensions } from 'react-native';
+
 export const TabNavigator: React.FC = () => {
   const { colors } = useTheme();
   const { tasks } = useWorkspace();
+  const { registerTarget } = useTour();
   const insets = useSafeAreaInsets();
   const pendingTasksCount = tasks.filter(t => !t.completed).length;
 
   const bottomPadding = insets.bottom > 0 ? insets.bottom + 4 : (Platform.OS === 'ios' ? 24 : 10);
   const tabHeight = 56 + bottomPadding;
+
+  React.useEffect(() => {
+    const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+    registerTarget('navigation', {
+      x: 12,
+      y: screenHeight - tabHeight - 4,
+      width: screenWidth - 24,
+      height: tabHeight,
+    });
+  }, [tabHeight, registerTarget]);
 
   return (
     <Tab.Navigator

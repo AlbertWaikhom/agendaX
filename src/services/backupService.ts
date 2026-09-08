@@ -25,7 +25,7 @@ export const BackupService = {
     const encryptedData = Encryption.encryptVault(rawData);
 
     return {
-      version: '1.02',
+      version: '1.01',
       app: 'AgendaX',
       vaultVersion: 1,
       isEncrypted: true,

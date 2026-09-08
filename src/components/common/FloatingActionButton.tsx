@@ -1,5 +1,5 @@
-import React from 'react';
-import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import React, { forwardRef } from 'react';
+import { TouchableOpacity, StyleSheet, View, ViewStyle, StyleProp } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BorderRadius } from '../../constants/theme';
 import { useTheme } from '../../context/ThemeContext';
@@ -7,19 +7,25 @@ import { useTheme } from '../../context/ThemeContext';
 interface FloatingActionButtonProps {
   onPress: () => void;
   icon?: keyof typeof Ionicons.glyphMap;
+  style?: StyleProp<ViewStyle>;
+  onLayout?: () => void;
 }
 
-export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
+export const FloatingActionButton = forwardRef<View, FloatingActionButtonProps>(({
   onPress,
   icon = 'add',
-}) => {
+  style,
+  onLayout,
+}, ref) => {
   const { colors } = useTheme();
 
   return (
     <TouchableOpacity
+      ref={ref as any}
       activeOpacity={0.85}
       onPress={onPress}
-      style={[styles.fab, { shadowColor: colors.primary }]}
+      onLayout={onLayout}
+      style={[styles.fab, { shadowColor: colors.primary }, style]}
       accessibilityRole="button"
       accessibilityLabel="Create item"
     >
@@ -28,7 +34,7 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
       </View>
     </TouchableOpacity>
   );
-};
+});
 
 const styles = StyleSheet.create({
   fab: {

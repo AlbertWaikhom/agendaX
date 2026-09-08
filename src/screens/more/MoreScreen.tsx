@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -11,12 +12,14 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import * as Clipboard from 'expo-clipboard';
 import * as ImagePicker from 'expo-image-picker';
 import { File } from 'expo-file-system';
 import { useTheme } from '../../context/ThemeContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { useSecurity } from '../../context/SecurityContext';
+import { useTour } from '../../context/TourContext';
 import { PageContainer } from '../../../components/page/PageContainer';
 import { PageLockGuard } from '../../components/security/PageLockGuard';
 import { Input } from '../../components/common/Input';
@@ -34,6 +37,7 @@ import { CustomAlertModal, AlertButton } from '../../components/common/CustomAle
 import { createMoreStyles } from './MoreScreen.styles';
 
 export const MoreScreen: React.FC = () => {
+  const navigation = useNavigation<any>();
   const { theme, colors, setTheme } = useTheme();
   const styles = useMemo(() => createMoreStyles(colors), [colors]);
 
@@ -49,6 +53,7 @@ export const MoreScreen: React.FC = () => {
   } = useWorkspace();
 
   const { securitySettings } = useSecurity();
+  const { startTour } = useTour();
 
   const [showEditName, setShowEditName] = useState(false);
   const [nameInput, setNameInput] = useState(user?.name || '');
@@ -438,6 +443,30 @@ export const MoreScreen: React.FC = () => {
                 <View>
                   <Text style={styles.menuTitle}>Check for GitHub Updates</Text>
                   <Text style={styles.menuSubtitle}>Online release lookup • Current: v{CURRENT_APP_VERSION}</Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+            </TouchableOpacity>
+
+            {/* App Tour & Guided Tutorial */}
+            <TouchableOpacity
+              style={styles.menuItem}
+              activeOpacity={0.7}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+                navigation.navigate('Home');
+                setTimeout(() => {
+                  startTour();
+                }, 350);
+              }}
+            >
+              <View style={styles.menuItemLeft}>
+                <View style={[styles.menuIconBox, { backgroundColor: '#F59E0B25' }]}>
+                  <Ionicons name="compass-outline" size={18} color="#F59E0B" />
+                </View>
+                <View>
+                  <Text style={styles.menuTitle}>App Tour & Guided Tutorial</Text>
+                  <Text style={styles.menuSubtitle}>Replay guided spotlight tour and feature walkthrough</Text>
                 </View>
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
