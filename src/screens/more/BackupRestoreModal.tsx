@@ -114,7 +114,7 @@ export const BackupRestoreModal: React.FC<BackupRestoreModalProps> = ({
       if (res.success) {
         Alert.alert(
           '✅ Merge Complete',
-          `Imported: ${res.imported.tasks} tasks, ${res.imported.events} events, ${res.imported.expenses} expenses, ${res.imported.urls} URLs.\nSkipped ${res.skippedDuplicates || 0} existing duplicates.`
+          `Imported: ${res.imported.tasks} tasks, ${res.imported.events} events, ${res.imported.expenses} expenses, ${res.imported.urls} URLs, ${res.imported.notes || 0} notes.\nSkipped ${res.skippedDuplicates || 0} existing duplicates.`
         );
         onClose();
       } else {
@@ -132,7 +132,7 @@ export const BackupRestoreModal: React.FC<BackupRestoreModalProps> = ({
 
     Alert.alert(
       '⚠️ Replace All Workspace Data',
-      'This action will replace all current SQLite tasks, events, and expenses with the backup data. Are you sure?',
+      'This action will replace all current SQLite tasks, events, expenses, links, notes, settings, and attachments with the backup data. Are you sure?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -144,7 +144,7 @@ export const BackupRestoreModal: React.FC<BackupRestoreModalProps> = ({
             try {
               const res = await importReplaceData(parsedData);
               if (res.success) {
-                Alert.alert('✅ Restored Successfully', 'Your workspace has been completely restored from backup.');
+                Alert.alert('✅ Restored Successfully', 'Your complete workspace has been restored from backup.');
                 onClose();
               } else {
                 setImportError(res.error || 'Failed to replace data in SQLite.');

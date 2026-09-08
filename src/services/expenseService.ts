@@ -145,4 +145,88 @@ export const ExpenseService = {
 
     return { deltaAmount, deltaPercent };
   },
+
+  getAvailableYears(expenses: ExpenseItem[]): string[] {
+    const years = new Set<string>();
+    const currentYear = String(new Date().getFullYear());
+    years.add(currentYear);
+
+    for (const item of expenses) {
+      if (item.date && item.date.length >= 4) {
+        const y = item.date.slice(0, 4);
+        if (/^\d{4}$/.test(y)) {
+          years.add(y);
+        }
+      }
+    }
+
+    return Array.from(years).sort((a, b) => Number(b) - Number(a));
+  },
+
+  getYearlyExpenses(expenses: ExpenseItem[], year: string): ExpenseItem[] {
+    return expenses
+      .filter(item => item.date.startsWith(year))
+      .sort((a, b) => b.date.localeCompare(a.date));
+  },
+
+  getYearlyTotal(expenses: ExpenseItem[], year: string): number {
+    return this.getYearlyExpenses(expenses, year).reduce(
+      (sum, item) => sum + Number(item.amount || 0),
+      0
+    );
+  },
+
+  getYearlyCategoryBreakdown(expenses: ExpenseItem[], year: string): CategoryBreakdown[] {
+    const yearlyItems = this.getYearlyExpenses(expenses, year);
+    const total = this.getYearlyTotal(expenses, year);
+    if (total === 0 || yearlyItems.length === 0) return [];
+
+    const map = new Map<string, { total: number; count: number }>();
+
+    yearlyItems.forEach(item => {
+      const cat = item.category || 'Other';
+      const prev = map.get(cat) || { total: 0, count: 0 };
+      map.set(cat, {
+        total: prev.total + Number(item.amount || 0),
+        count: prev.count + 1,
+      });
+    });
+
+    const result: CategoryBreakdown[] = [];
+    map.forEach((value, cat) => {
+      result.push({
+        category: cat,
+        total: value.total,
+        percentage: Math.round((value.total / total) * 100),
+        count: value.count,
+        color: EXPENSE_CATEGORY_COLORS[cat] || '#818CF8',
+      });
+    });
+
+    return result.sort((a, b) => b.total - a.total);
+  },
+
+  getYearlyMonthlyComparison(expenses: ExpenseItem[], year: string): MonthlyComparisonPoint[] {
+    const y = Number(year) || new Date().getFullYear();
+    const points: MonthlyComparisonPoint[] = [];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const now = new Date();
+    const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+    for (let m = 1; m <= 12; m++) {
+      const mStr = String(m).padStart(2, '0');
+      const key = `${y}-${mStr}`;
+      const total = this.getMonthlyTotal(expenses, key);
+
+      points.push({
+        monthKey: key,
+        label: monthNames[m - 1],
+        year: y,
+        total,
+        isCurrent: key === currentYearMonth,
+      });
+    }
+
+    return points;
+  },
 };

@@ -72,6 +72,7 @@ interface WorkspaceContextValue {
   updateExpense: (expense: ExpenseItem) => Promise<boolean>;
   deleteExpense: (id: string) => Promise<boolean>;
   addUrl: (params: { title: string; url: string; category?: string; note?: string; previewImageUri?: string }) => Promise<{ success: boolean; error?: string }>;
+  addUrls: (items: Array<{ title: string; url: string; category?: string; note?: string }>) => Promise<{ success: boolean; count: number; error?: string }>;
   updateUrl: (id: string, params: { title: string; url: string; category?: string; note?: string; previewImageUri?: string }) => Promise<{ success: boolean; error?: string }>;
   deleteUrl: (id: string) => Promise<boolean>;
   notes: NoteItem[];
@@ -573,6 +574,27 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return { success: true };
   };
 
+  const addUrls = async (items: Array<{ title: string; url: string; category?: string; note?: string }>) => {
+    try {
+      const validItems: UrlItem[] = [];
+      for (const item of items) {
+        const res = UrlService.createUrl(item as any);
+        if (res.success && res.item) {
+          validItems.push(res.item);
+        }
+      }
+      if (validItems.length === 0) {
+        return { success: false, count: 0, error: 'No valid URLs provided' };
+      }
+      await UrlRepository.bulkInsertUrls(validItems);
+      setUrls(prev => [...validItems, ...prev]);
+      return { success: true, count: validItems.length };
+    } catch (e: any) {
+      console.error('[WorkspaceContext] Bulk add URLs error:', e);
+      return { success: false, count: 0, error: e?.message || 'Failed to save URLs' };
+    }
+  };
+
   const updateUrl = async (id: string, params: { title: string; url: string; category?: string; note?: string; previewImageUri?: string }) => {
     const existing = urls.find(u => u.id === id);
     if (!existing) return { success: false, error: 'URL not found' };
@@ -639,7 +661,10 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const exportData = async () => {
-    const allAttachments = await AttachmentRepository.getAllAttachments();
+    const [allAttachments, freshSettings] = await Promise.all([
+      AttachmentRepository.getAllAttachments(),
+      SettingsRepository.getSettings(),
+    ]);
     const currentWorkspace: WorkspaceData = {
       user,
       tasks,
@@ -648,14 +673,17 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       urls,
       notes,
       notifications,
-      settings,
+      settings: freshSettings || settings,
       attachments: allAttachments,
     };
     return BackupService.exportBackup(currentWorkspace);
   };
 
   const exportZipData = async () => {
-    const allAttachments = await AttachmentRepository.getAllAttachments();
+    const [allAttachments, freshSettings] = await Promise.all([
+      AttachmentRepository.getAllAttachments(),
+      SettingsRepository.getSettings(),
+    ]);
     const currentWorkspace: WorkspaceData = {
       user,
       tasks,
@@ -664,7 +692,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       urls,
       notes,
       notifications,
-      settings,
+      settings: freshSettings || settings,
       attachments: allAttachments,
     };
     return BackupService.exportZipBackup(currentWorkspace);
@@ -744,6 +772,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         updateExpense,
         deleteExpense,
         addUrl,
+        addUrls,
         updateUrl,
         deleteUrl,
         addNote,

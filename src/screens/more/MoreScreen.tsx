@@ -34,6 +34,7 @@ import { FileStorage } from '../../storage/fileStorage';
 import { RINGTONE_OPTIONS } from '../../services/notificationService';
 import { UpdateService, UpdateCheckResult, CURRENT_APP_VERSION } from '../../services/updateService';
 import { CustomAlertModal, AlertButton } from '../../components/common/CustomAlertModal';
+import { BrowserService, BROWSER_OPTIONS, BrowserOption } from '../../services/browserService';
 import { createMoreStyles } from './MoreScreen.styles';
 
 export const MoreScreen: React.FC = () => {
@@ -65,6 +66,7 @@ export const MoreScreen: React.FC = () => {
   const [showSecurityModal, setShowSecurityModal] = useState(false);
   const [isTestingSound, setIsTestingSound] = useState(false);
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+  const [currentBrowserPref, setCurrentBrowserPref] = useState<string | null>(null);
 
   const [alertConfig, setAlertConfig] = useState<{
     visible: boolean;
@@ -413,7 +415,11 @@ export const MoreScreen: React.FC = () => {
             <TouchableOpacity
               style={styles.menuItem}
               activeOpacity={0.7}
-              onPress={() => setShowAppSettingsModal(true)}
+              onPress={async () => {
+                const b = await BrowserService.getDefaultBrowser();
+                setCurrentBrowserPref(b);
+                setShowAppSettingsModal(true);
+              }}
             >
               <View style={styles.menuItemLeft}>
                 <View style={[styles.menuIconBox, { backgroundColor: `${colors.accentPurple}20` }]}>
@@ -772,6 +778,66 @@ export const MoreScreen: React.FC = () => {
                   {isTestingSound ? 'Playing Tone & Notification...' : 'Play Ringtone & Show Notification'}
                 </Text>
               </TouchableOpacity>
+            </View>
+
+            {/* Default Browser Section */}
+            <View style={{ marginTop: 10, paddingTop: 14, borderTopWidth: 1, borderTopColor: colors.divider }}>
+              <Text style={{ fontFamily: 'SF Pro Display', fontSize: 15, fontWeight: '600', color: colors.text, marginBottom: 4 }}>
+                Default Web Browser
+              </Text>
+              <Text style={{ fontFamily: 'SF Pro Display', fontSize: 12, color: colors.textMuted, marginBottom: 12 }}>
+                App used when opening saved links. If set to &quot;Ask Every Time&quot;, AgendaX prompts with Just Once / Always.
+              </Text>
+
+              <View style={{ gap: 8 }}>
+                <TouchableOpacity
+                  style={[styles.ringtoneItem, currentBrowserPref === null && styles.ringtoneItemActive]}
+                  onPress={async () => {
+                    await BrowserService.setDefaultBrowser('ask');
+                    setCurrentBrowserPref(null);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.ringtoneItemLeft}>
+                    <Ionicons name="help-circle-outline" size={18} color={currentBrowserPref === null ? colors.primaryLight : colors.textMuted} />
+                    <Text style={[styles.ringtoneItemText, currentBrowserPref === null && styles.ringtoneItemTextActive]}>
+                      Always Ask (Prompt Chooser)
+                    </Text>
+                  </View>
+                  <Ionicons
+                    name={currentBrowserPref === null ? 'radio-button-on' : 'radio-button-off'}
+                    size={18}
+                    color={currentBrowserPref === null ? colors.primary : colors.textMuted}
+                  />
+                </TouchableOpacity>
+
+                {BROWSER_OPTIONS.map(b => {
+                  const isSelected = currentBrowserPref === b.id;
+                  return (
+                    <TouchableOpacity
+                      key={b.id}
+                      style={[styles.ringtoneItem, isSelected && styles.ringtoneItemActive]}
+                      onPress={async () => {
+                        await BrowserService.setDefaultBrowser(b.id);
+                        setCurrentBrowserPref(b.id);
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.ringtoneItemLeft}>
+                        <Ionicons name={b.icon} size={18} color={isSelected ? colors.primaryLight : b.color} />
+                        <Text style={[styles.ringtoneItemText, isSelected && styles.ringtoneItemTextActive]}>
+                          {b.name}
+                        </Text>
+                      </View>
+                      <Ionicons
+                        name={isSelected ? 'radio-button-on' : 'radio-button-off'}
+                        size={18}
+                        color={isSelected ? colors.primary : colors.textMuted}
+                      />
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
             </View>
           </View>
         </ModalWrapper>

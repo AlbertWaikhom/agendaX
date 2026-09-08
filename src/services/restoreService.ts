@@ -8,6 +8,7 @@ import { NotificationRepository } from '../database/repositories/notificationRep
 import { SettingsRepository } from '../database/repositories/settingsRepository';
 import { AttachmentRepository } from '../database/repositories/attachmentRepository';
 import { NoteRepository } from '../database/repositories/noteRepository';
+import { SecurityService } from './securityService';
 import { WorkspaceData, TaskItem, EventItem, ExpenseItem, UrlItem, NoteItem } from '../types';
 
 export interface RestoreResult {
@@ -17,8 +18,9 @@ export interface RestoreResult {
     events: number;
     expenses: number;
     urls: number;
-    notes?: number;
+    notes: number;
     notifications: number;
+    attachments?: number;
   };
   skippedDuplicates?: number;
   error?: string;
@@ -27,7 +29,7 @@ export interface RestoreResult {
 export const RestoreService = {
 
   async mergeWorkspaceData(incoming: WorkspaceData): Promise<RestoreResult> {
-    const counts = { tasks: 0, events: 0, expenses: 0, urls: 0, notes: 0, notifications: 0 };
+    const counts = { tasks: 0, events: 0, expenses: 0, urls: 0, notes: 0, notifications: 0, attachments: 0 };
     let skipped = 0;
 
     try {
@@ -124,6 +126,17 @@ export const RestoreService = {
 
         if (incoming.attachments && incoming.attachments.length > 0) {
           await AttachmentRepository.bulkInsertAttachments(incoming.attachments);
+          counts.attachments = incoming.attachments.length;
+        }
+
+        if (incoming.settings?.security) {
+          const currentSecurity = await SecurityService.loadSecuritySettings();
+          const mergedLocked = Array.from(new Set([...currentSecurity.lockedPages, ...incoming.settings.security.lockedPages]));
+          await SecurityService.saveSecuritySettings({
+            ...currentSecurity,
+            ...incoming.settings.security,
+            lockedPages: mergedLocked,
+          });
         }
       });
 
@@ -150,6 +163,7 @@ export const RestoreService = {
       urls: incoming.urls?.length || 0,
       notes: incoming.notes?.length || 0,
       notifications: incoming.notifications?.length || 0,
+      attachments: incoming.attachments?.length || 0,
     };
 
     try {
@@ -161,6 +175,7 @@ export const RestoreService = {
         await UrlRepository.clearAllUrls();
         await NoteRepository.clearAllNotes();
         await NotificationRepository.clearAllNotifications();
+        await AttachmentRepository.clearAllAttachments();
 
         if (incoming.user) {
           await UserRepository.setUser(incoming.user);
@@ -185,6 +200,9 @@ export const RestoreService = {
         }
         if (incoming.settings) {
           await SettingsRepository.setAllSettings(incoming.settings);
+          if (incoming.settings.security) {
+            await SecurityService.saveSecuritySettings(incoming.settings.security);
+          }
         }
         if (incoming.attachments?.length) {
           await AttachmentRepository.bulkInsertAttachments(incoming.attachments);
@@ -199,7 +217,7 @@ export const RestoreService = {
       console.error('[RestoreService] Replace failed:', e);
       return {
         success: false,
-        imported: { tasks: 0, events: 0, expenses: 0, urls: 0, notes: 0, notifications: 0 },
+        imported: { tasks: 0, events: 0, expenses: 0, urls: 0, notes: 0, notifications: 0, attachments: 0 },
         error: e?.message || 'Replace restore failed',
       };
     }

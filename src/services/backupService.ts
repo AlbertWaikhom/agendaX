@@ -103,6 +103,44 @@ export const BackupService = {
       const payload = this.generateBackupPayload(workspace);
       zip.file('workspace.json', JSON.stringify(payload, null, 2));
 
+      // Pack physical media files if available on native
+      if (Platform.OS !== 'web') {
+        const rootDir = FileStorage.getRootDirectory();
+        const mediaEntries = new Set<string>();
+
+        for (const att of workspace.attachments || []) {
+          if (att.relativePath) {
+            mediaEntries.add(att.relativePath.replace(/^\//, ''));
+          }
+        }
+
+        const addIfMedia = (uri?: string) => {
+          if (!uri) return;
+          if (uri.includes('AgendaX/media/')) {
+            const parts = uri.split('AgendaX/');
+            if (parts[1]) mediaEntries.add(parts[1]);
+          }
+        };
+
+        if (workspace.user?.avatarUri) addIfMedia(workspace.user.avatarUri);
+        workspace.tasks?.forEach(t => addIfMedia(t.mediaUri));
+        workspace.events?.forEach(e => addIfMedia(e.imageUri));
+        workspace.expenses?.forEach(exp => addIfMedia(exp.receiptUri));
+        workspace.urls?.forEach(u => addIfMedia(u.previewImageUri));
+
+        for (const relPath of Array.from(mediaEntries)) {
+          try {
+            const mediaFile = new File(rootDir, relPath);
+            if (mediaFile.exists) {
+              const fileBytes = await mediaFile.bytes();
+              zip.file(relPath, fileBytes);
+            }
+          } catch (e) {
+            console.warn('[BackupService] Could not pack media file:', relPath, e);
+          }
+        }
+      }
+
       const zipBytes = await zip.generateAsync({ type: 'uint8array' });
       const fileName = `AgendaX_FullBackup_${workspace.user?.id || 'workspace'}_${timestamp}.zip`;
 
@@ -228,6 +266,28 @@ export const BackupService = {
 
       const jsonStr = await workspaceJsonEntry.async('string');
       const parsedRes = this.validateAndParseBackupContent(jsonStr);
+
+      // Extract physical media files to device storage on native
+      if (Platform.OS !== 'web') {
+        try {
+          await FileStorage.ensureDirectoriesAsync();
+          const rootDir = FileStorage.getRootDirectory();
+          const fileKeys = Object.keys(zip.files);
+
+          for (const key of fileKeys) {
+            if (key.startsWith('media/') && !zip.files[key].dir) {
+              const entryBytes = await zip.files[key].async('uint8array');
+              const destFile = new File(rootDir, key);
+              if (!destFile.exists) {
+                destFile.create();
+              }
+              destFile.write(entryBytes);
+            }
+          }
+        } catch (mediaExtractErr) {
+          console.warn('[BackupService] Media extraction warning:', mediaExtractErr);
+        }
+      }
 
       if (parsedRes.success && parsedRes.summary) {
         parsedRes.isZip = true;

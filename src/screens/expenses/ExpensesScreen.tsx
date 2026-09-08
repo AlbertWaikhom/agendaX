@@ -28,12 +28,12 @@ export const ExpensesScreen: React.FC = () => {
   const { colors } = useTheme();
   const styles = useMemo(() => createExpensesStyles(colors), [colors]);
 
-  const { expenses, unreadNotificationsCount, addExpense, updateExpense, deleteExpense } = useWorkspace();
+  const { expenses, addExpense, updateExpense, deleteExpense } = useWorkspace();
 
-  // Current selected month: "YYYY-MM"
+  // Selected Year & Month state for dual filtering
   const today = new Date();
-  const currentMonthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-  const [selectedYearMonth, setSelectedYearMonth] = useState(currentMonthStr);
+  const [selectedYear, setSelectedYear] = useState<string>(String(today.getFullYear()));
+  const [selectedMonth, setSelectedMonth] = useState<string>(String(today.getMonth() + 1).padStart(2, '0'));
 
   // Modals state
   const [showModal, setShowModal] = useState(false);
@@ -52,65 +52,100 @@ export const ExpensesScreen: React.FC = () => {
     title: '',
   });
 
-  // Month navigation helpers
-  const handlePrevMonth = () => {
-    const [y, m] = selectedYearMonth.split('-').map(Number);
-    const prev = new Date(y, m - 2, 1);
-    setSelectedYearMonth(`${prev.getFullYear()}-${String(prev.getMonth() + 1).padStart(2, '0')}`);
+  const availableYears = useMemo(() => ExpenseService.getAvailableYears(expenses), [expenses]);
+
+  const monthOptions = [
+    { id: 'all', label: 'All Year' },
+    { id: '01', label: 'Jan' },
+    { id: '02', label: 'Feb' },
+    { id: '03', label: 'Mar' },
+    { id: '04', label: 'Apr' },
+    { id: '05', label: 'May' },
+    { id: '06', label: 'Jun' },
+    { id: '07', label: 'Jul' },
+    { id: '08', label: 'Aug' },
+    { id: '09', label: 'Sep' },
+    { id: '10', label: 'Oct' },
+    { id: '11', label: 'Nov' },
+    { id: '12', label: 'Dec' },
+  ];
+
+  const isAllYear = selectedMonth === 'all';
+  const selectedYearMonth = `${selectedYear}-${selectedMonth}`;
+
+  // Month / Year navigation helpers
+  const handlePrev = () => {
+    if (isAllYear) {
+      setSelectedYear(prev => String(Number(prev) - 1));
+    } else {
+      const mNum = Number(selectedMonth);
+      if (mNum === 1) {
+        setSelectedYear(prev => String(Number(prev) - 1));
+        setSelectedMonth('12');
+      } else {
+        setSelectedMonth(String(mNum - 1).padStart(2, '0'));
+      }
+    }
   };
 
-  const handleNextMonth = () => {
-    const [y, m] = selectedYearMonth.split('-').map(Number);
-    const next = new Date(y, m, 1);
-    setSelectedYearMonth(`${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`);
+  const handleNext = () => {
+    if (isAllYear) {
+      setSelectedYear(prev => String(Number(prev) + 1));
+    } else {
+      const mNum = Number(selectedMonth);
+      if (mNum === 12) {
+        setSelectedYear(prev => String(Number(prev) + 1));
+        setSelectedMonth('01');
+      } else {
+        setSelectedMonth(String(mNum + 1).padStart(2, '0'));
+      }
+    }
   };
 
-  const formattedMonthTitle = useMemo(() => {
-    const [y, m] = selectedYearMonth.split('-').map(Number);
-    const d = new Date(y, m - 1, 1);
+  const formattedPeriodTitle = useMemo(() => {
+    if (isAllYear) return `Year ${selectedYear}`;
+    const d = new Date(Number(selectedYear), Number(selectedMonth) - 1, 1);
     return d.toLocaleString('default', { month: 'long', year: 'numeric' });
-  }, [selectedYearMonth]);
+  }, [selectedYear, selectedMonth, isAllYear]);
 
-  const monthShortName = useMemo(() => {
-    const [y, m] = selectedYearMonth.split('-').map(Number);
-    const d = new Date(y, m - 1, 1);
+  const periodShortName = useMemo(() => {
+    if (isAllYear) return `${selectedYear}`;
+    const d = new Date(Number(selectedYear), Number(selectedMonth) - 1, 1);
     return d.toLocaleString('default', { month: 'long' });
-  }, [selectedYearMonth]);
+  }, [selectedYear, selectedMonth, isAllYear]);
 
-  // Calculations
-  const monthlyItems = useMemo(
-    () => ExpenseService.getMonthlyExpenses(expenses, selectedYearMonth),
-    [expenses, selectedYearMonth]
-  );
+  // Calculations based on Year / Month filter
+  const displayedItems = useMemo(() => {
+    if (isAllYear) {
+      return ExpenseService.getYearlyExpenses(expenses, selectedYear);
+    }
+    return ExpenseService.getMonthlyExpenses(expenses, selectedYearMonth);
+  }, [expenses, selectedYear, selectedMonth, isAllYear, selectedYearMonth]);
 
-  const monthlyTotal = useMemo(
-    () => ExpenseService.getMonthlyTotal(expenses, selectedYearMonth),
-    [expenses, selectedYearMonth]
-  );
+  const totalSpent = useMemo(() => {
+    if (isAllYear) {
+      return ExpenseService.getYearlyTotal(expenses, selectedYear);
+    }
+    return ExpenseService.getMonthlyTotal(expenses, selectedYearMonth);
+  }, [expenses, selectedYear, selectedMonth, isAllYear, selectedYearMonth]);
 
-  const dailyAvg = useMemo(
-    () => ExpenseService.getDailyAverage(expenses, selectedYearMonth),
-    [expenses, selectedYearMonth]
-  );
+  const categoryBreakdown = useMemo(() => {
+    if (isAllYear) {
+      return ExpenseService.getYearlyCategoryBreakdown(expenses, selectedYear);
+    }
+    return ExpenseService.getCategoryBreakdown(expenses, selectedYearMonth);
+  }, [expenses, selectedYear, selectedMonth, isAllYear, selectedYearMonth]);
 
-  const highestExpense = useMemo(
-    () => ExpenseService.getHighestExpense(expenses, selectedYearMonth),
-    [expenses, selectedYearMonth]
-  );
+  const comparisonPoints = useMemo(() => {
+    if (isAllYear) {
+      return ExpenseService.getYearlyMonthlyComparison(expenses, selectedYear);
+    }
+    return ExpenseService.getMonthOverMonthComparison(expenses, selectedYearMonth, 6);
+  }, [expenses, selectedYear, selectedMonth, isAllYear, selectedYearMonth]);
 
-  const categoryBreakdown = useMemo(
-    () => ExpenseService.getCategoryBreakdown(expenses, selectedYearMonth),
-    [expenses, selectedYearMonth]
-  );
-
-  const comparisonPoints = useMemo(
-    () => ExpenseService.getMonthOverMonthComparison(expenses, selectedYearMonth, 6),
-    [expenses, selectedYearMonth]
-  );
-
-  // Target Budget Calculation (default ₹50k or dynamic balance)
-  const monthlyBudget = 50000;
-  const totalBalance = Math.max(0, monthlyBudget - monthlyTotal);
+  // Target Budget Calculation (default ₹50k/mo or ₹600k/yr)
+  const targetBudget = isAllYear ? 600000 : 50000;
+  const totalBalance = Math.max(0, targetBudget - totalSpent);
 
   const handleDelete = (item: ExpenseItem) => {
     setAlertConfig({
@@ -171,10 +206,18 @@ export const ExpensesScreen: React.FC = () => {
             <View style={styles.headerActions}>
               <TouchableOpacity
                 style={styles.headerIconBtn}
-                onPress={handlePrevMonth}
+                onPress={handlePrev}
                 activeOpacity={0.7}
               >
-                <Ionicons name="calendar-outline" size={20} color={colors.primaryLight} />
+                <Ionicons name="chevron-back" size={20} color={colors.primaryLight} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.headerIconBtn}
+                onPress={handleNext}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="chevron-forward" size={20} color={colors.primaryLight} />
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -183,8 +226,8 @@ export const ExpensesScreen: React.FC = () => {
                   setAlertConfig({
                     visible: true,
                     title: 'Spending Notifications',
-                    message: monthlyTotal > monthlyBudget * 0.8
-                      ? `Alert: You have reached ${Math.round((monthlyTotal / monthlyBudget) * 100)}% of your monthly budget limit.`
+                    message: totalSpent > targetBudget * 0.8
+                      ? `Alert: You have reached ${Math.round((totalSpent / targetBudget) * 100)}% of your ${isAllYear ? 'annual' : 'monthly'} budget limit.`
                       : 'All budget limits and expense reminders are in healthy standing.',
                     icon: 'notifications-outline',
                     iconColor: colors.accentOrange,
@@ -198,15 +241,55 @@ export const ExpensesScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* Hero Budget & Donut Chart Card (Matching Mockup) */}
+          {/* Dual Filter Controls: Year-wise & Month-wise */}
+          <View style={styles.filterContainer}>
+            {/* Year Selector Chips */}
+            <View style={styles.yearFilterRow}>
+              <Ionicons name="calendar-outline" size={14} color={colors.primaryLight} style={{ marginRight: 8 }} />
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.yearFilterScroll}>
+                {availableYears.map(yr => {
+                  const active = selectedYear === yr;
+                  return (
+                    <TouchableOpacity
+                      key={yr}
+                      style={[styles.yearChip, active && styles.yearChipActive]}
+                      onPress={() => setSelectedYear(yr)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.yearChipText, active && styles.yearChipTextActive]}>{yr}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+
+            {/* Month Selector Carousel (All Year + 12 Months) */}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.monthFilterScroll}>
+              {monthOptions.map(opt => {
+                const active = selectedMonth === opt.id;
+                return (
+                  <TouchableOpacity
+                    key={opt.id}
+                    style={[styles.monthChip, active && styles.monthChipActive]}
+                    onPress={() => setSelectedMonth(opt.id)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.monthChipText, active && styles.monthChipTextActive]}>{opt.label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+
+          {/* Hero Budget & Donut Chart Card */}
           <View style={styles.budgetHeroCard}>
             <View style={styles.budgetHeroHeader}>
               <TouchableOpacity
                 style={styles.budgetHeroTitleRow}
-                onPress={handleNextMonth}
+                onPress={handleNext}
                 activeOpacity={0.7}
               >
-                <Text style={styles.budgetHeroTitle}>{monthShortName} Budget</Text>
+                <Text style={styles.budgetHeroTitle}>{periodShortName} Budget</Text>
                 <Ionicons name="chevron-forward" size={18} color={colors.primaryLight} />
               </TouchableOpacity>
 
@@ -225,19 +308,19 @@ export const ExpensesScreen: React.FC = () => {
             <Text style={styles.budgetTotalSpentText}>
               Total spent:{' '}
               <Text style={styles.budgetTotalSpentAmount}>
-                ₹{monthlyTotal.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                ₹{totalSpent.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
               </Text>
             </Text>
 
-            {/* Donut Chart with Surrounding Category Labels */}
+            {/* Donut Chart with Category Breakdown */}
             <ExpenseDonutChart
               categories={categoryBreakdown}
-              totalSpent={monthlyTotal}
+              totalSpent={totalSpent}
               currencySymbol="₹"
             />
           </View>
 
-          {/* Total Balance Card (Matching Mockup) */}
+          {/* Total Balance Card */}
           <View style={styles.totalBalanceCard}>
             <View style={styles.totalBalanceLeft}>
               <View style={styles.totalBalanceIconBox}>
@@ -245,7 +328,7 @@ export const ExpensesScreen: React.FC = () => {
               </View>
               <View>
                 <Text style={styles.totalBalanceTitle}>Total Balance</Text>
-                <Text style={styles.totalBalanceSubtitle}>Remaining budget</Text>
+                <Text style={styles.totalBalanceSubtitle}>{isAllYear ? 'Remaining annual budget' : 'Remaining monthly budget'}</Text>
               </View>
             </View>
 
@@ -256,15 +339,19 @@ export const ExpensesScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* Bar Graph Analytics Component (Requested by user) */}
+          {/* Bar Graph Analytics Component (Yearly trend or Monthly comparison) */}
           <ExpenseBarGraph
             monthlyPoints={comparisonPoints}
             categoryBreakdown={categoryBreakdown}
             currencySymbol="₹"
-            onSelectMonth={monthKey => setSelectedYearMonth(monthKey)}
+            onSelectMonth={monthKey => {
+              const [y, m] = monthKey.split('-');
+              setSelectedYear(y);
+              setSelectedMonth(m);
+            }}
           />
 
-          {/* Secure with Biometrics Card (Matching Mockup) */}
+          {/* Secure with Biometrics Card */}
           <TouchableOpacity
             style={styles.biometricCard}
             onPress={handleBiometricPrompt}
@@ -285,10 +372,10 @@ export const ExpensesScreen: React.FC = () => {
           {/* Transactions List */}
           <View style={{ marginTop: 4 }}>
             <Text style={styles.sectionTitle}>
-              Transactions ({monthlyItems.length})
+              Transactions ({displayedItems.length})
             </Text>
 
-            {monthlyItems.length === 0 ? (
+            {displayedItems.length === 0 ? (
               <View style={styles.emptyContainer}>
                 <Ionicons
                   name="wallet-outline"
@@ -298,11 +385,11 @@ export const ExpensesScreen: React.FC = () => {
                 />
                 <Text style={styles.emptyTitle}>No expenses recorded</Text>
                 <Text style={styles.emptySub}>
-                  Tap the + button to log your first expense for {formattedMonthTitle}.
+                  Tap the + button to log your first expense for {formattedPeriodTitle}.
                 </Text>
               </View>
             ) : (
-              monthlyItems.map(item => {
+              displayedItems.map(item => {
                 const catColor = EXPENSE_CATEGORY_COLORS[item.category] || colors.primary;
                 const catIcon = (EXPENSE_CATEGORY_ICONS[item.category] as any) || 'pricetag';
 
@@ -331,7 +418,7 @@ export const ExpensesScreen: React.FC = () => {
                         <Text style={styles.transactionMeta}>
                           {item.date} • {item.category} {item.paymentMethod ? `• ${item.paymentMethod}` : ''}
                         </Text>
-                        {/* Transaction ID Badge & Receipt Attachment Indicator */}
+                        {/* Transaction ID Badge & Receipt Indicator */}
                         <View style={{ flexDirection: 'row', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
                           {item.transactionId ? (
                             <TouchableOpacity

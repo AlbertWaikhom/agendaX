@@ -541,4 +541,66 @@ export const createExpensesStyles = (colors: ThemeColors) =>
       marginTop: 4,
       textAlign: 'center',
     },
+
+    // Year & Month Filter Styling
+    filterContainer: {
+      marginBottom: Spacing.md,
+      gap: 8,
+    },
+    yearFilterRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    yearFilterScroll: {
+      flexDirection: 'row',
+    },
+    yearChip: {
+      paddingHorizontal: 14,
+      paddingVertical: 7,
+      borderRadius: BorderRadius.lg,
+      borderWidth: 1,
+      marginRight: 8,
+      backgroundColor: colors.glassCard,
+      borderColor: colors.glassBorder,
+    },
+    yearChipActive: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primaryLight,
+    },
+    yearChipText: {
+      fontFamily: Typography.fontFamily,
+      fontSize: Typography.fontSize.xs,
+      fontWeight: Typography.fontWeight.semibold,
+      color: colors.textSecondary,
+    },
+    yearChipTextActive: {
+      color: '#FFFFFF',
+      fontWeight: Typography.fontWeight.bold,
+    },
+    monthFilterScroll: {
+      flexDirection: 'row',
+    },
+    monthChip: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: BorderRadius.md,
+      borderWidth: 1,
+      marginRight: 6,
+      backgroundColor: colors.glassCard,
+      borderColor: colors.glassBorder,
+    },
+    monthChipActive: {
+      backgroundColor: `${colors.primary}30`,
+      borderColor: colors.primaryLight,
+    },
+    monthChipText: {
+      fontFamily: Typography.fontFamily,
+      fontSize: Typography.fontSize.xs,
+      fontWeight: Typography.fontWeight.medium,
+      color: colors.textMuted,
+    },
+    monthChipTextActive: {
+      color: colors.primaryLight,
+      fontWeight: Typography.fontWeight.bold,
+    },
   });

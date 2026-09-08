@@ -12,16 +12,21 @@ interface UrlCardProps {
   item: UrlItem;
   onEdit: () => void;
   onDelete: () => void;
+  onOpen?: (url: string) => void;
 }
 
-export const UrlCard: React.FC<UrlCardProps> = ({ item, onEdit, onDelete }) => {
+export const UrlCard: React.FC<UrlCardProps> = ({ item, onEdit, onDelete, onOpen }) => {
   const { colors } = useTheme();
   const [copied, setCopied] = useState(false);
   const [showFullImage, setShowFullImage] = useState(false);
   const domain = getDomain(item.url);
 
   const handleOpen = () => {
-    Linking.openURL(item.url).catch(e => console.warn('Cannot open URL:', e));
+    if (onOpen) {
+      onOpen(item.url);
+    } else {
+      Linking.openURL(item.url).catch(e => console.warn('Cannot open URL:', e));
+    }
   };
 
   const handleCopy = async () => {

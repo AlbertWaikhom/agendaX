@@ -96,6 +96,7 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({
   ];
 
   const protectablePages: { id: string; title: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+    { id: 'Notepad', title: 'Notepad & Quick Notes', icon: 'document-text-outline' },
     { id: 'Settings', title: 'Settings & Security', icon: 'settings-outline' },
     { id: 'Expenses', title: 'Monthly Expenses', icon: 'wallet-outline' },
     { id: 'Urls', title: 'Important Links & Workspaces', icon: 'link-outline' },
