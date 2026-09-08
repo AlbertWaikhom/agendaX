@@ -55,6 +55,7 @@ export const DashboardScreen: React.FC = () => {
     unreadNotificationsCount,
     toggleTask,
     addTask,
+    updateTask,
     addEvent,
     updateEvent,
     addUrl,
@@ -71,8 +72,10 @@ export const DashboardScreen: React.FC = () => {
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
+  const [editingEvent, setEditingEvent] = useState<EventItem | null>(null);
   const [showEventDetails, setShowEventDetails] = useState(false);
   const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
+  const [editingTask, setEditingTask] = useState<TaskItem | null>(null);
   const [showTaskDetails, setShowTaskDetails] = useState(false);
 
   const [alertConfig, setAlertConfig] = useState<{
@@ -233,6 +236,74 @@ export const DashboardScreen: React.FC = () => {
         setSelectedTask(found);
         setShowTaskDetails(true);
       }
+    }
+  };
+
+  const confirmDeleteTask = (task: TaskItem) => {
+    setAlertConfig({
+      visible: true,
+      title: 'Delete Task',
+      message: `Are you sure you want to delete "${task.title}"? This action cannot be undone.`,
+      icon: 'trash-outline',
+      iconColor: colors.error,
+      buttons: [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete Task',
+          style: 'destructive',
+          icon: 'trash-outline',
+          onPress: () => {
+            deleteTask(task.id);
+            if (selectedTask?.id === task.id) {
+              setShowTaskDetails(false);
+              setSelectedTask(null);
+            }
+            if (editingTask?.id === task.id) {
+              setShowTaskModal(false);
+              setEditingTask(null);
+            }
+          },
+        },
+      ],
+    });
+  };
+
+  const confirmDeleteEvent = (event: EventItem) => {
+    setAlertConfig({
+      visible: true,
+      title: 'Delete Event',
+      message: `Are you sure you want to delete "${event.name}"? This action cannot be undone.`,
+      icon: 'trash-outline',
+      iconColor: colors.error,
+      buttons: [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete Event',
+          style: 'destructive',
+          icon: 'trash-outline',
+          onPress: () => {
+            deleteEvent(event.id);
+            if (selectedEvent?.id === event.id) {
+              setShowEventDetails(false);
+              setSelectedEvent(null);
+            }
+            if (editingEvent?.id === event.id) {
+              setShowEventModal(false);
+              setEditingEvent(null);
+            }
+          },
+        },
+      ],
+    });
+  };
+
+  const handleScheduleItemDelete = (item: ScheduleItemData) => {
+    if (item.type === 'task') {
+      const target = tasks.find(t => t.id === item.id);
+      if (target) confirmDeleteTask(target);
+    } else {
+      const target = events.find(e => e.id === item.id);
+      if (target) confirmDeleteEvent(target);
     }
   };
 
@@ -630,6 +701,7 @@ export const DashboardScreen: React.FC = () => {
                 key={`${item.type}-${item.id}`}
                 item={item}
                 onPress={() => handleScheduleItemPress(item)}
+                onDelete={() => handleScheduleItemDelete(item)}
                 onToggleComplete={item.type === 'task' ? () => toggleTask(item.id) : undefined}
               />
             ))
@@ -673,8 +745,14 @@ export const DashboardScreen: React.FC = () => {
       <QuickCreateModal
         visible={showQuickModal}
         onClose={() => setShowQuickModal(false)}
-        onSelectTask={() => setShowTaskModal(true)}
-        onSelectEvent={() => setShowEventModal(true)}
+        onSelectTask={() => {
+          setEditingTask(null);
+          setShowTaskModal(true);
+        }}
+        onSelectEvent={() => {
+          setEditingEvent(null);
+          setShowEventModal(true);
+        }}
         onSelectExpense={() => setShowExpenseModal(true)}
         onSelectUrl={() => setShowUrlModal(true)}
         onSelectNote={() => setShowNoteModal(true)}
@@ -683,13 +761,39 @@ export const DashboardScreen: React.FC = () => {
       {/* Creation Modals */}
       <TaskFormModal
         visible={showTaskModal}
-        onClose={() => setShowTaskModal(false)}
-        onSave={addTask}
+        initialTask={editingTask}
+        onClose={() => {
+          setShowTaskModal(false);
+          setEditingTask(null);
+        }}
+        onSave={data => {
+          if (editingTask) {
+            updateTask({ ...editingTask, ...data });
+          } else {
+            addTask(data);
+          }
+        }}
+        onDelete={id => {
+          if (editingTask) confirmDeleteTask(editingTask);
+        }}
       />
       <EventFormModal
         visible={showEventModal}
-        onClose={() => setShowEventModal(false)}
-        onSave={addEvent}
+        initialEvent={editingEvent}
+        onClose={() => {
+          setShowEventModal(false);
+          setEditingEvent(null);
+        }}
+        onSave={data => {
+          if (editingEvent) {
+            updateEvent({ ...editingEvent, ...data });
+          } else {
+            addEvent(data);
+          }
+        }}
+        onDelete={id => {
+          if (editingEvent) confirmDeleteEvent(editingEvent);
+        }}
       />
       <ExpenseFormModal
         visible={showExpenseModal}
@@ -716,30 +820,14 @@ export const DashboardScreen: React.FC = () => {
           setSelectedEvent(null);
         }}
         onEdit={event => {
-          updateEvent(event);
+          setShowEventDetails(false);
+          setSelectedEvent(null);
+          setEditingEvent(event);
+          setShowEventModal(true);
         }}
         onDelete={id => {
           if (selectedEvent) {
-            setAlertConfig({
-              visible: true,
-              title: 'Delete Event',
-              message: `Are you sure you want to delete "${selectedEvent.name}"? This action cannot be undone.`,
-              icon: 'trash-outline',
-              iconColor: colors.error,
-              buttons: [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                  text: 'Delete Event',
-                  style: 'destructive',
-                  icon: 'trash-outline',
-                  onPress: () => {
-                    deleteEvent(id);
-                    setShowEventDetails(false);
-                    setSelectedEvent(null);
-                  },
-                },
-              ],
-            });
+            confirmDeleteEvent(selectedEvent);
           }
         }}
       />
@@ -752,29 +840,15 @@ export const DashboardScreen: React.FC = () => {
           setShowTaskDetails(false);
           setSelectedTask(null);
         }}
-        onEdit={() => { }}
+        onEdit={task => {
+          setShowTaskDetails(false);
+          setSelectedTask(null);
+          setEditingTask(task);
+          setShowTaskModal(true);
+        }}
         onDelete={id => {
           if (selectedTask) {
-            setAlertConfig({
-              visible: true,
-              title: 'Delete Task',
-              message: `Are you sure you want to delete "${selectedTask.title}"? This action cannot be undone.`,
-              icon: 'trash-outline',
-              iconColor: colors.error,
-              buttons: [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                  text: 'Delete Task',
-                  style: 'destructive',
-                  icon: 'trash-outline',
-                  onPress: () => {
-                    deleteTask(id);
-                    setShowTaskDetails(false);
-                    setSelectedTask(null);
-                  },
-                },
-              ],
-            });
+            confirmDeleteTask(selectedTask);
           }
         }}
         onToggleComplete={id => {

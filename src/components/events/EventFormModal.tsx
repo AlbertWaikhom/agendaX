@@ -38,6 +38,7 @@ interface EventFormModalProps {
     color: string;
     imageUri?: string;
   }) => void;
+  onDelete?: (id: string) => void;
   initialEvent?: EventItem | null;
   defaultDate?: string;
 }
@@ -46,6 +47,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
   visible,
   onClose,
   onSave,
+  onDelete,
   initialEvent,
   defaultDate,
 }) => {
@@ -406,6 +408,19 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
         onPress={handleSubmit}
         style={{ marginTop: Spacing.sm }}
       />
+
+      {initialEvent && onDelete && (
+        <Button
+          title="Delete Event"
+          variant="danger"
+          icon="trash-outline"
+          onPress={() => {
+            onClose();
+            onDelete(initialEvent.id);
+          }}
+          style={{ marginTop: Spacing.sm }}
+        />
+      )}
 
       {/* Date Picker Modal */}
       <DateTimePickerModal

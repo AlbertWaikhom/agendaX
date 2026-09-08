@@ -70,7 +70,7 @@ export const UrlService = {
       filtered = filtered.filter(u => u.category.toLowerCase() === category.toLowerCase());
     }
 
-    if (searchQuery.trim()) {
+    if (searchQuery && searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
       filtered = filtered.filter(
         u =>

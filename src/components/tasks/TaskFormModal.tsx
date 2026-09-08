@@ -36,6 +36,7 @@ interface TaskFormModalProps {
     reminderTime: string;
     mediaUri?: string;
   }) => void;
+  onDelete?: (id: string) => void;
   initialTask?: TaskItem | null;
 }
 
@@ -43,6 +44,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
   visible,
   onClose,
   onSave,
+  onDelete,
   initialTask,
 }) => {
   const { colors, isDark } = useTheme();
@@ -401,6 +403,19 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
         onPress={handleSubmit}
         style={{ marginTop: Spacing.sm }}
       />
+
+      {initialTask && onDelete && (
+        <Button
+          title="Delete Task"
+          variant="danger"
+          icon="trash-outline"
+          onPress={() => {
+            onClose();
+            onDelete(initialTask.id);
+          }}
+          style={{ marginTop: Spacing.sm }}
+        />
+      )}
 
       {/* Date Time Picker Modal */}
       <DateTimePickerModal

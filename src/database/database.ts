@@ -67,6 +67,20 @@ export const Database = {
   },
 
   /**
+   * Checkpoint the WAL journal into the main database file
+   * Called when app enters background so no uncommitted pages remain in WAL
+   */
+  async checkpointAsync(): Promise<void> {
+    if (dbInstance) {
+      try {
+        await dbInstance.runAsync('PRAGMA wal_checkpoint(PASSIVE);');
+      } catch (e) {
+        console.warn('[Database] WAL checkpoint warning:', e);
+      }
+    }
+  },
+
+  /**
    * Close database connection (used for file replacement during restore)
    */
   async closeDatabaseAsync(): Promise<void> {

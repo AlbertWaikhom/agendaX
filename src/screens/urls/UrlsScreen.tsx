@@ -54,8 +54,8 @@ export const UrlsScreen: React.FC = () => {
   });
 
   const displayedUrls = useMemo(() => {
-    return UrlService.filterUrls(urls, searchQuery, selectedCategory);
-  }, [urls, searchQuery, selectedCategory]);
+    return UrlService.filterUrls(urls, selectedCategory, searchQuery);
+  }, [urls, selectedCategory, searchQuery]);
 
   const handleEdit = (url: UrlItem) => {
     setEditingUrl(url);
@@ -103,9 +103,47 @@ export const UrlsScreen: React.FC = () => {
 
   const handleSave = async (data: any) => {
     if (editingUrl) {
-      await updateUrl(editingUrl.id, data);
+      const res = await updateUrl(editingUrl.id, data);
+      if (res.success) {
+        setAlertConfig({
+          visible: true,
+          title: 'Bookmark Updated',
+          message: `"${data.title}" has been updated successfully.`,
+          icon: 'checkmark-circle-outline',
+          iconColor: colors.success,
+          buttons: [{ text: 'OK', style: 'primary' }],
+        });
+      } else {
+        setAlertConfig({
+          visible: true,
+          title: 'Update Failed',
+          message: res.error || 'Could not update bookmark.',
+          icon: 'alert-circle-outline',
+          iconColor: colors.error,
+          buttons: [{ text: 'OK', style: 'primary' }],
+        });
+      }
     } else {
-      await addUrl(data);
+      const res = await addUrl(data);
+      if (res.success) {
+        setAlertConfig({
+          visible: true,
+          title: 'Bookmark Saved',
+          message: `"${data.title}" has been added to your workspace.`,
+          icon: 'checkmark-circle-outline',
+          iconColor: colors.success,
+          buttons: [{ text: 'Great', style: 'primary' }],
+        });
+      } else {
+        setAlertConfig({
+          visible: true,
+          title: 'Error Saving Link',
+          message: res.error || 'Could not save bookmark.',
+          icon: 'alert-circle-outline',
+          iconColor: colors.error,
+          buttons: [{ text: 'OK', style: 'primary' }],
+        });
+      }
     }
   };
 

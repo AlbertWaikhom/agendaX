@@ -27,6 +27,7 @@ interface NoteFormModalProps {
     color?: string;
     pinned?: boolean;
   }) => void;
+  onDelete?: (id: string) => void;
   initialNote?: NoteItem | null;
 }
 
@@ -34,6 +35,7 @@ export const NoteFormModal: React.FC<NoteFormModalProps> = ({
   visible,
   onClose,
   onSave,
+  onDelete,
   initialNote,
 }) => {
   const { colors } = useTheme();
@@ -282,6 +284,19 @@ export const NoteFormModal: React.FC<NoteFormModalProps> = ({
         onPress={handleSubmit}
         style={{ marginTop: Spacing.sm }}
       />
+
+      {initialNote && onDelete && (
+        <Button
+          title="Delete Note"
+          variant="danger"
+          icon="trash-outline"
+          onPress={() => {
+            onClose();
+            onDelete(initialNote.id);
+          }}
+          style={{ marginTop: Spacing.sm }}
+        />
+      )}
     </ModalWrapper>
   );
 };

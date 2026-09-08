@@ -96,7 +96,9 @@ export const NoteDetailsModal: React.FC<NoteDetailsModalProps> = ({
           </Text>
         </View>
 
-        <Text style={[styles.title, { color: colors.text }]}>{note.title}</Text>
+        <Text selectable selectionColor={colors.primaryLight} style={[styles.title, { color: colors.text }]}>
+          {note.title}
+        </Text>
       </View>
 
       {/* Note Content Box */}
@@ -105,7 +107,13 @@ export const NoteDetailsModal: React.FC<NoteDetailsModalProps> = ({
         contentContainerStyle={{ padding: Spacing.md }}
         showsVerticalScrollIndicator={true}
       >
-        <Text style={[styles.contentText, { color: colors.text }]}>{note.content}</Text>
+        <Text
+          selectable
+          selectionColor={colors.primaryLight}
+          style={[styles.contentText, { color: colors.text }]}
+        >
+          {note.content}
+        </Text>
       </ScrollView>
 
       {/* Primary Action Buttons (Share, Copy, Pin) */}

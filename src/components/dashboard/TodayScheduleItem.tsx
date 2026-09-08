@@ -22,12 +22,16 @@ export interface ScheduleItemData {
 interface TodayScheduleItemProps {
   item: ScheduleItemData;
   onPress?: () => void;
+  onLongPress?: () => void;
+  onDelete?: () => void;
   onToggleComplete?: () => void;
 }
 
 export const TodayScheduleItem: React.FC<TodayScheduleItemProps> = ({
   item,
   onPress,
+  onLongPress,
+  onDelete,
   onToggleComplete,
 }) => {
   const { colors } = useTheme();
@@ -49,6 +53,8 @@ export const TodayScheduleItem: React.FC<TodayScheduleItemProps> = ({
       <TouchableOpacity
         activeOpacity={0.75}
         onPress={onPress}
+        onLongPress={onLongPress || onDelete}
+        delayLongPress={350}
         style={styles.clickableBody}
       >
         {/* Time & Type icon */}

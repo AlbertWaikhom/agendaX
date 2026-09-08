@@ -9,9 +9,11 @@ import { formatDatePretty, formatTimePretty } from '../../utils';
 interface EventCardProps {
   event: EventItem;
   onPress: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
-export const EventCard: React.FC<EventCardProps> = ({ event, onPress }) => {
+export const EventCard: React.FC<EventCardProps> = ({ event, onPress, onEdit, onDelete }) => {
   const { colors } = useTheme();
   const timeFormatted = `${formatTimePretty(event.startTime)}${event.endTime ? ` - ${formatTimePretty(event.endTime)}` : ''}`;
 
@@ -19,6 +21,8 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onPress }) => {
     <TouchableOpacity
       activeOpacity={0.75}
       onPress={onPress}
+      onLongPress={onDelete}
+      delayLongPress={400}
       style={[
         styles.card,
         {
@@ -46,6 +50,26 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onPress }) => {
             <View style={styles.reminderBadge}>
               <Ionicons name="notifications-outline" size={12} color={colors.accentPink} />
             </View>
+          )}
+
+          {onEdit && (
+            <TouchableOpacity
+              onPress={onEdit}
+              style={[styles.actionBtn, { backgroundColor: colors.surfaceHighlight }]}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons name="create-outline" size={15} color={colors.textSecondary} />
+            </TouchableOpacity>
+          )}
+
+          {onDelete && (
+            <TouchableOpacity
+              onPress={onDelete}
+              style={[styles.actionBtn, { backgroundColor: colors.errorBg }]}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons name="trash-outline" size={15} color={colors.error} />
+            </TouchableOpacity>
           )}
         </View>
       </View>
@@ -124,6 +148,14 @@ const styles = StyleSheet.create({
   },
   reminderBadge: {
     padding: 3,
+  },
+  actionBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: BorderRadius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 6,
   },
   title: {
     fontSize: Typography.fontSize.md,

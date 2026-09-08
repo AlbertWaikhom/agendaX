@@ -253,6 +253,9 @@ export const TasksScreen: React.FC = () => {
             setEditingTask(null);
           }}
           onSave={handleSave}
+          onDelete={id => {
+            if (editingTask) confirmDeleteTask(editingTask);
+          }}
         />
 
         {/* Custom Liquid Glass Alert Modal for Task Deletion */}

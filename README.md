@@ -202,15 +202,12 @@ Double-click `build-apk.bat` in the project root, or run in PowerShell:
 ```
 
 ### Manual Build Command
+Ensure JDK 17+ and Android SDK are configured in your environment:
 ```powershell
-# Set Java Home & Android SDK
-$env:JAVA_HOME = "D:\software\Android-Studio\jbr"
-$env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
-
-# Bundle JS/TS assets
+# 1. Embed JavaScript bundle & offline assets
 npx expo export:embed --entry-file index.ts --platform android --dev false --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res
 
-# Compile Standalone Release APK
+# 2. Compile Standalone Release APK (with R8 obfuscation & firewall enabled)
 cd android
 .\gradlew.bat app:assembleRelease
 ```

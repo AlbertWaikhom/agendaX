@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Strict Application Firewall:
+         1. Block cleartext (HTTP) traffic completely
+         2. Enforce trusted system CA certificates only
+         3. Block untrusted user-installed CAs / proxy sniffers (Burp, Charles, mitmproxy)
+    -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

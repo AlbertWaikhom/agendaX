@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
+import { HapticService } from '../../utils/haptics';
 import { useTheme } from '../../context/ThemeContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { NoteService, NOTE_CATEGORIES } from '../../services/noteService';
@@ -54,6 +56,23 @@ export const NotepadScreen: React.FC = () => {
   const handleSelectNote = (note: NoteItem) => {
     setSelectedNote(note);
     setShowDetailsModal(true);
+  };
+
+  const handleCopyNote = async (note: NoteItem) => {
+    try {
+      await Clipboard.setStringAsync(`${note.title}\n\n${note.content}`);
+      HapticService.success();
+      setAlertConfig({
+        visible: true,
+        title: 'Note Copied! 📋',
+        message: `"${note.title}" has been copied to your clipboard.`,
+        icon: 'copy-outline',
+        iconColor: colors.primaryLight,
+        buttons: [{ text: 'OK', style: 'primary' }],
+      });
+    } catch (e) {
+      console.warn('Copy note error:', e);
+    }
   };
 
   const handleEdit = (note: NoteItem) => {
@@ -168,6 +187,8 @@ export const NotepadScreen: React.FC = () => {
               <TouchableOpacity
                 activeOpacity={0.85}
                 onPress={() => handleSelectNote(item)}
+                onLongPress={() => handleCopyNote(item)}
+                delayLongPress={350}
                 style={[
                   styles.noteCard,
                   {
@@ -227,6 +248,13 @@ export const NotepadScreen: React.FC = () => {
 
                   <View style={styles.cardActions}>
                     <TouchableOpacity
+                      onPress={() => handleCopyNote(item)}
+                      style={[styles.actionBtn, { backgroundColor: colors.surfaceHighlight }]}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      <Ionicons name="copy-outline" size={15} color={colors.primaryLight} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
                       onPress={() => handleEdit(item)}
                       style={[styles.actionBtn, { backgroundColor: colors.surfaceHighlight }]}
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -280,6 +308,9 @@ export const NotepadScreen: React.FC = () => {
             setEditingNote(null);
           }}
           onSave={handleSaveNote}
+          onDelete={id => {
+            if (editingNote) confirmDeleteNote(editingNote);
+          }}
         />
 
         {/* Note Details View Modal */}

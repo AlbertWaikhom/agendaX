@@ -130,6 +130,8 @@ export const EventsScreen: React.FC = () => {
               <EventCard
                 event={item}
                 onPress={() => handleSelectEvent(item)}
+                onEdit={() => handleEdit(item)}
+                onDelete={() => confirmDeleteEvent(item)}
               />
             )}
             ListEmptyComponent={
@@ -157,6 +159,9 @@ export const EventsScreen: React.FC = () => {
             setSelectedEvent(null);
           }}
           onSave={handleSave}
+          onDelete={id => {
+            if (selectedEvent) confirmDeleteEvent(selectedEvent);
+          }}
         />
 
         <EventDetailsModal

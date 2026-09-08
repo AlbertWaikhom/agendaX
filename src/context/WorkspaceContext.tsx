@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
 import {
   WorkspaceData,
   LocalUser,
@@ -154,6 +155,18 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     loadAll();
   }, [loadAll]);
 
+  // Checkpoint SQLite WAL journal to database file whenever app is sent to background
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (nextAppState === 'background') {
+        Database.checkpointAsync().catch(() => {});
+      }
+    };
+
+    const sub = AppState.addEventListener('change', handleAppStateChange);
+    return () => sub.remove();
+  }, []);
+
   const initializeUser = async (name: string): Promise<boolean> => {
     try {
       const newUser = UserService.createLocalUser(name);
@@ -214,9 +227,11 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       // Create task item immediately
       const newTask = TaskService.createTask(params);
 
-      // Persist to SQLite and update state instantly (0ms latency)
-      await TaskRepository.insertTask(newTask);
+      // Instant optimistic state update (0ms UI latency)
       setTasks(prev => [newTask, ...prev]);
+
+      // Persist to SQLite
+      await TaskRepository.insertTask(newTask);
 
       // Schedule notification reminder asynchronously in background if enabled
       if (params.reminderEnabled && settings.notificationsEnabled) {
@@ -273,8 +288,9 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
 
       const finalTask = { ...task, notificationId: notifId, updatedAt: new Date().toISOString() };
-      await TaskRepository.updateTask(finalTask);
+      // Instant optimistic state update
       setTasks(prev => prev.map(t => (t.id === task.id ? finalTask : t)));
+      await TaskRepository.updateTask(finalTask);
       return true;
     } catch (e) {
       console.error('[WorkspaceContext] Update task error:', e);
@@ -285,12 +301,13 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const deleteTask = async (id: string): Promise<boolean> => {
     try {
       const target = tasks.find(t => t.id === id);
+      // Instant optimistic state update
+      setTasks(prev => prev.filter(t => t.id !== id));
       if (target?.notificationId) {
         await NotificationService.cancelReminder(target.notificationId);
       }
       await MediaStorage.deleteAttachmentsForParent('task', id);
       await TaskRepository.deleteTask(id);
-      setTasks(prev => prev.filter(t => t.id !== id));
       return true;
     } catch (e) {
       console.error('[WorkspaceContext] Delete task error:', e);
@@ -364,11 +381,13 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     try {
       const newEvent = EventService.createEvent(params);
 
-      // Save to SQLite and update state immediately
-      await EventRepository.insertEvent(newEvent);
+      // Instant optimistic state update
       setEvents(prev =>
         [...prev, newEvent].sort((a, b) => `${a.date} ${a.startTime}`.localeCompare(`${b.date} ${b.startTime}`))
       );
+
+      // Persist to SQLite
+      await EventRepository.insertEvent(newEvent);
 
       // Schedule event reminder asynchronously in background if enabled
       if (params.reminderEnabled && settings.notificationsEnabled) {
@@ -425,8 +444,9 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
 
       const finalEvent = { ...event, notificationId: notifId, updatedAt: new Date().toISOString() };
-      await EventRepository.updateEvent(finalEvent);
+      // Instant optimistic state update
       setEvents(prev => prev.map(e => (e.id === event.id ? finalEvent : e)));
+      await EventRepository.updateEvent(finalEvent);
       return true;
     } catch (e) {
       console.error('[WorkspaceContext] Update event error:', e);
@@ -437,12 +457,13 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const deleteEvent = async (id: string): Promise<boolean> => {
     try {
       const target = events.find(e => e.id === id);
+      // Instant optimistic state update
+      setEvents(prev => prev.filter(e => e.id !== id));
       if (target?.notificationId) {
         await NotificationService.cancelReminder(target.notificationId);
       }
       await MediaStorage.deleteAttachmentsForParent('event', id);
       await EventRepository.deleteEvent(id);
-      setEvents(prev => prev.filter(e => e.id !== id));
       return true;
     } catch (e) {
       console.error('[WorkspaceContext] Delete event error:', e);
@@ -476,8 +497,9 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         createdAt: new Date().toISOString(),
       };
 
-      await ExpenseRepository.insertExpense(newExpense);
+      // Instant optimistic state update
       setExpenses(prev => [newExpense, ...prev].sort((a, b) => b.date.localeCompare(a.date)));
+      await ExpenseRepository.insertExpense(newExpense);
       return newExpense;
     } catch (e) {
       console.error('[WorkspaceContext] Add expense error:', e);
@@ -488,8 +510,9 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const updateExpense = async (expense: ExpenseItem): Promise<boolean> => {
     try {
       const updatedExpense = { ...expense, updatedAt: new Date().toISOString() };
-      await ExpenseRepository.updateExpense(updatedExpense);
+      // Instant optimistic state update
       setExpenses(prev => prev.map(e => (e.id === expense.id ? updatedExpense : e)).sort((a, b) => b.date.localeCompare(a.date)));
+      await ExpenseRepository.updateExpense(updatedExpense);
       return true;
     } catch (e) {
       console.error('[WorkspaceContext] Update expense error:', e);
@@ -499,9 +522,10 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const deleteExpense = async (id: string): Promise<boolean> => {
     try {
+      // Instant optimistic state update
+      setExpenses(prev => prev.filter(e => e.id !== id));
       await MediaStorage.deleteAttachmentsForParent('expense', id);
       await ExpenseRepository.deleteExpense(id);
-      setExpenses(prev => prev.filter(e => e.id !== id));
       return true;
     } catch (e) {
       console.error('[WorkspaceContext] Delete expense error:', e);
@@ -513,8 +537,9 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const addNote = async (params: Parameters<typeof NoteService.createNote>[0]): Promise<NoteItem> => {
     try {
       const newNote = NoteService.createNote(params);
-      await NoteRepository.insertNote(newNote);
+      // Instant optimistic state update
       setNotes(prev => NoteService.sortNotes([newNote, ...prev]));
+      await NoteRepository.insertNote(newNote);
       return newNote;
     } catch (e) {
       console.error('[WorkspaceContext] Add note error:', e);
@@ -525,8 +550,9 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const updateNote = async (note: NoteItem): Promise<boolean> => {
     try {
       const updated = { ...note, updatedAt: new Date().toISOString() };
-      await NoteRepository.updateNote(updated);
+      // Instant optimistic state update
       setNotes(prev => NoteService.sortNotes(prev.map(n => (n.id === note.id ? updated : n))));
+      await NoteRepository.updateNote(updated);
       return true;
     } catch (e) {
       console.error('[WorkspaceContext] Update note error:', e);
@@ -536,8 +562,9 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const deleteNote = async (id: string): Promise<boolean> => {
     try {
-      await NoteRepository.deleteNote(id);
+      // Instant optimistic state update
       setNotes(prev => prev.filter(n => n.id !== id));
+      await NoteRepository.deleteNote(id);
       return true;
     } catch (e) {
       console.error('[WorkspaceContext] Delete note error:', e);
@@ -569,8 +596,9 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     if (!result.success || !result.item) {
       return { success: false, error: result.error };
     }
-    await UrlRepository.insertUrl(result.item);
+    // Instant optimistic state update
     setUrls(prev => [result.item!, ...prev]);
+    await UrlRepository.insertUrl(result.item);
     return { success: true };
   };
 
@@ -586,8 +614,9 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (validItems.length === 0) {
         return { success: false, count: 0, error: 'No valid URLs provided' };
       }
-      await UrlRepository.bulkInsertUrls(validItems);
+      // Instant optimistic state update
       setUrls(prev => [...validItems, ...prev]);
+      await UrlRepository.bulkInsertUrls(validItems);
       return { success: true, count: validItems.length };
     } catch (e: any) {
       console.error('[WorkspaceContext] Bulk add URLs error:', e);
@@ -604,15 +633,17 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       return { success: false, error: result.error };
     }
 
-    await UrlRepository.updateUrl(result.item);
+    // Instant optimistic state update
     setUrls(prev => prev.map(u => (u.id === id ? result.item! : u)));
+    await UrlRepository.updateUrl(result.item);
     return { success: true };
   };
 
   const deleteUrl = async (id: string): Promise<boolean> => {
+    // Instant optimistic state update
+    setUrls(prev => prev.filter(u => u.id !== id));
     await MediaStorage.deleteAttachmentsForParent('url', id);
     await UrlRepository.deleteUrl(id);
-    setUrls(prev => prev.filter(u => u.id !== id));
     return true;
   };
 
