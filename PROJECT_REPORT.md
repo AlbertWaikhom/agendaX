@@ -819,12 +819,14 @@ AgendaX provides a portable Windows batch compilation utility ([`build-apk.bat`]
 echo ===================================================
 echo   Building Standalone Offline AgendaX Release APK
 echo ===================================================
-REM Detect Java Home if not already configured in environment
+REM Detect standard Java Development Kit (JDK 17+) if not already set
 if not defined JAVA_HOME (
-    if exist "D:\software\Android-Studio\jbr" (
-        set "JAVA_HOME=D:\software\Android-Studio\jbr"
-    ) else if exist "C:\Program Files\Android\Android Studio\jbr" (
-        set "JAVA_HOME=C:\Program Files\Android\Android Studio\jbr"
+    if exist "%ProgramFiles%\Android\Android Studio\jbr" (
+        set "JAVA_HOME=%ProgramFiles%\Android\Android Studio\jbr"
+    ) else if exist "%ProgramFiles%\Java\jdk-17" (
+        set "JAVA_HOME=%ProgramFiles%\Java\jdk-17"
+    ) else if exist "%LOCALAPPDATA%\Programs\Common\jdk-17" (
+        set "JAVA_HOME=%LOCALAPPDATA%\Programs\Common\jdk-17"
     )
 )
 if defined JAVA_HOME set "PATH=%JAVA_HOME%\bin;%PATH%"
