@@ -6,6 +6,7 @@ import {
   EventItem,
   ExpenseItem,
   UrlItem,
+  NoteItem,
   NotificationRecord,
   AppSettings,
   AttachmentItem,
@@ -18,6 +19,7 @@ import { TaskRepository } from '../database/repositories/taskRepository';
 import { EventRepository } from '../database/repositories/eventRepository';
 import { ExpenseRepository } from '../database/repositories/expenseRepository';
 import { UrlRepository } from '../database/repositories/urlRepository';
+import { NoteRepository } from '../database/repositories/noteRepository';
 import { NotificationRepository } from '../database/repositories/notificationRepository';
 import { SettingsRepository } from '../database/repositories/settingsRepository';
 import { AttachmentRepository } from '../database/repositories/attachmentRepository';
@@ -27,12 +29,13 @@ import { UserService } from '../services/userService';
 import { TaskService } from '../services/taskService';
 import { EventService } from '../services/eventService';
 import { UrlService } from '../services/urlService';
+import { NoteService } from '../services/noteService';
 import { NotificationService } from '../services/notificationService';
 import { BackupService } from '../services/backupService';
 import { MediaStorage } from '../storage/mediaStorage';
 import { FileStorage } from '../storage/fileStorage';
 import { PermissionService } from '../services/permissionService';
-import { generateId } from '../utils';
+import { generateId, getTodayDateString } from '../utils';
 
 interface WorkspaceContextValue {
   isLoading: boolean;
@@ -71,6 +74,11 @@ interface WorkspaceContextValue {
   addUrl: (params: { title: string; url: string; category?: string; note?: string; previewImageUri?: string }) => Promise<{ success: boolean; error?: string }>;
   updateUrl: (id: string, params: { title: string; url: string; category?: string; note?: string; previewImageUri?: string }) => Promise<{ success: boolean; error?: string }>;
   deleteUrl: (id: string) => Promise<boolean>;
+  notes: NoteItem[];
+  addNote: (params: Parameters<typeof NoteService.createNote>[0]) => Promise<NoteItem>;
+  updateNote: (note: NoteItem) => Promise<boolean>;
+  deleteNote: (id: string) => Promise<boolean>;
+  togglePinNote: (id: string) => Promise<boolean>;
   markNotificationAsRead: (id: string) => Promise<void>;
   markAllNotificationsAsRead: () => Promise<void>;
   deleteNotification: (id: string) => Promise<void>;
@@ -102,6 +110,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [events, setEvents] = useState<EventItem[]>([]);
   const [expenses, setExpenses] = useState<ExpenseItem[]>([]);
   const [urls, setUrls] = useState<UrlItem[]>([]);
+  const [notes, setNotes] = useState<NoteItem[]>([]);
   const [notifications, setNotifications] = useState<NotificationRecord[]>([]);
   const [settings, setSettings] = useState<AppSettings>(defaultSettings);
 
@@ -111,12 +120,13 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       await FileStorage.ensureDirectoriesAsync();
       await Database.initDatabaseAsync();
       await LegacyMigrationService.runAutoMigration();
-      const [u, t, ev, exp, uList, notifs, s] = await Promise.all([
+      const [u, t, ev, exp, uList, nList, notifs, s] = await Promise.all([
         UserRepository.getUser(),
         TaskRepository.getAllTasks(),
         EventRepository.getAllEvents(),
         ExpenseRepository.getAllExpenses(),
         UrlRepository.getAllUrls(),
+        NoteRepository.getAllNotes(),
         NotificationRepository.getAllNotifications(),
         SettingsRepository.getSettings(),
       ]);
@@ -126,6 +136,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setEvents(ev);
       setExpenses(exp);
       setUrls(uList);
+      setNotes(nList);
       setNotifications(notifs);
       setSettings(s || defaultSettings);
 
@@ -160,6 +171,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setEvents([]);
       setExpenses([]);
       setUrls([]);
+      setNotes([]);
       setNotifications([welcomeNotif]);
       setSettings(defaultSettings);
       return true;
@@ -197,147 +209,244 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return NotificationService.triggerTestReminder(soundId, soundTitle);
   };
   const addTask = async (params: Parameters<typeof TaskService.createTask>[0]): Promise<TaskItem> => {
-    let notificationId: string | undefined;
+    try {
+      // Create task item immediately
+      const newTask = TaskService.createTask(params);
 
-    if (params.reminderEnabled && settings.notificationsEnabled) {
-      notificationId = await NotificationService.scheduleReminder({
-        title: `Task Reminder: ${params.title}`,
-        body: `Due at ${params.dueTime || 'today'} (${params.category || 'General'})`,
-        date: params.dueDate || '',
-        time: params.dueTime,
-        reminderTime: params.reminderTime,
-        type: 'task',
-        referenceId: '',
-      });
+      // Persist to SQLite and update state instantly (0ms latency)
+      await TaskRepository.insertTask(newTask);
+      setTasks(prev => [newTask, ...prev]);
+
+      // Schedule notification reminder asynchronously in background if enabled
+      if (params.reminderEnabled && settings.notificationsEnabled) {
+        (async () => {
+          try {
+            const notificationId = await NotificationService.scheduleReminder({
+              title: `Task Reminder: ${params.title}`,
+              body: `Due at ${params.dueTime || 'today'} (${params.category || 'General'})`,
+              date: params.dueDate || '',
+              time: params.dueTime,
+              reminderTime: params.reminderTime,
+              type: 'task',
+              referenceId: newTask.id,
+              sound: settings.reminderSound || 'default',
+            });
+            if (notificationId) {
+              const withNotif = { ...newTask, notificationId };
+              await TaskRepository.updateTask(withNotif);
+              setTasks(prev => prev.map(t => (t.id === newTask.id ? withNotif : t)));
+            }
+          } catch (notifErr) {
+            console.warn('[WorkspaceContext] Background reminder scheduling warning:', notifErr);
+          }
+        })();
+      }
+
+      return newTask;
+    } catch (e) {
+      console.error('[WorkspaceContext] Add task error:', e);
+      throw e;
     }
-
-    const newTask = TaskService.createTask({
-      ...params,
-      notificationId,
-    });
-
-    await TaskRepository.insertTask(newTask);
-    setTasks(prev => [newTask, ...prev]);
-    return newTask;
   };
 
   const updateTask = async (task: TaskItem): Promise<boolean> => {
-    let notifId = task.notificationId;
-    if (task.reminderEnabled && settings.notificationsEnabled) {
-      if (notifId) {
+    try {
+      let notifId = task.notificationId;
+      if (task.reminderEnabled && settings.notificationsEnabled) {
+        if (notifId) {
+          await NotificationService.cancelReminder(notifId);
+        }
+        notifId = await NotificationService.scheduleReminder({
+          title: `Task Reminder: ${task.title}`,
+          body: `Due at ${task.dueTime || 'today'}`,
+          date: task.dueDate,
+          time: task.dueTime,
+          reminderTime: task.reminderTime,
+          type: 'task',
+          referenceId: task.id,
+          sound: settings.reminderSound || 'default',
+        });
+      } else if (notifId) {
         await NotificationService.cancelReminder(notifId);
+        notifId = undefined;
       }
-      notifId = await NotificationService.scheduleReminder({
-        title: `Task Reminder: ${task.title}`,
-        body: `Due at ${task.dueTime || 'today'}`,
-        date: task.dueDate,
-        time: task.dueTime,
-        reminderTime: task.reminderTime,
-        type: 'task',
-        referenceId: task.id,
-      });
-    } else if (notifId) {
-      await NotificationService.cancelReminder(notifId);
-      notifId = undefined;
-    }
 
-    const finalTask = { ...task, notificationId: notifId, updatedAt: new Date().toISOString() };
-    await TaskRepository.updateTask(finalTask);
-    setTasks(prev => prev.map(t => (t.id === task.id ? finalTask : t)));
-    return true;
+      const finalTask = { ...task, notificationId: notifId, updatedAt: new Date().toISOString() };
+      await TaskRepository.updateTask(finalTask);
+      setTasks(prev => prev.map(t => (t.id === task.id ? finalTask : t)));
+      return true;
+    } catch (e) {
+      console.error('[WorkspaceContext] Update task error:', e);
+      return false;
+    }
   };
 
   const deleteTask = async (id: string): Promise<boolean> => {
-    const target = tasks.find(t => t.id === id);
-    if (target?.notificationId) {
-      await NotificationService.cancelReminder(target.notificationId);
+    try {
+      const target = tasks.find(t => t.id === id);
+      if (target?.notificationId) {
+        await NotificationService.cancelReminder(target.notificationId);
+      }
+      await MediaStorage.deleteAttachmentsForParent('task', id);
+      await TaskRepository.deleteTask(id);
+      setTasks(prev => prev.filter(t => t.id !== id));
+      return true;
+    } catch (e) {
+      console.error('[WorkspaceContext] Delete task error:', e);
+      return false;
     }
-    await MediaStorage.deleteAttachmentsForParent('task', id);
-    await TaskRepository.deleteTask(id);
-    setTasks(prev => prev.filter(t => t.id !== id));
-    return true;
   };
 
   const toggleTask = async (id: string): Promise<boolean> => {
-    const target = tasks.find(t => t.id === id);
-    if (!target) return false;
+    try {
+      let updatedTask: TaskItem | null = null;
 
-    const isNowCompleted = !target.completed;
-    const updatedTask: TaskItem = {
-      ...target,
-      completed: isNowCompleted,
-      completedAt: isNowCompleted ? new Date().toISOString() : undefined,
-      updatedAt: new Date().toISOString(),
-    };
+      // Immediate optimistic state update
+      setTasks(prev => {
+        const target = prev.find(t => t.id === id);
+        if (!target) return prev;
+        const isNowCompleted = !target.completed;
+        updatedTask = {
+          ...target,
+          completed: isNowCompleted,
+          completedAt: isNowCompleted ? new Date().toISOString() : undefined,
+          updatedAt: new Date().toISOString(),
+        };
+        return prev.map(t => (t.id === id ? updatedTask! : t));
+      });
 
-    await TaskRepository.updateTask(updatedTask);
-    setTasks(prev => prev.map(t => (t.id === id ? updatedTask : t)));
-    return true;
+      if (!updatedTask) return false;
+
+      // Persist to SQLite
+      await TaskRepository.updateTask(updatedTask);
+
+      // If marked completed, cancel pending reminder notification
+      const taskObj = updatedTask as TaskItem;
+      if (taskObj.completed) {
+        if (taskObj.notificationId) {
+          await NotificationService.cancelReminder(taskObj.notificationId);
+        }
+      } else if (taskObj.reminderEnabled && settings.notificationsEnabled) {
+        // If uncompleted and reminder was enabled, reschedule in background
+        (async () => {
+          try {
+            const notifId = await NotificationService.scheduleReminder({
+              title: `Task Reminder: ${taskObj.title}`,
+              body: `Due at ${taskObj.dueTime || 'today'}`,
+              date: taskObj.dueDate,
+              time: taskObj.dueTime,
+              reminderTime: taskObj.reminderTime,
+              type: 'task',
+              referenceId: id,
+              sound: settings.reminderSound || 'default',
+            });
+            if (notifId) {
+              const reschedTask = { ...taskObj, notificationId: notifId };
+              await TaskRepository.updateTask(reschedTask);
+              setTasks(prev => prev.map(t => (t.id === id ? reschedTask : t)));
+            }
+          } catch (e) {
+            console.warn('[WorkspaceContext] Reschedule task reminder error:', e);
+          }
+        })();
+      }
+
+      return true;
+    } catch (e) {
+      console.error('[WorkspaceContext] Toggle task error:', e);
+      return false;
+    }
   };
 
   // --- Event Handlers ---
   const addEvent = async (params: Parameters<typeof EventService.createEvent>[0]): Promise<EventItem> => {
-    let notificationId: string | undefined;
+    try {
+      const newEvent = EventService.createEvent(params);
 
-    if (params.reminderEnabled && settings.notificationsEnabled) {
-      notificationId = await NotificationService.scheduleReminder({
-        title: `Event: ${params.name}`,
-        body: `Starting at ${params.startTime}${params.location ? ` @ ${params.location}` : ''}`,
-        date: params.date,
-        time: params.startTime,
-        reminderTime: params.reminderTime,
-        type: 'event',
-        referenceId: '',
-      });
+      // Save to SQLite and update state immediately
+      await EventRepository.insertEvent(newEvent);
+      setEvents(prev =>
+        [...prev, newEvent].sort((a, b) => `${a.date} ${a.startTime}`.localeCompare(`${b.date} ${b.startTime}`))
+      );
+
+      // Schedule event reminder asynchronously in background if enabled
+      if (params.reminderEnabled && settings.notificationsEnabled) {
+        (async () => {
+          try {
+            const notificationId = await NotificationService.scheduleReminder({
+              title: `Event: ${params.name}`,
+              body: `Starting at ${params.startTime}${params.location ? ` @ ${params.location}` : ''}`,
+              date: params.date,
+              time: params.startTime,
+              reminderTime: params.reminderTime,
+              type: 'event',
+              referenceId: newEvent.id,
+              sound: settings.reminderSound || 'default',
+            });
+            if (notificationId) {
+              const withNotif = { ...newEvent, notificationId };
+              await EventRepository.updateEvent(withNotif);
+              setEvents(prev => prev.map(e => (e.id === newEvent.id ? withNotif : e)));
+            }
+          } catch (e) {
+            console.warn('[WorkspaceContext] Background event reminder error:', e);
+          }
+        })();
+      }
+
+      return newEvent;
+    } catch (e) {
+      console.error('[WorkspaceContext] Add event error:', e);
+      throw e;
     }
-
-    const newEvent = EventService.createEvent({
-      ...params,
-      notificationId,
-    });
-
-    await EventRepository.insertEvent(newEvent);
-    setEvents(prev =>
-      [...prev, newEvent].sort((a, b) => `${a.date} ${a.startTime}`.localeCompare(`${b.date} ${b.startTime}`))
-    );
-    return newEvent;
   };
 
   const updateEvent = async (event: EventItem): Promise<boolean> => {
-    let notifId = event.notificationId;
-    if (event.reminderEnabled && settings.notificationsEnabled) {
-      if (notifId) {
+    try {
+      let notifId = event.notificationId;
+      if (event.reminderEnabled && settings.notificationsEnabled) {
+        if (notifId) {
+          await NotificationService.cancelReminder(notifId);
+        }
+        notifId = await NotificationService.scheduleReminder({
+          title: `Event: ${event.name}`,
+          body: `Starting at ${event.startTime}`,
+          date: event.date,
+          time: event.startTime,
+          reminderTime: event.reminderTime,
+          type: 'event',
+          referenceId: event.id,
+          sound: settings.reminderSound || 'default',
+        });
+      } else if (notifId) {
         await NotificationService.cancelReminder(notifId);
+        notifId = undefined;
       }
-      notifId = await NotificationService.scheduleReminder({
-        title: `Event: ${event.name}`,
-        body: `Starting at ${event.startTime}`,
-        date: event.date,
-        time: event.startTime,
-        reminderTime: event.reminderTime,
-        type: 'event',
-        referenceId: event.id,
-      });
-    } else if (notifId) {
-      await NotificationService.cancelReminder(notifId);
-      notifId = undefined;
-    }
 
-    const finalEvent = { ...event, notificationId: notifId, updatedAt: new Date().toISOString() };
-    await EventRepository.updateEvent(finalEvent);
-    setEvents(prev => prev.map(e => (e.id === event.id ? finalEvent : e)));
-    return true;
+      const finalEvent = { ...event, notificationId: notifId, updatedAt: new Date().toISOString() };
+      await EventRepository.updateEvent(finalEvent);
+      setEvents(prev => prev.map(e => (e.id === event.id ? finalEvent : e)));
+      return true;
+    } catch (e) {
+      console.error('[WorkspaceContext] Update event error:', e);
+      return false;
+    }
   };
 
   const deleteEvent = async (id: string): Promise<boolean> => {
-    const target = events.find(e => e.id === id);
-    if (target?.notificationId) {
-      await NotificationService.cancelReminder(target.notificationId);
+    try {
+      const target = events.find(e => e.id === id);
+      if (target?.notificationId) {
+        await NotificationService.cancelReminder(target.notificationId);
+      }
+      await MediaStorage.deleteAttachmentsForParent('event', id);
+      await EventRepository.deleteEvent(id);
+      setEvents(prev => prev.filter(e => e.id !== id));
+      return true;
+    } catch (e) {
+      console.error('[WorkspaceContext] Delete event error:', e);
+      return false;
     }
-    await MediaStorage.deleteAttachmentsForParent('event', id);
-    await EventRepository.deleteEvent(id);
-    setEvents(prev => prev.filter(e => e.id !== id));
-    return true;
   };
 
   // --- Expense Handlers ---
@@ -351,36 +460,106 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     transactionId?: string;
     receiptUri?: string;
   }): Promise<ExpenseItem> => {
-    const newExpense: ExpenseItem = {
-      id: generateId('exp'),
-      title: params.title.trim(),
-      amount: Number(params.amount) || 0,
-      category: params.category,
-      date: params.date,
-      paymentMethod: (params.paymentMethod as any) || 'Card',
-      notes: params.notes?.trim(),
-      transactionId: params.transactionId?.trim(),
-      receiptUri: params.receiptUri,
-      createdAt: new Date().toISOString(),
-    };
+    try {
+      const cleanDate = (params.date || getTodayDateString()).trim();
+      const newExpense: ExpenseItem = {
+        id: generateId('exp'),
+        title: params.title.trim(),
+        amount: Number(params.amount) || 0,
+        category: params.category || 'Other',
+        date: cleanDate,
+        paymentMethod: (params.paymentMethod as any) || 'Card',
+        notes: params.notes?.trim() || undefined,
+        transactionId: params.transactionId?.trim() || undefined,
+        receiptUri: params.receiptUri,
+        createdAt: new Date().toISOString(),
+      };
 
-    await ExpenseRepository.insertExpense(newExpense);
-    setExpenses(prev => [newExpense, ...prev].sort((a, b) => b.date.localeCompare(a.date)));
-    return newExpense;
+      await ExpenseRepository.insertExpense(newExpense);
+      setExpenses(prev => [newExpense, ...prev].sort((a, b) => b.date.localeCompare(a.date)));
+      return newExpense;
+    } catch (e) {
+      console.error('[WorkspaceContext] Add expense error:', e);
+      throw e;
+    }
   };
 
   const updateExpense = async (expense: ExpenseItem): Promise<boolean> => {
-    const updatedExpense = { ...expense, updatedAt: new Date().toISOString() };
-    await ExpenseRepository.updateExpense(updatedExpense);
-    setExpenses(prev => prev.map(e => (e.id === expense.id ? updatedExpense : e)).sort((a, b) => b.date.localeCompare(a.date)));
-    return true;
+    try {
+      const updatedExpense = { ...expense, updatedAt: new Date().toISOString() };
+      await ExpenseRepository.updateExpense(updatedExpense);
+      setExpenses(prev => prev.map(e => (e.id === expense.id ? updatedExpense : e)).sort((a, b) => b.date.localeCompare(a.date)));
+      return true;
+    } catch (e) {
+      console.error('[WorkspaceContext] Update expense error:', e);
+      return false;
+    }
   };
 
   const deleteExpense = async (id: string): Promise<boolean> => {
-    await MediaStorage.deleteAttachmentsForParent('expense', id);
-    await ExpenseRepository.deleteExpense(id);
-    setExpenses(prev => prev.filter(e => e.id !== id));
-    return true;
+    try {
+      await MediaStorage.deleteAttachmentsForParent('expense', id);
+      await ExpenseRepository.deleteExpense(id);
+      setExpenses(prev => prev.filter(e => e.id !== id));
+      return true;
+    } catch (e) {
+      console.error('[WorkspaceContext] Delete expense error:', e);
+      return false;
+    }
+  };
+
+  // --- Note Handlers ---
+  const addNote = async (params: Parameters<typeof NoteService.createNote>[0]): Promise<NoteItem> => {
+    try {
+      const newNote = NoteService.createNote(params);
+      await NoteRepository.insertNote(newNote);
+      setNotes(prev => NoteService.sortNotes([newNote, ...prev]));
+      return newNote;
+    } catch (e) {
+      console.error('[WorkspaceContext] Add note error:', e);
+      throw e;
+    }
+  };
+
+  const updateNote = async (note: NoteItem): Promise<boolean> => {
+    try {
+      const updated = { ...note, updatedAt: new Date().toISOString() };
+      await NoteRepository.updateNote(updated);
+      setNotes(prev => NoteService.sortNotes(prev.map(n => (n.id === note.id ? updated : n))));
+      return true;
+    } catch (e) {
+      console.error('[WorkspaceContext] Update note error:', e);
+      return false;
+    }
+  };
+
+  const deleteNote = async (id: string): Promise<boolean> => {
+    try {
+      await NoteRepository.deleteNote(id);
+      setNotes(prev => prev.filter(n => n.id !== id));
+      return true;
+    } catch (e) {
+      console.error('[WorkspaceContext] Delete note error:', e);
+      return false;
+    }
+  };
+
+  const togglePinNote = async (id: string): Promise<boolean> => {
+    try {
+      let updatedPinned = false;
+      setNotes(prev => {
+        const target = prev.find(n => n.id === id);
+        if (!target) return prev;
+        updatedPinned = !target.pinned;
+        const updated = { ...target, pinned: updatedPinned, updatedAt: new Date().toISOString() };
+        return NoteService.sortNotes(prev.map(n => (n.id === id ? updated : n)));
+      });
+      await NoteRepository.togglePinNote(id, updatedPinned);
+      return true;
+    } catch (e) {
+      console.error('[WorkspaceContext] Toggle pin note error:', e);
+      return false;
+    }
   };
 
   // --- URL Handlers ---
@@ -467,6 +646,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       events,
       expenses,
       urls,
+      notes,
       notifications,
       settings,
       attachments: allAttachments,
@@ -482,6 +662,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       events,
       expenses,
       urls,
+      notes,
       notifications,
       settings,
       attachments: allAttachments,
@@ -512,6 +693,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       await EventRepository.clearAllEvents();
       await ExpenseRepository.clearAllExpenses();
       await UrlRepository.clearAllUrls();
+      await NoteRepository.clearAllNotes();
       await NotificationRepository.clearAllNotifications();
       await AttachmentRepository.clearAllAttachments();
       await SettingsRepository.setAllSettings(defaultSettings);
@@ -521,6 +703,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setEvents([]);
       setExpenses([]);
       setUrls([]);
+      setNotes([]);
       setNotifications([]);
       setSettings(defaultSettings);
       return true;
@@ -541,6 +724,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         events,
         expenses,
         urls,
+        notes,
         notifications,
         settings,
         unreadNotificationsCount,
@@ -562,6 +746,10 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         addUrl,
         updateUrl,
         deleteUrl,
+        addNote,
+        updateNote,
+        deleteNote,
+        togglePinNote,
         markNotificationAsRead,
         markAllNotificationsAsRead,
         deleteNotification,

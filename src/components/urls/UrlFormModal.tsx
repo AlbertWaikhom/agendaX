@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Typography, BorderRadius, Spacing } from '../../constants/theme';
 import { useTheme } from '../../context/ThemeContext';
@@ -213,15 +213,24 @@ export const UrlFormModal: React.FC<UrlFormModalProps> = ({
 
       {/* Optional Bookmark Image Attachment */}
       <View style={{ marginBottom: Spacing.md }}>
-        <Text style={[styles.sectionLabel, { color: colors.text }]}>Screenshot / Logo (Optional)</Text>
+        <Text style={[styles.sectionLabel, { color: colors.text }]}>Screenshot / Logo / Media (Optional)</Text>
         {previewImageUri ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', padding: 10, borderRadius: 12, backgroundColor: colors.surfaceHighlight, borderWidth: 1, borderColor: colors.glassBorder }}>
-            <Ionicons name="image" size={24} color={colors.primaryLight} />
-            <Text style={{ flex: 1, marginLeft: 10, fontSize: 12, color: colors.text }} numberOfLines={1}>
-              Thumbnail Attached
-            </Text>
-            <TouchableOpacity onPress={() => setPreviewImageUri(undefined)} style={{ padding: 4 }}>
-              <Ionicons name="trash-outline" size={18} color={colors.error} />
+            <Image
+              source={{ uri: previewImageUri }}
+              style={{ width: 48, height: 48, borderRadius: 8, backgroundColor: '#000', marginRight: 10 }}
+              resizeMode="cover"
+            />
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text }} numberOfLines={1}>
+                Media Attached
+              </Text>
+              <TouchableOpacity onPress={handlePickPreview} hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}>
+                <Text style={{ fontSize: 11, color: colors.primaryLight, marginTop: 2 }}>Tap to change</Text>
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity onPress={() => setPreviewImageUri(undefined)} style={{ padding: 6 }}>
+              <Ionicons name="trash-outline" size={20} color={colors.error} />
             </TouchableOpacity>
           </View>
         ) : (
@@ -230,7 +239,7 @@ export const UrlFormModal: React.FC<UrlFormModalProps> = ({
             style={{ padding: 12, borderRadius: 12, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.glassBorder, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, backgroundColor: colors.glassCard }}
           >
             <Ionicons name="cloud-upload-outline" size={18} color={colors.primaryLight} />
-            <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text }}>Upload Logo or Screenshot</Text>
+            <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text }}>Upload Logo, Media or Screenshot</Text>
           </TouchableOpacity>
         )}
       </View>

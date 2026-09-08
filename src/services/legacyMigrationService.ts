@@ -119,7 +119,7 @@ export const LegacyMigrationService = {
       }
 
       await MigrationRepository.completeMigration(MIGRATION_NAME);
-      console.log('[LegacyMigration] ✅ Migration successfully completed and verified.');
+      console.log('[LegacyMigration]  Migration successfully completed and verified.');
 
       return {
         status: 'migrated',

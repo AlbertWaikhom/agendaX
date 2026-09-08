@@ -27,10 +27,9 @@ export const AboutModal: React.FC<AboutModalProps> = ({ visible, onClose }) => {
           resizeMode="contain"
         />
         <Text style={[styles.tagline, { color: colors.primaryLight }]}>Plan. Track. Achieve.</Text>
-        <Text style={[styles.version, { color: colors.textMuted }]}>Version 1.01 • Production Release (SQLite Edition)</Text>
+        <Text style={[styles.version, { color: colors.textMuted }]}>Version 1.02 • Production Release (SQLite Edition)</Text>
       </View>
 
-      {/* Direct APK Download Card */}
       <View
         style={[
           styles.card,
@@ -49,11 +48,36 @@ export const AboutModal: React.FC<AboutModalProps> = ({ visible, onClose }) => {
         </View>
 
         <Button
-          title="Download APK v1.01"
+          title="Download APK v1.02"
           icon="download-outline"
-          onPress={() => handleOpenLink('https://github.com/AlbertWaikhom/agendaX/releases/download/v1.01/agendaX-v1.01.apk')}
+          onPress={() => handleOpenLink('https://github.com/AlbertWaikhom/agendaX/raw/main/agendaX-v1.02.apk')}
           style={{ marginTop: 6 }}
         />
+      </View>
+
+      {/* What's New in v1.02 Card */}
+      <View
+        style={[
+          styles.card,
+          {
+            backgroundColor: colors.glassCard,
+            borderColor: colors.glassBorder,
+            borderTopColor: colors.glassSpecular,
+          },
+        ]}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+          <Ionicons name="sparkles" size={18} color="#F59E0B" />
+          <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: 0 }]}>What's New in v1.02</Text>
+        </View>
+        <Text style={[styles.sectionBody, { color: colors.textSecondary }]}>
+          • <Text style={{ color: colors.text, fontWeight: '600' }}>Dedicated Notepad Tab</Text>: SQLite-backed rich notes, color coding, categories, search & biometric privacy.{'\n'}
+          • <Text style={{ color: colors.text, fontWeight: '600' }}>Expenses Bar Graph & Donut</Text>: Interactive 6-month & category spend charts, monthly budget tracker.{'\n'}
+          • <Text style={{ color: colors.text, fontWeight: '600' }}>Audible Alarm Engine</Text>: Expo SDK 57 audio playback with 5 custom offline ringtones & Android channels.{'\n'}
+          • <Text style={{ color: colors.text, fontWeight: '600' }}>0ms Task Checkbox</Text>: Instant optimistic completion feedback and decoupled card touch responder.{'\n'}
+          • <Text style={{ color: colors.text, fontWeight: '600' }}>SQLite Concurrency</Text>: 5000ms busy timeout and async background notification scheduling.{'\n'}
+          • <Text style={{ color: colors.text, fontWeight: '600' }}>URL Media Zoom</Text>: Full-screen image previewer with pinch-to-zoom for bookmarks.
+        </Text>
       </View>
 
       {/* Developer Profile Card */}

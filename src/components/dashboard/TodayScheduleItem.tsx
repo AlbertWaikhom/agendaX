@@ -35,9 +35,7 @@ export const TodayScheduleItem: React.FC<TodayScheduleItemProps> = ({
   const displayTime = item.time ? formatTimePretty(item.time) : 'All Day';
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.75}
-      onPress={onPress}
+    <View
       style={[
         styles.container,
         {
@@ -48,58 +46,66 @@ export const TodayScheduleItem: React.FC<TodayScheduleItemProps> = ({
         { borderLeftColor: item.color || (item.priority === 'high' ? colors.highPriority : colors.primary) },
       ]}
     >
-      {/* Time & Type icon */}
-      <View style={[styles.timeSection, { borderColor: colors.border }]}>
-        <Text style={[styles.timeText, { color: colors.text }]}>{displayTime}</Text>
-        <View style={styles.typeIndicator}>
-          <Ionicons
-            name={isTask ? 'checkmark-circle-outline' : 'calendar-outline'}
-            size={14}
-            color={colors.textMuted}
-          />
-          <Text style={[styles.typeText, { color: colors.textMuted }]}>{isTask ? 'Task' : 'Event'}</Text>
-        </View>
-      </View>
-
-      {/* Main Info */}
-      <View style={styles.contentSection}>
-        <Text
-          style={[styles.title, { color: colors.text }, item.completed && [styles.titleCompleted, { color: colors.textMuted }]]}
-          numberOfLines={2}
-        >
-          {item.title}
-        </Text>
-
-        {item.location && (
-          <View style={styles.locationRow}>
-            <Ionicons name="location-outline" size={12} color={colors.textMuted} />
-            <Text style={[styles.locationText, { color: colors.textMuted }]} numberOfLines={1}>
-              {item.location}
-            </Text>
+      <TouchableOpacity
+        activeOpacity={0.75}
+        onPress={onPress}
+        style={styles.clickableBody}
+      >
+        {/* Time & Type icon */}
+        <View style={[styles.timeSection, { borderColor: colors.border }]}>
+          <Text style={[styles.timeText, { color: colors.text }]}>{displayTime}</Text>
+          <View style={styles.typeIndicator}>
+            <Ionicons
+              name={isTask ? 'checkmark-circle-outline' : 'calendar-outline'}
+              size={14}
+              color={colors.textMuted}
+            />
+            <Text style={[styles.typeText, { color: colors.textMuted }]}>{isTask ? 'Task' : 'Event'}</Text>
           </View>
-        )}
-
-        <View style={styles.tagsRow}>
-          {!!item.category && <CategoryPill label={item.category} color={item.color} style={styles.tag} />}
-          {Boolean(isTask && item.priority) && <PriorityBadge priority={item.priority!} style={styles.tag} />}
         </View>
-      </View>
+
+        {/* Main Info */}
+        <View style={styles.contentSection}>
+          <Text
+            style={[styles.title, { color: colors.text }, item.completed && [styles.titleCompleted, { color: colors.textMuted }]]}
+            numberOfLines={2}
+          >
+            {item.title}
+          </Text>
+
+          {item.location && (
+            <View style={styles.locationRow}>
+              <Ionicons name="location-outline" size={12} color={colors.textMuted} />
+              <Text style={[styles.locationText, { color: colors.textMuted }] } numberOfLines={1}>
+                {item.location}
+              </Text>
+            </View>
+          )}
+
+          <View style={styles.tagsRow}>
+            {!!item.category && <CategoryPill label={item.category} color={item.color} style={styles.tag} />}
+            {Boolean(isTask && item.priority) && <PriorityBadge priority={item.priority!} style={styles.tag} />}
+          </View>
+        </View>
+      </TouchableOpacity>
 
       {/* Checkbox for Task */}
       {isTask && onToggleComplete && (
         <TouchableOpacity
+          activeOpacity={0.6}
           onPress={onToggleComplete}
           style={[
             styles.checkbox,
             { borderColor: colors.borderLight },
             item.completed && { backgroundColor: colors.success, borderColor: colors.success },
           ]}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          accessibilityLabel={item.completed ? 'Mark incomplete' : 'Mark complete'}
         >
           {item.completed && <Ionicons name="checkmark" size={14} color="#FFF" />}
         </TouchableOpacity>
       )}
-    </TouchableOpacity>
+    </View>
   );
 };
 
@@ -112,6 +118,11 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     padding: Spacing.md,
     marginBottom: Spacing.sm,
+  },
+  clickableBody: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   containerCompleted: {
     opacity: 0.6,

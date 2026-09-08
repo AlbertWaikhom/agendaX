@@ -4,13 +4,10 @@ let ExpoHaptics: typeof import('expo-haptics') | null = null;
 try {
   ExpoHaptics = require('expo-haptics');
 } catch {
-  // Graceful fallback
 }
 
 export const HapticService = {
-  /**
-   * Light impact for typing, keypad taps, subtle button clicks
-   */
+
   light: () => {
     try {
       if (ExpoHaptics?.impactAsync) {
@@ -23,9 +20,6 @@ export const HapticService = {
     }
   },
 
-  /**
-   * Medium impact for primary actions, modal opens, card taps
-   */
   medium: () => {
     try {
       if (ExpoHaptics?.impactAsync) {
@@ -38,9 +32,6 @@ export const HapticService = {
     }
   },
 
-  /**
-   * Heavy impact for destructive actions, warnings
-   */
   heavy: () => {
     try {
       if (ExpoHaptics?.impactAsync) {
@@ -53,9 +44,6 @@ export const HapticService = {
     }
   },
 
-  /**
-   * Selection feedback for tab switches, segmented controls, radio buttons
-   */
   selection: () => {
     try {
       if (ExpoHaptics?.selectionAsync) {
@@ -68,9 +56,6 @@ export const HapticService = {
     }
   },
 
-  /**
-   * Success notification feedback for successful unlock, task completion, saving
-   */
   success: () => {
     try {
       if (ExpoHaptics?.notificationAsync) {
@@ -83,9 +68,6 @@ export const HapticService = {
     }
   },
 
-  /**
-   * Error notification feedback for incorrect PIN, failed validation
-   */
   error: () => {
     try {
       if (ExpoHaptics?.notificationAsync) {

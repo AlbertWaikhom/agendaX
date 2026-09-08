@@ -7,7 +7,8 @@ import { UrlRepository } from '../database/repositories/urlRepository';
 import { NotificationRepository } from '../database/repositories/notificationRepository';
 import { SettingsRepository } from '../database/repositories/settingsRepository';
 import { AttachmentRepository } from '../database/repositories/attachmentRepository';
-import { WorkspaceData, TaskItem, EventItem, ExpenseItem, UrlItem } from '../types';
+import { NoteRepository } from '../database/repositories/noteRepository';
+import { WorkspaceData, TaskItem, EventItem, ExpenseItem, UrlItem, NoteItem } from '../types';
 
 export interface RestoreResult {
   success: boolean;
@@ -16,6 +17,7 @@ export interface RestoreResult {
     events: number;
     expenses: number;
     urls: number;
+    notes?: number;
     notifications: number;
   };
   skippedDuplicates?: number;
@@ -23,22 +25,18 @@ export interface RestoreResult {
 }
 
 export const RestoreService = {
-  /**
-   * Merge imported data with existing SQLite data (skipping or adding unique items)
-   */
+
   async mergeWorkspaceData(incoming: WorkspaceData): Promise<RestoreResult> {
-    const counts = { tasks: 0, events: 0, expenses: 0, urls: 0, notifications: 0 };
+    const counts = { tasks: 0, events: 0, expenses: 0, urls: 0, notes: 0, notifications: 0 };
     let skipped = 0;
 
     try {
       await Database.withTransactionAsync(async () => {
-        // 1. Merge User (only if no existing user)
         const currentUser = await UserRepository.getUser();
         if (!currentUser && incoming.user) {
           await UserRepository.setUser(incoming.user);
         }
 
-        // 2. Merge Tasks
         const existingTasks = await TaskRepository.getAllTasks();
         const existingTaskIds = new Set(existingTasks.map(t => t.id));
         const tasksToInsert: TaskItem[] = [];
@@ -55,7 +53,6 @@ export const RestoreService = {
           await TaskRepository.bulkInsertTasks(tasksToInsert);
         }
 
-        // 3. Merge Events
         const existingEvents = await EventRepository.getAllEvents();
         const existingEventIds = new Set(existingEvents.map(e => e.id));
         const eventsToInsert: EventItem[] = [];
@@ -72,7 +69,6 @@ export const RestoreService = {
           await EventRepository.bulkInsertEvents(eventsToInsert);
         }
 
-        // 4. Merge Expenses
         const existingExpenses = await ExpenseRepository.getAllExpenses();
         const existingExpenseIds = new Set(existingExpenses.map(e => e.id));
         const expensesToInsert: ExpenseItem[] = [];
@@ -89,7 +85,6 @@ export const RestoreService = {
           await ExpenseRepository.bulkInsertExpenses(expensesToInsert);
         }
 
-        // 5. Merge URLs
         const existingUrls = await UrlRepository.getAllUrls();
         const existingUrlIds = new Set(existingUrls.map(u => u.id));
         const urlsToInsert: UrlItem[] = [];
@@ -106,13 +101,27 @@ export const RestoreService = {
           await UrlRepository.bulkInsertUrls(urlsToInsert);
         }
 
-        // 6. Merge Notifications
+        const existingNotes = await NoteRepository.getAllNotes();
+        const existingNoteIds = new Set(existingNotes.map(n => n.id));
+        const notesToInsert: NoteItem[] = [];
+
+        for (const n of incoming.notes || []) {
+          if (existingNoteIds.has(n.id)) {
+            skipped++;
+          } else {
+            notesToInsert.push(n);
+            counts.notes++;
+          }
+        }
+        if (notesToInsert.length > 0) {
+          await NoteRepository.bulkInsertNotes(notesToInsert);
+        }
+
         if (incoming.notifications && incoming.notifications.length > 0) {
           await NotificationRepository.bulkInsertNotifications(incoming.notifications);
           counts.notifications = incoming.notifications.length;
         }
 
-        // 7. Merge Attachments if provided
         if (incoming.attachments && incoming.attachments.length > 0) {
           await AttachmentRepository.bulkInsertAttachments(incoming.attachments);
         }
@@ -133,29 +142,26 @@ export const RestoreService = {
     }
   },
 
-  /**
-   * Replace all SQLite workspace data atomically with backup data
-   */
   async replaceWorkspaceData(incoming: WorkspaceData): Promise<RestoreResult> {
     const counts = {
       tasks: incoming.tasks?.length || 0,
       events: incoming.events?.length || 0,
       expenses: incoming.expenses?.length || 0,
       urls: incoming.urls?.length || 0,
+      notes: incoming.notes?.length || 0,
       notifications: incoming.notifications?.length || 0,
     };
 
     try {
       await Database.withTransactionAsync(async () => {
-        // Clear existing tables
         await UserRepository.setUser(null);
         await TaskRepository.clearAllTasks();
         await EventRepository.clearAllEvents();
         await ExpenseRepository.clearAllExpenses();
         await UrlRepository.clearAllUrls();
+        await NoteRepository.clearAllNotes();
         await NotificationRepository.clearAllNotifications();
 
-        // Insert new data
         if (incoming.user) {
           await UserRepository.setUser(incoming.user);
         }
@@ -170,6 +176,9 @@ export const RestoreService = {
         }
         if (incoming.urls?.length) {
           await UrlRepository.bulkInsertUrls(incoming.urls);
+        }
+        if (incoming.notes?.length) {
+          await NoteRepository.bulkInsertNotes(incoming.notes);
         }
         if (incoming.notifications?.length) {
           await NotificationRepository.bulkInsertNotifications(incoming.notifications);
@@ -190,7 +199,7 @@ export const RestoreService = {
       console.error('[RestoreService] Replace failed:', e);
       return {
         success: false,
-        imported: { tasks: 0, events: 0, expenses: 0, urls: 0, notifications: 0 },
+        imported: { tasks: 0, events: 0, expenses: 0, urls: 0, notes: 0, notifications: 0 },
         error: e?.message || 'Replace restore failed',
       };
     }

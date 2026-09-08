@@ -12,6 +12,8 @@ import { useWorkspace } from '../../context/WorkspaceContext';
 import { PageContainer } from '../../../components/page/PageContainer';
 import { createExpensesStyles } from './ExpensesScreen.styles';
 import { ExpenseFormModal } from '../../components/expenses/ExpenseFormModal';
+import { ExpenseDonutChart } from '../../components/expenses/ExpenseDonutChart';
+import { ExpenseBarGraph } from '../../components/expenses/ExpenseBarGraph';
 import { FloatingActionButton } from '../../components/common/FloatingActionButton';
 import { ExpenseItem } from '../../types';
 import { PageLockGuard } from '../../components/security/PageLockGuard';
@@ -26,7 +28,7 @@ export const ExpensesScreen: React.FC = () => {
   const { colors } = useTheme();
   const styles = useMemo(() => createExpensesStyles(colors), [colors]);
 
-  const { expenses, addExpense, updateExpense, deleteExpense } = useWorkspace();
+  const { expenses, unreadNotificationsCount, addExpense, updateExpense, deleteExpense } = useWorkspace();
 
   // Current selected month: "YYYY-MM"
   const today = new Date();
@@ -69,6 +71,12 @@ export const ExpensesScreen: React.FC = () => {
     return d.toLocaleString('default', { month: 'long', year: 'numeric' });
   }, [selectedYearMonth]);
 
+  const monthShortName = useMemo(() => {
+    const [y, m] = selectedYearMonth.split('-').map(Number);
+    const d = new Date(y, m - 1, 1);
+    return d.toLocaleString('default', { month: 'long' });
+  }, [selectedYearMonth]);
+
   // Calculations
   const monthlyItems = useMemo(
     () => ExpenseService.getMonthlyExpenses(expenses, selectedYearMonth),
@@ -100,16 +108,9 @@ export const ExpensesScreen: React.FC = () => {
     [expenses, selectedYearMonth]
   );
 
-  const { deltaAmount, deltaPercent } = useMemo(
-    () => ExpenseService.getDeltaWithPreviousMonth(expenses, selectedYearMonth),
-    [expenses, selectedYearMonth]
-  );
-
-  // Max value for bar chart scaling
-  const maxComparisonTotal = useMemo(() => {
-    const max = Math.max(...comparisonPoints.map(p => p.total), 1);
-    return max;
-  }, [comparisonPoints]);
+  // Target Budget Calculation (default ₹50k or dynamic balance)
+  const monthlyBudget = 50000;
+  const totalBalance = Math.max(0, monthlyBudget - monthlyTotal);
 
   const handleDelete = (item: ExpenseItem) => {
     setAlertConfig({
@@ -145,167 +146,144 @@ export const ExpensesScreen: React.FC = () => {
     });
   };
 
+  const handleBiometricPrompt = () => {
+    setAlertConfig({
+      visible: true,
+      title: 'Biometric Security Active',
+      message: 'Your expenses, accounts, and financial transactions are encrypted and secured with biometric authentication.',
+      icon: 'finger-print-outline',
+      iconColor: colors.accentCyan,
+      buttons: [{ text: 'Done', style: 'primary' }],
+    });
+  };
+
   return (
     <PageContainer>
-      <PageLockGuard pageId="Expenses" pageTitle="Monthly Expenses">
+      <PageLockGuard pageId="Expenses" pageTitle="Expense & Budget">
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-          {/* Top Header */}
+          {/* Top Header - Expense & Budget */}
           <View style={styles.header}>
             <View>
-              <Text style={styles.headerTitle}>Monthly Expenses</Text>
-              <Text style={styles.headerSubtitle}>Track spending & compare trends</Text>
+              <Text style={styles.headerTitle}>Expense & Budget</Text>
+              <Text style={styles.headerSubtitle}>Financial tracking & category insights</Text>
             </View>
 
-            <TouchableOpacity
-              style={styles.monthNavBtn}
-              onPress={() => {
-                setEditingExpense(null);
-                setShowModal(true);
-              }}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="add" size={24} color={colors.primaryLight} />
-            </TouchableOpacity>
+            <View style={styles.headerActions}>
+              <TouchableOpacity
+                style={styles.headerIconBtn}
+                onPress={handlePrevMonth}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="calendar-outline" size={20} color={colors.primaryLight} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.headerIconBtn}
+                onPress={() => {
+                  setAlertConfig({
+                    visible: true,
+                    title: 'Spending Notifications',
+                    message: monthlyTotal > monthlyBudget * 0.8
+                      ? `Alert: You have reached ${Math.round((monthlyTotal / monthlyBudget) * 100)}% of your monthly budget limit.`
+                      : 'All budget limits and expense reminders are in healthy standing.',
+                    icon: 'notifications-outline',
+                    iconColor: colors.accentOrange,
+                    buttons: [{ text: 'Got It', style: 'primary' }],
+                  });
+                }}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="notifications-outline" size={20} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
           </View>
 
-          {/* Month Selector Bar */}
-          <View style={styles.monthSelector}>
-            <TouchableOpacity onPress={handlePrevMonth} style={styles.monthNavBtn} activeOpacity={0.7}>
-              <Ionicons name="chevron-back" size={20} color={colors.textSecondary} />
-            </TouchableOpacity>
+          {/* Hero Budget & Donut Chart Card (Matching Mockup) */}
+          <View style={styles.budgetHeroCard}>
+            <View style={styles.budgetHeroHeader}>
+              <TouchableOpacity
+                style={styles.budgetHeroTitleRow}
+                onPress={handleNextMonth}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.budgetHeroTitle}>{monthShortName} Budget</Text>
+                <Ionicons name="chevron-forward" size={18} color={colors.primaryLight} />
+              </TouchableOpacity>
 
-            <View style={styles.monthTitleContainer}>
-              <Text style={styles.monthTitle}>{formattedMonthTitle}</Text>
-              <Text style={styles.monthYearSub}>Monthly Summary</Text>
+              <TouchableOpacity
+                style={styles.monthNavBtn}
+                onPress={() => {
+                  setEditingExpense(null);
+                  setShowModal(true);
+                }}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="add" size={22} color={colors.primaryLight} />
+              </TouchableOpacity>
             </View>
 
-            <TouchableOpacity onPress={handleNextMonth} style={styles.monthNavBtn} activeOpacity={0.7}>
-              <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
-            </TouchableOpacity>
+            <Text style={styles.budgetTotalSpentText}>
+              Total spent:{' '}
+              <Text style={styles.budgetTotalSpentAmount}>
+                ₹{monthlyTotal.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+              </Text>
+            </Text>
+
+            {/* Donut Chart with Surrounding Category Labels */}
+            <ExpenseDonutChart
+              categories={categoryBreakdown}
+              totalSpent={monthlyTotal}
+              currencySymbol="₹"
+            />
           </View>
 
-          {/* Total Hero Glass Card */}
-          <View style={styles.heroCard}>
-            <View style={styles.heroCardTop}>
-              <Text style={styles.heroLabel}>TOTAL SPENT THIS MONTH</Text>
-              {deltaPercent !== 0 && (
-                <View
-                  style={[
-                    styles.deltaBadge,
-                    deltaAmount > 0 ? styles.deltaBadgePositive : styles.deltaBadgeNegative,
-                  ]}
-                >
-                  <Ionicons
-                    name={deltaAmount > 0 ? 'trending-up' : 'trending-down'}
-                    size={14}
-                    color={deltaAmount > 0 ? colors.error : colors.success}
-                  />
-                  <Text
-                    style={[
-                      styles.deltaText,
-                      { color: deltaAmount > 0 ? colors.error : colors.success },
-                    ]}
-                  >
-                    {Math.abs(deltaPercent)}% vs last month
-                  </Text>
-                </View>
-              )}
-            </View>
-
-            <Text style={styles.heroAmount}>₹{monthlyTotal.toFixed(2)}</Text>
-          </View>
-
-          {/* 2-Column Metrics Row */}
-          <View style={styles.metricsRow}>
-            <View style={styles.metricCard}>
-              <View style={styles.metricIconRow}>
-                <Text style={styles.metricLabel}>DAILY AVG</Text>
-                <View style={[styles.metricIconWrapper, { backgroundColor: `${colors.primary}20` }]}>
-                  <Ionicons name="calendar-outline" size={16} color={colors.primaryLight} />
-                </View>
+          {/* Total Balance Card (Matching Mockup) */}
+          <View style={styles.totalBalanceCard}>
+            <View style={styles.totalBalanceLeft}>
+              <View style={styles.totalBalanceIconBox}>
+                <Ionicons name="wallet-outline" size={20} color={colors.accentEmerald} />
               </View>
-              <Text style={styles.metricValue}>₹{dailyAvg.toFixed(2)}</Text>
+              <View>
+                <Text style={styles.totalBalanceTitle}>Total Balance</Text>
+                <Text style={styles.totalBalanceSubtitle}>Remaining budget</Text>
+              </View>
             </View>
 
-            <View style={styles.metricCard}>
-              <View style={styles.metricIconRow}>
-                <Text style={styles.metricLabel}>HIGHEST</Text>
-                <View style={[styles.metricIconWrapper, { backgroundColor: `${colors.accentPink}20` }]}>
-                  <Ionicons name="flame-outline" size={16} color={colors.accentPink} />
-                </View>
-              </View>
-              <Text style={styles.metricValue}>
-                {highestExpense ? `₹${highestExpense.amount.toFixed(0)}` : '₹0'}
+            <View style={styles.totalBalanceBadge}>
+              <Text style={styles.totalBalanceValue}>
+                ₹{totalBalance.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
               </Text>
             </View>
           </View>
 
-          {/* 6-Month Comparison History Bar Chart */}
-          <View style={styles.chartCard}>
-            <View style={styles.chartHeader}>
-              <Text style={styles.chartTitle}>6-Month Comparison</Text>
-              <Text style={styles.chartLegend}>Spend trend</Text>
+          {/* Bar Graph Analytics Component (Requested by user) */}
+          <ExpenseBarGraph
+            monthlyPoints={comparisonPoints}
+            categoryBreakdown={categoryBreakdown}
+            currencySymbol="₹"
+            onSelectMonth={monthKey => setSelectedYearMonth(monthKey)}
+          />
+
+          {/* Secure with Biometrics Card (Matching Mockup) */}
+          <TouchableOpacity
+            style={styles.biometricCard}
+            onPress={handleBiometricPrompt}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.biometricTitle}>Secure with Biometrics</Text>
+
+            <View style={styles.biometricIconCircle}>
+              <Ionicons name="finger-print" size={38} color={colors.accentCyan} />
             </View>
 
-            <View style={styles.chartBarsContainer}>
-              {comparisonPoints.map(point => {
-                const heightPercent = Math.min(100, Math.max(10, Math.round((point.total / maxComparisonTotal) * 100)));
-                return (
-                  <View key={point.monthKey} style={styles.barColumn}>
-                    <Text style={styles.barAmountTooltip}>
-                      {point.total > 0 ? `₹${(point.total / 1000).toFixed(0)}k` : '₹0'}
-                    </Text>
-                    <View style={styles.barTrack}>
-                      <View
-                        style={[
-                          styles.barFill,
-                          point.isCurrent && styles.barFillCurrent,
-                          {
-                            height: `${heightPercent}%`,
-                          },
-                        ]}
-                      />
-                    </View>
-                    <Text style={[styles.barLabel, point.isCurrent && styles.barLabelCurrent]}>
-                      {point.label}
-                    </Text>
-                  </View>
-                );
-              })}
+            <View style={styles.biometricFooterPill}>
+              <Ionicons name="shield-checkmark" size={12} color={colors.accentCyan} />
+              <Text style={styles.biometricFooterText}>AGENDAX SECURED 🛡️</Text>
             </View>
-          </View>
-
-          {/* Category Breakdown Progress Bars */}
-          {categoryBreakdown.length > 0 && (
-            <View style={styles.categorySection}>
-              <Text style={styles.sectionTitle}>Spending by Category</Text>
-              {categoryBreakdown.map(cat => (
-                <View key={cat.category} style={styles.categoryRow}>
-                  <View style={styles.categoryInfoRow}>
-                    <View style={styles.categoryLeft}>
-                      <View style={[styles.categoryDot, { backgroundColor: cat.color }]} />
-                      <Text style={styles.categoryName}>{cat.category}</Text>
-                    </View>
-                    <View style={styles.categoryRight}>
-                      <Text style={styles.categoryAmount}>₹{cat.total.toFixed(0)}</Text>
-                      <Text style={styles.categoryPercent}>({cat.percentage}%)</Text>
-                    </View>
-                  </View>
-                  <View style={styles.categoryProgressBar}>
-                    <View
-                      style={[
-                        styles.categoryProgressFill,
-                        { width: `${cat.percentage}%`, backgroundColor: cat.color },
-                      ]}
-                    />
-                  </View>
-                </View>
-              ))}
-            </View>
-          )}
+          </TouchableOpacity>
 
           {/* Transactions List */}
-          <View style={{ marginTop: 8 }}>
+          <View style={{ marginTop: 4 }}>
             <Text style={styles.sectionTitle}>
               Transactions ({monthlyItems.length})
             </Text>

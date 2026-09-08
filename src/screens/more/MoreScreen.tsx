@@ -291,13 +291,11 @@ export const MoreScreen: React.FC = () => {
     <PageContainer>
       <PageLockGuard pageId="Settings" pageTitle="Settings & Security">
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-          {/* Page Header */}
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Workspace & Settings</Text>
             <Text style={styles.headerSubtitle}>Customize themes, profile, alerts & security</Text>
           </View>
 
-          {/* User Profile Glass Hero Card */}
           <View style={styles.profileCard}>
             <TouchableOpacity
               style={[styles.avatarWrapper, { backgroundColor: user?.avatarColor || colors.primary }]}
@@ -340,9 +338,7 @@ export const MoreScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
 
-          {/* Settings Group */}
           <View style={styles.menuGroup}>
-            {/* App Theme Selector */}
             <TouchableOpacity
               style={styles.menuItem}
               activeOpacity={0.7}
@@ -371,7 +367,6 @@ export const MoreScreen: React.FC = () => {
                 <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
               </View>
             </TouchableOpacity>
-            {/* Security & Lock Feature */}
             <TouchableOpacity
               style={styles.menuItem}
               activeOpacity={0.7}
@@ -394,8 +389,6 @@ export const MoreScreen: React.FC = () => {
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
             </TouchableOpacity>
-
-            {/* Backup & Restore */}
             <TouchableOpacity
               style={styles.menuItem}
               activeOpacity={0.7}
@@ -412,8 +405,6 @@ export const MoreScreen: React.FC = () => {
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
             </TouchableOpacity>
-
-            {/* Preferences & Alarm Ringtone */}
             <TouchableOpacity
               style={styles.menuItem}
               activeOpacity={0.7}
@@ -431,7 +422,6 @@ export const MoreScreen: React.FC = () => {
               <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
             </TouchableOpacity>
 
-            {/* Online Version & Update Checker */}
             <TouchableOpacity
               style={styles.menuItem}
               activeOpacity={0.7}
@@ -453,25 +443,22 @@ export const MoreScreen: React.FC = () => {
               <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
             </TouchableOpacity>
 
-            {/* Direct APK Download URL */}
             <TouchableOpacity
               style={styles.menuItem}
               activeOpacity={0.7}
-              onPress={() => handleOpenLink('https://github.com/AlbertWaikhom/agendaX/releases/download/v1.01/agendaX-v1.01.apk')}
+              onPress={() => handleOpenLink('https://github.com/AlbertWaikhom/agendaX/raw/main/agendaX-v1.02.apk')}
             >
               <View style={styles.menuItemLeft}>
                 <View style={[styles.menuIconBox, { backgroundColor: '#34D39920' }]}>
                   <Ionicons name="logo-android" size={18} color="#34D399" />
                 </View>
                 <View>
-                  <Text style={styles.menuTitle}>Download Standalone APK (v1.01)</Text>
+                  <Text style={styles.menuTitle}>Download Standalone APK (v1.02)</Text>
                   <Text style={styles.menuSubtitle}>100% Offline APK file (~90 MB direct link)</Text>
                 </View>
               </View>
               <Ionicons name="download-outline" size={18} color="#34D399" />
             </TouchableOpacity>
-
-            {/* About AgendaX */}
             <TouchableOpacity
               style={styles.menuItem}
               activeOpacity={0.7}

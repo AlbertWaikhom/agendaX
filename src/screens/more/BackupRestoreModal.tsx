@@ -37,6 +37,7 @@ export const BackupRestoreModal: React.FC<BackupRestoreModalProps> = ({
     eventsCount: number;
     expensesCount: number;
     urlsCount: number;
+    notesCount?: number;
     attachmentsCount?: number;
     userName: string;
     exportedAt: string;
@@ -264,6 +265,12 @@ export const BackupRestoreModal: React.FC<BackupRestoreModalProps> = ({
               <Text style={[styles.previewLabel, { color: colors.textSecondary }]}>URLs:</Text>
               <Text style={[styles.previewVal, { color: colors.text }]}>{previewSummary.urlsCount} bookmarks</Text>
             </View>
+            {previewSummary.notesCount !== undefined && (
+              <View style={[styles.previewRow, { borderColor: colors.border }]}>
+                <Text style={[styles.previewLabel, { color: colors.textSecondary }]}>Notes:</Text>
+                <Text style={[styles.previewVal, { color: colors.text }]}>{previewSummary.notesCount} notes</Text>
+              </View>
+            )}
             {previewSummary.attachmentsCount !== undefined && previewSummary.attachmentsCount > 0 && (
               <View style={[styles.previewRow, { borderColor: colors.border }]}>
                 <Text style={[styles.previewLabel, { color: colors.textSecondary }]}>Attachments:</Text>
@@ -271,7 +278,6 @@ export const BackupRestoreModal: React.FC<BackupRestoreModalProps> = ({
               </View>
             )}
 
-            {/* Merge vs Replace Action Buttons */}
             <View style={{ flexDirection: 'row', gap: 10, marginTop: Spacing.md }}>
               <Button
                 title="Merge Data"

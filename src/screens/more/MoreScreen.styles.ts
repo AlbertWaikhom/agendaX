@@ -27,7 +27,6 @@ export const createMoreStyles = (colors: ThemeColors) =>
       marginTop: 2,
     },
 
-    // User Profile Hero Glass Card
     profileCard: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -89,7 +88,6 @@ export const createMoreStyles = (colors: ThemeColors) =>
       justifyContent: 'center',
     },
 
-    // Theme Switcher Section
     section: {
       marginBottom: Spacing.lg,
     },
@@ -162,7 +160,6 @@ export const createMoreStyles = (colors: ThemeColors) =>
       color: colors.primaryLight,
     },
 
-    // Settings Menu Rows
     menuGroup: {
       backgroundColor: colors.glassCard,
       borderRadius: BorderRadius.xl,
@@ -208,7 +205,6 @@ export const createMoreStyles = (colors: ThemeColors) =>
       marginTop: 1,
     },
 
-    // Version Footer
     footer: {
       alignItems: 'center',
       paddingVertical: Spacing.xl,
@@ -232,7 +228,6 @@ export const createMoreStyles = (colors: ThemeColors) =>
       marginTop: 4,
     },
 
-    // Avatar & Ringtone Styles
     avatarImage: {
       width: '100%',
       height: '100%',

@@ -9,8 +9,8 @@ export interface CategoryBreakdown {
 }
 
 export interface MonthlyComparisonPoint {
-  monthKey: string; // e.g. "2026-08"
-  label: string; // e.g. "Aug"
+  monthKey: string;
+  label: string;
   year: number;
   total: number;
   isCurrent: boolean;
@@ -43,18 +43,13 @@ export const EXPENSE_CATEGORY_ICONS: Record<string, string> = {
 };
 
 export const ExpenseService = {
-  /**
-   * Filter expenses by year and month ("YYYY-MM")
-   */
+
   getMonthlyExpenses(expenses: ExpenseItem[], yearMonth: string): ExpenseItem[] {
     return expenses
       .filter(item => item.date.startsWith(yearMonth))
       .sort((a, b) => b.date.localeCompare(a.date));
   },
 
-  /**
-   * Calculate total spent in a month
-   */
   getMonthlyTotal(expenses: ExpenseItem[], yearMonth: string): number {
     return this.getMonthlyExpenses(expenses, yearMonth).reduce(
       (sum, item) => sum + Number(item.amount || 0),
@@ -62,9 +57,6 @@ export const ExpenseService = {
     );
   },
 
-  /**
-   * Calculate daily average in a month
-   */
   getDailyAverage(expenses: ExpenseItem[], yearMonth: string): number {
     const monthlyItems = this.getMonthlyExpenses(expenses, yearMonth);
     if (monthlyItems.length === 0) return 0;
@@ -75,18 +67,12 @@ export const ExpenseService = {
     return total / daysInMonth;
   },
 
-  /**
-   * Get highest individual expense in a month
-   */
   getHighestExpense(expenses: ExpenseItem[], yearMonth: string): ExpenseItem | null {
     const monthlyItems = this.getMonthlyExpenses(expenses, yearMonth);
     if (monthlyItems.length === 0) return null;
     return monthlyItems.reduce((max, item) => (item.amount > max.amount ? item : max), monthlyItems[0]);
   },
 
-  /**
-   * Breakdown by category with percentage and colors
-   */
   getCategoryBreakdown(expenses: ExpenseItem[], yearMonth: string): CategoryBreakdown[] {
     const monthlyItems = this.getMonthlyExpenses(expenses, yearMonth);
     const total = this.getMonthlyTotal(expenses, yearMonth);
@@ -117,9 +103,6 @@ export const ExpenseService = {
     return result.sort((a, b) => b.total - a.total);
   },
 
-  /**
-   * Get 6-month comparison history for graphs
-   */
   getMonthOverMonthComparison(
     expenses: ExpenseItem[],
     currentYearMonth: string,
@@ -149,9 +132,6 @@ export const ExpenseService = {
     return points;
   },
 
-  /**
-   * Compare current month total with previous month
-   */
   getDeltaWithPreviousMonth(expenses: ExpenseItem[], currentYearMonth: string): { deltaAmount: number; deltaPercent: number } {
     const [year, month] = currentYearMonth.split('-').map(Number);
     const prevDate = new Date(year, month - 2, 1);

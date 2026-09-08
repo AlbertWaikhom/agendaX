@@ -12,6 +12,7 @@ interface QuickCreateModalProps {
   onSelectEvent: () => void;
   onSelectUrl: () => void;
   onSelectExpense: () => void;
+  onSelectNote: () => void;
 }
 
 export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
@@ -21,6 +22,7 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
   onSelectEvent,
   onSelectUrl,
   onSelectExpense,
+  onSelectNote,
 }) => {
   const { colors } = useTheme();
 
@@ -43,6 +45,16 @@ export const QuickCreateModal: React.FC<QuickCreateModalProps> = ({
       onPress: () => {
         onClose();
         onSelectEvent();
+      },
+    },
+    {
+      title: 'New Note',
+      subtitle: 'Capture thoughts, meeting notes, lists, and ideas',
+      icon: 'document-text' as const,
+      color: colors.accentOrange,
+      onPress: () => {
+        onClose();
+        onSelectNote();
       },
     },
     {

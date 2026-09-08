@@ -39,7 +39,6 @@ export const TasksScreen: React.FC = () => {
   const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
   const [editingTask, setEditingTask] = useState<TaskItem | null>(null);
 
-  // Custom Alert Modal State for Delete
   const [alertConfig, setAlertConfig] = useState<{
     visible: boolean;
     title: string;

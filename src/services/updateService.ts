@@ -10,9 +10,9 @@ export interface UpdateCheckResult {
   errorMessage?: string;
 }
 
-export const CURRENT_APP_VERSION = '1.01';
+export const CURRENT_APP_VERSION = '1.02';
 const GITHUB_REPO_API = 'https://api.github.com/repos/AlbertWaikhom/agendaX/releases/latest';
-const DEFAULT_DOWNLOAD_URL = 'https://github.com/AlbertWaikhom/agendaX/releases/download/v1.01/agendaX-v1.01.apk';
+const DEFAULT_DOWNLOAD_URL = 'https://github.com/AlbertWaikhom/agendaX/raw/main/agendaX-v1.02.apk';
 
 function isVersionNewer(current: string, remote: string): boolean {
   try {

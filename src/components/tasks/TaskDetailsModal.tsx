@@ -56,12 +56,38 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
         <View style={styles.badgeRow}>
           <CategoryPill label={task.category} />
           <PriorityBadge priority={task.priority} />
-          {task.completed && (
+          {onToggleComplete ? (
+            <TouchableOpacity
+              onPress={() => onToggleComplete(task.id)}
+              activeOpacity={0.7}
+              style={[
+                styles.completedPill,
+                {
+                  backgroundColor: task.completed ? colors.successBg : colors.surfaceHighlight,
+                  borderColor: task.completed ? colors.success : colors.borderLight,
+                },
+              ]}
+            >
+              <Ionicons
+                name={task.completed ? 'checkmark-circle' : 'ellipse-outline'}
+                size={14}
+                color={task.completed ? colors.success : colors.textSecondary}
+              />
+              <Text
+                style={[
+                  styles.completedPillText,
+                  { color: task.completed ? colors.success : colors.textSecondary },
+                ]}
+              >
+                {task.completed ? 'Completed (Tap to undo)' : 'Mark Complete'}
+              </Text>
+            </TouchableOpacity>
+          ) : task.completed ? (
             <View style={[styles.completedPill, { backgroundColor: colors.successBg, borderColor: colors.success }]}>
               <Ionicons name="checkmark-circle" size={12} color={colors.success} />
               <Text style={[styles.completedPillText, { color: colors.success }]}>Completed</Text>
             </View>
-          )}
+          ) : null}
         </View>
 
         <Text style={[styles.title, { color: colors.text }, task.completed && { textDecorationLine: 'line-through', opacity: 0.8 }]}>
@@ -146,6 +172,17 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
           <Text style={[styles.description, { color: colors.text }]}>{task.description}</Text>
         </View>
       ) : null}
+
+      {/* Mark Complete / Incomplete Toggle Button */}
+      {onToggleComplete && (
+        <Button
+          title={task.completed ? 'Mark as Incomplete' : 'Mark as Completed'}
+          variant={task.completed ? 'secondary' : 'primary'}
+          icon={task.completed ? 'close-circle-outline' : 'checkmark-circle-outline'}
+          onPress={() => onToggleComplete(task.id)}
+          style={{ marginBottom: Spacing.sm }}
+        />
+      )}
 
       {/* Action Buttons */}
       <View style={styles.actionsGrid}>

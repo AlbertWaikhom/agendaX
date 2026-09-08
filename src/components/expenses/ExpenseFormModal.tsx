@@ -148,11 +148,24 @@ export const ExpenseFormModal: React.FC<ExpenseFormModalProps> = ({
       return;
     }
 
+    let normalizedDate = date.trim();
+    if (!normalizedDate || !/^\d{4}-\d{2}-\d{2}$/.test(normalizedDate)) {
+      const parsed = new Date(normalizedDate);
+      if (!isNaN(parsed.getTime())) {
+        const y = parsed.getFullYear();
+        const m = String(parsed.getMonth() + 1).padStart(2, '0');
+        const d = String(parsed.getDate()).padStart(2, '0');
+        normalizedDate = `${y}-${m}-${d}`;
+      } else {
+        normalizedDate = getTodayDateString();
+      }
+    }
+
     onSave({
       title: trimmedTitle,
       amount: numAmount,
       category,
-      date,
+      date: normalizedDate,
       paymentMethod,
       notes: notes.trim() || undefined,
       transactionId: transactionId.trim() || undefined,

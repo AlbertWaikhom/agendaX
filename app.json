@@ -2,7 +2,7 @@
   "expo": {
     "name": "AgendaX",
     "slug": "agendax",
-    "version": "1.01",
+    "version": "1.02",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -28,7 +28,8 @@
       "expo-sharing",
       "expo-status-bar",
       "expo-notifications",
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-audio"
     ]
   }
 }

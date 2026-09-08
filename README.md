@@ -4,9 +4,9 @@
 
 # ⚡ AgendaX — Ultimate Life & Productivity Command Center
 
-### **Next-Gen iOS 26 Liquid Glass Productivity, Expense & Security Manager**
+### **Next-Gen AgendaX Liquid Effect Productivity, Expense & Security Manager**
 
-[![Download Android APK](https://img.shields.io/badge/📲_Download_Android_APK-v1.01_Release-34D399?style=for-the-badge&logo=android&logoColor=white)](https://github.com/AlbertWaikhom/agendaX/raw/main/agendaX-v1.01.apk)
+[![Download APK](https://img.shields.io/badge/⬇️_Download_Android_APK-v1.02_Release-34D399?style=for-the-badge&logo=android&logoColor=white)](https://github.com/AlbertWaikhom/agendaX/raw/main/agendaX-v1.02.apk)
 [![Latest Release](https://img.shields.io/github/v/release/AlbertWaikhom/agendaX?style=for-the-badge&color=818CF8&label=Latest%20Version)](https://github.com/AlbertWaikhom/agendaX/releases/latest)
 [![React Native](https://img.shields.io/badge/React%20Native-0.86.2-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactnative.dev/)
 [![Expo](https://img.shields.io/badge/Expo-v57.0-000020?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev/)
@@ -31,6 +31,45 @@
 
 ---
 
+## 🚀 What's New in Version 1.02 (Changelog & Major Upgrade)
+
+Version **1.02** brings significant stability fixes, database concurrency improvements, real offline alarm audio, and two major new modules:
+
+### 🐛 Issues & Bugs Resolved:
+1. **Task Complete Checkbox Unresponsiveness**:
+   - **Root Cause**: Touch responder conflicts caused by nesting touchable components on Android, plus synchronous database wait before UI updates.
+   - **Fix**: Decoupled task card touch responder from the checkbox. Added optimistic instant UI state updates (0ms delay) and added an in-modal completion toggle button inside `TaskDetailsModal`.
+2. **Storage Latency & Intermittent Save Failures (Tasks, Events, Expenses)**:
+   - **Root Cause**: SQLite database lock contention (`SQLITE_BUSY`) during fast sequential writes and blocking synchronous notification permission prompts during save operations.
+   - **Fix**: Configured `PRAGMA busy_timeout = 5000;` and `PRAGMA synchronous = NORMAL;` on `agendax.db` with WAL mode resilience. Decoupled notification scheduling into detached background promises so database records commit immediately without hanging.
+3. **URL Tab Media Previews Not Displaying**:
+   - **Root Cause**: Form saved image URIs, but URL card components lacked image rendering and full-screen viewers.
+   - **Fix**: Added inline visual thumbnail banners, image attachment badges, and an interactive full-screen image viewer with pinch-to-zoom and one-tap close.
+4. **Android Standalone App Startup Crash ("Unable to load script")**:
+   - **Root Cause**: Development debug bundle expected a Metro dev server on launch.
+   - **Fix**: Built pure offline production release APK with bundled Hermes bytecode. Also cleared obsolete Eclipse IDE files from `node_modules` and configured Java indexing exclusions.
+5. **Alarm & Reminder Audio Not Audible**:
+   - **Root Cause**: Mock haptics-only service stub with zero audio playback and unconfigured notification sound channels.
+   - **Fix**: Upgraded to Expo SDK 57 `expo-audio` engine. Configured 5 dedicated high-priority Android notification channels (`agendax_alarm_*`) with `AudioUsage.ALARM`, `AudioContentType.SONIFICATION`, and bundled raw audio ringtones (`alarm.wav`, `chime.wav`, `bell.wav`, `ping.wav`, `cyber.wav`) playing directly through the device speaker.
+
+### 🌟 New Features & Enhancements Added:
+1. **📝 Dedicated Notepad Tab**:
+   - Brand new bottom navigation tab for rich personal note-taking.
+   - Color-coded note cards, category filters, instant live search, and pin-to-top prioritization.
+   - Full SQLite persistence (`notes` table with schema migration v4).
+   - Biometric page lock guard (`PageLockGuard`) for private notes.
+   - Full inclusion in JSON and ZIP encrypted backup & restore workflows.
+2. **📊 Expenses Screen Redesign & Interactive Bar Graph**:
+   - **Budget Hero Card**: Multi-layered circular segmented donut chart displaying category proportions and month selector.
+   - **Dynamic Budget Tracker**: Live calculation of remaining budget vs total monthly limit (in **₹ INR**).
+   - **Interactive Bar Graphs**: Dual-mode spending bar graphs supporting 6-month historical trend analysis and category distribution breakdown.
+   - **Biometric Security Badge**: Integrated fingerprint authentication card and secured status indicator.
+3. **🔔 Live Alarm Ringtone Preview & Test Center**:
+   - In-app audio previews for all 5 custom ringtones inside **Alarms & Preferences**.
+   - Immediate **"Play Ringtone & Show Notification"** test button that fires both speaker audio and Android heads-up notifications with action buttons.
+
+---
+
 ## 📖 About AgendaX
 
 **AgendaX** is an all-in-one personal management and lifestyle command center crafted to transform how you plan, organize, and execute your day. Built with **iOS 26 Liquid Glass aesthetics**, dynamic lighting refractions, fluid 60fps spring animations, and tactile haptic feedback, AgendaX combines calendar scheduling, prioritized task tracking, expense budget analytics in Indian Rupees (**₹**), digital bookmark vaults, and military-grade biometric privacy into a single, cohesive experience.
@@ -45,8 +84,8 @@ Get the standalone **AgendaX Android Release APK** and install it on your Androi
 
 <div align="center">
 
-### 🚀 [📲 Click Here to Download AgendaX v1.01 APK (Direct)](https://github.com/AlbertWaikhom/agendaX/raw/main/agendaX-v1.01.apk)
-*(Standalone Signed Release: `agendaX-v1.01.apk` ~ 83 MB)*
+### 🚀 [📲 Click Here to Download AgendaX v1.02 APK (Direct)](https://github.com/AlbertWaikhom/agendaX/raw/main/agendaX-v1.02.apk)
+*(Standalone Signed Release: `agendaX-v1.02.apk` ~ 92 MB)*
 
 **Alternative Mirror**: [Download agendaX-v1.apk](https://github.com/AlbertWaikhom/agendaX/raw/main/agendaX-v1.apk) | [GitHub Releases Hub](https://github.com/AlbertWaikhom/agendaX/releases)
 
@@ -54,7 +93,7 @@ Get the standalone **AgendaX Android Release APK** and install it on your Androi
 
 ### 🛠️ Quick Installation Steps:
 1. **Download**: Tap the download button above on your Android smartphone.
-2. **Install**: Tap `agendaX-v1.01.apk` in your phone's notification bar or Downloads folder.
+2. **Install**: Tap `agendaX-v1.02.apk` in your phone's notification bar or Downloads folder.
 3. **Allow Unknown Sources**: If prompted with *"Install unknown apps"*, tap **Settings** ➔ toggle **Allow from this source**.
 4. **Launch**: Open **AgendaX** and enjoy the next-gen Liquid Glass productivity experience!
 

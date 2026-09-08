@@ -16,9 +16,6 @@ export function generateUniqueId(prefix: string = 'item'): string {
 
 export const generateId = generateUniqueId;
 
-/**
- * Validate URL string
- */
 export function isValidUrl(urlStr: string): boolean {
   if (!urlStr || typeof urlStr !== 'string') return false;
   const trimmed = urlStr.trim();
@@ -26,9 +23,6 @@ export function isValidUrl(urlStr: string): boolean {
   return pattern.test(trimmed);
 }
 
-/**
- * Format URL with https:// if missing
- */
 export function normalizeUrl(urlStr: string): string {
   let trimmed = urlStr.trim();
   if (!/^https?:\/\//i.test(trimmed)) {
@@ -37,9 +31,6 @@ export function normalizeUrl(urlStr: string): string {
   return trimmed;
 }
 
-/**
- * Extract clean domain name for display
- */
 export function getDomain(urlStr: string): string {
   try {
     const normalized = normalizeUrl(urlStr);
@@ -50,9 +41,6 @@ export function getDomain(urlStr: string): string {
   }
 }
 
-/**
- * Date Formatting Helpers
- */
 export function getTodayDateString(): string {
   const now = new Date();
   const year = now.getFullYear();

@@ -7,12 +7,12 @@ import { Typography } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useWorkspace } from '../context/WorkspaceContext';
 
-// Screens
 import { DashboardScreen } from '../screens/home/DashboardScreen';
 import { TasksScreen } from '../screens/tasks/TasksScreen';
 import { EventsScreen } from '../screens/events/EventsScreen';
 import { ExpensesScreen } from '../screens/expenses/ExpensesScreen';
 import { UrlsScreen } from '../screens/urls/UrlsScreen';
+import { NotepadScreen } from '../screens/notepad/NotepadScreen';
 import { MoreScreen } from '../screens/more/MoreScreen';
 
 export type RootTabParamList = {
@@ -21,6 +21,7 @@ export type RootTabParamList = {
   Events: undefined;
   Expenses: undefined;
   URLs: undefined;
+  Notepad: undefined;
   More: undefined;
 };
 
@@ -68,6 +69,8 @@ export const TabNavigator: React.FC = () => {
             iconName = focused ? 'wallet' : 'wallet-outline';
           } else if (route.name === 'URLs') {
             iconName = focused ? 'link' : 'link-outline';
+          } else if (route.name === 'Notepad') {
+            iconName = focused ? 'document-text' : 'document-text-outline';
           } else if (route.name === 'More') {
             iconName = focused ? 'person-circle' : 'person-circle-outline';
           }
@@ -123,6 +126,13 @@ export const TabNavigator: React.FC = () => {
         component={UrlsScreen}
         options={{
           tabBarLabel: 'URLs',
+        }}
+      />
+      <Tab.Screen
+        name="Notepad"
+        component={NotepadScreen}
+        options={{
+          tabBarLabel: 'Notes',
         }}
       />
       <Tab.Screen

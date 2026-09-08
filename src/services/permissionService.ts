@@ -4,9 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as LocalAuthentication from 'expo-local-authentication';
 
 export const PermissionService = {
-  /**
-   * Request all essential permissions on initial app launch
-   */
+
   async requestInitialPermissionsAsync(): Promise<{
     notifications: boolean;
     mediaLibrary: boolean;
@@ -19,13 +17,11 @@ export const PermissionService = {
     let mediaGranted = false;
 
     try {
-      // 1. Request notification permissions
       const notifStatus = await Notifications.requestPermissionsAsync({
         ios: { allowAlert: true, allowBadge: true, allowSound: true },
       });
       notificationsGranted = notifStatus.status === 'granted';
 
-      // 2. Request media library permissions
       const mediaStatus = await ImagePicker.requestMediaLibraryPermissionsAsync();
       mediaGranted = mediaStatus.granted;
     } catch (e) {
@@ -38,9 +34,6 @@ export const PermissionService = {
     };
   },
 
-  /**
-   * Request Media Library permission with automatic re-prompt alert if denied
-   */
   async requireMediaLibraryPermission(featureName: string = 'media upload'): Promise<boolean> {
     if (Platform.OS === 'web') return true;
 
@@ -51,7 +44,6 @@ export const PermissionService = {
       const requested = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (requested.granted) return true;
 
-      // If denied, prompt to open settings or retry
       Alert.alert(
         '📁 Storage Permission Required',
         `AgendaX requires photo/media storage access to attach screenshots and files for ${featureName}. Please enable this in your device settings.`,
@@ -61,7 +53,7 @@ export const PermissionService = {
             text: 'Open Settings',
             onPress: () => {
               if (Platform.OS !== 'web') {
-                Linking.openSettings().catch(() => {});
+                Linking.openSettings().catch(() => { });
               }
             },
           },
@@ -74,9 +66,6 @@ export const PermissionService = {
     }
   },
 
-  /**
-   * Request Notification permission with re-prompt alert if denied
-   */
   async requireNotificationPermission(featureName: string = 'reminders'): Promise<boolean> {
     if (Platform.OS === 'web') return false;
 
@@ -98,7 +87,7 @@ export const PermissionService = {
             text: 'Open Settings',
             onPress: () => {
               if (Platform.OS !== 'web') {
-                Linking.openSettings().catch(() => {});
+                Linking.openSettings().catch(() => { });
               }
             },
           },
@@ -111,9 +100,6 @@ export const PermissionService = {
     }
   },
 
-  /**
-   * Check Biometrics / Screen Lock Hardware
-   */
   async checkBiometricsAsync(): Promise<{
     hasHardware: boolean;
     isEnrolled: boolean;

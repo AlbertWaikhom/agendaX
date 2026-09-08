@@ -113,6 +113,17 @@ export interface UrlItem {
   attachments?: AttachmentItem[];
 }
 
+export interface NoteItem {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  color?: string;
+  pinned: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface NotificationRecord {
   id: string;
   title: string;
@@ -151,6 +162,7 @@ export interface WorkspaceData {
   events: EventItem[];
   expenses: ExpenseItem[];
   urls: UrlItem[];
+  notes?: NoteItem[];
   notifications: NotificationRecord[];
   settings: AppSettings;
   attachments?: AttachmentItem[];
@@ -175,6 +187,7 @@ export interface ZipBackupManifest {
     events: number;
     expenses: number;
     urls: number;
+    notes?: number;
     attachments: number;
   };
 }

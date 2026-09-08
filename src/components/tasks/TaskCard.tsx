@@ -31,9 +31,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   };
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.85}
-      onPress={onPress}
+    <View
       style={[
         styles.card,
         {
@@ -47,21 +45,25 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       <View style={styles.topRow}>
         {/* Checkbox */}
         <TouchableOpacity
-          activeOpacity={0.7}
+          activeOpacity={0.6}
           onPress={onToggleComplete}
           style={[
             styles.checkbox,
             { borderColor: colors.primaryLight },
             task.completed && [styles.checkboxCompleted, { backgroundColor: colors.success, borderColor: colors.success }],
           ]}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           accessibilityLabel={task.completed ? 'Mark incomplete' : 'Mark complete'}
         >
           {task.completed && <Ionicons name="checkmark" size={14} color="#FFFFFF" />}
         </TouchableOpacity>
 
-        {/* Title & Description */}
-        <View style={styles.textContainer}>
+        {/* Title & Description - Body click opens Details */}
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={onPress}
+          style={styles.textContainer}
+        >
           <Text
             style={[styles.title, { color: colors.text }, task.completed && [styles.titleCompleted, { color: colors.textMuted }]]}
             numberOfLines={2}
@@ -77,13 +79,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               {task.description}
             </Text>
           ) : null}
-        </View>
+        </TouchableOpacity>
 
         {/* Attached Photo Thumbnail */}
         {task.mediaUri ? (
-          <View style={styles.thumbWrapper}>
+          <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={styles.thumbWrapper}>
             <Image source={{ uri: task.mediaUri }} style={styles.thumbImage} />
-          </View>
+          </TouchableOpacity>
         ) : null}
 
         {/* Actions Menu */}
@@ -106,7 +108,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       </View>
 
       {/* Footer Badges and Meta */}
-      <View style={[styles.footer, { borderTopColor: colors.divider }]}>
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={onPress}
+        style={[styles.footer, { borderTopColor: colors.divider }]}
+      >
         <View style={styles.badgesGroup}>
           <CategoryPill label={task.category} style={styles.tag} />
           <PriorityBadge priority={task.priority} style={styles.tag} />
@@ -143,8 +149,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             </Text>
           </View>
         </View>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </View>
   );
 };
 

@@ -83,7 +83,6 @@ export const EventService = {
       );
     }
 
-    // Sort chronologically
     return filtered.sort((a, b) => {
       const dtA = `${a.date} ${a.startTime}`;
       const dtB = `${b.date} ${b.startTime}`;
@@ -91,9 +90,6 @@ export const EventService = {
     });
   },
 
-  /**
-   * Returns a map of dates having events for calendar marking
-   */
   getEventDatesMap(events: EventItem[]): Record<string, boolean> {
     const map: Record<string, boolean> = {};
     for (const e of events) {

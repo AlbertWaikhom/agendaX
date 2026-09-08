@@ -27,6 +27,7 @@ import { TaskFormModal } from '../../components/tasks/TaskFormModal';
 import { EventFormModal } from '../../components/events/EventFormModal';
 import { UrlFormModal } from '../../components/urls/UrlFormModal';
 import { ExpenseFormModal } from '../../components/expenses/ExpenseFormModal';
+import { NoteFormModal } from '../../components/notepad/NoteFormModal';
 import { EventDetailsModal } from '../../components/events/EventDetailsModal';
 import { TaskDetailsModal } from '../../components/tasks/TaskDetailsModal';
 import { CustomAlertModal, AlertButton } from '../../components/common/CustomAlertModal';
@@ -51,22 +52,22 @@ export const DashboardScreen: React.FC = () => {
     updateEvent,
     addUrl,
     addExpense,
+    addNote,
     deleteEvent,
     deleteTask,
   } = useWorkspace();
 
-  // Modals state
   const [showQuickModal, setShowQuickModal] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showEventModal, setShowEventModal] = useState(false);
   const [showUrlModal, setShowUrlModal] = useState(false);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
+  const [showNoteModal, setShowNoteModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
   const [showEventDetails, setShowEventDetails] = useState(false);
   const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
   const [showTaskDetails, setShowTaskDetails] = useState(false);
 
-  // Custom Alert Modal State for Delete
   const [alertConfig, setAlertConfig] = useState<{
     visible: boolean;
     title: string;
@@ -79,7 +80,6 @@ export const DashboardScreen: React.FC = () => {
     title: '',
   });
 
-  // Stagger Animation Values
   const fadeHeader = useRef(new Animated.Value(0)).current;
   const slideHeader = useRef(new Animated.Value(-16)).current;
 
@@ -98,13 +98,11 @@ export const DashboardScreen: React.FC = () => {
   const fadeTimeline = useRef(new Animated.Value(0)).current;
   const slideTimeline = useRef(new Animated.Value(20)).current;
 
-  // Animated Progress Bar Width (0 to 100%)
   const progressAnim = useRef(new Animated.Value(0)).current;
 
   const todayStr = getTodayDateString();
   const currentMonthKey = todayStr.substring(0, 7);
 
-  // Calculations
   const taskStats = TaskService.getStats(tasks);
   const nextUpcomingEvent = EventService.getNextUpcomingEvent(events);
 
@@ -126,14 +124,12 @@ export const DashboardScreen: React.FC = () => {
   const completionRate = todayTotalCount > 0
     ? Math.round((todayCompletedCount / todayTotalCount) * 100)
     : taskStats.total > 0
-    ? Math.round((taskStats.totalCompleted / taskStats.total) * 100)
-    : 0;
+      ? Math.round((taskStats.totalCompleted / taskStats.total) * 100)
+      : 0;
 
-  // Next up item: next event or urgent pending task
   const nextUrgentTask = todayTasks.find(t => !t.completed && t.priority === 'high');
   const spotlightItem = nextUpcomingEvent || nextUrgentTask;
 
-  // Motivational badge text
   const motivationalBadge = useMemo(() => {
     if (completionRate >= 100 && todayTotalCount > 0) return '🎉 ALL DONE!';
     if (completionRate >= 75) return '🔥 CRUSHING IT';
@@ -142,13 +138,11 @@ export const DashboardScreen: React.FC = () => {
     return '🌱 READY TO START';
   }, [completionRate, todayTotalCount]);
 
-  // Today formatted pretty date string
   const formattedTodayDate = useMemo(() => {
     const d = new Date();
     return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   }, []);
 
-  // Build today's timeline schedule items
   const scheduleItems: ScheduleItemData[] = useMemo(() => [
     ...todayTasks.map(t => ({
       id: t.id,
@@ -170,7 +164,6 @@ export const DashboardScreen: React.FC = () => {
     })),
   ].sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99')), [todayTasks, todayEvents]);
 
-  // Trigger Stagger Entrance Animation
   useEffect(() => {
     Animated.stagger(80, [
       Animated.parallel([
@@ -200,7 +193,6 @@ export const DashboardScreen: React.FC = () => {
     ]).start();
   }, []);
 
-  // Animate progress bar fill smoothly
   useEffect(() => {
     Animated.timing(progressAnim, {
       toValue: completionRate,
@@ -211,7 +203,7 @@ export const DashboardScreen: React.FC = () => {
   }, [completionRate]);
 
   const handleScheduleItemPress = (item: ScheduleItemData) => {
-    Haptics.selectionAsync().catch(() => {});
+    Haptics.selectionAsync().catch(() => { });
     if (item.type === 'event') {
       const found = events.find(e => e.id === item.id);
       if (found) {
@@ -228,7 +220,7 @@ export const DashboardScreen: React.FC = () => {
   };
 
   const handleSpotlightPress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
     if (nextUpcomingEvent) {
       setSelectedEvent(nextUpcomingEvent);
       setShowEventDetails(true);
@@ -275,7 +267,7 @@ export const DashboardScreen: React.FC = () => {
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
                 navigation.navigate('Notifications');
               }}
               style={styles.glassIconBtn}
@@ -295,7 +287,7 @@ export const DashboardScreen: React.FC = () => {
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
                 navigation.navigate('More');
               }}
               style={[styles.avatarCircle, { backgroundColor: colors.primary }]}
@@ -520,7 +512,7 @@ export const DashboardScreen: React.FC = () => {
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
                 setShowTaskModal(true);
               }}
               style={styles.quickActionChip}
@@ -535,7 +527,7 @@ export const DashboardScreen: React.FC = () => {
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
                 setShowExpenseModal(true);
               }}
               style={styles.quickActionChip}
@@ -550,7 +542,7 @@ export const DashboardScreen: React.FC = () => {
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
                 setShowEventModal(true);
               }}
               style={styles.quickActionChip}
@@ -565,7 +557,7 @@ export const DashboardScreen: React.FC = () => {
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
                 setShowUrlModal(true);
               }}
               style={styles.quickActionChip}
@@ -639,6 +631,7 @@ export const DashboardScreen: React.FC = () => {
         onSelectEvent={() => setShowEventModal(true)}
         onSelectExpense={() => setShowExpenseModal(true)}
         onSelectUrl={() => setShowUrlModal(true)}
+        onSelectNote={() => setShowNoteModal(true)}
       />
 
       {/* Creation Modals */}
@@ -661,6 +654,11 @@ export const DashboardScreen: React.FC = () => {
         visible={showUrlModal}
         onClose={() => setShowUrlModal(false)}
         onSave={addUrl}
+      />
+      <NoteFormModal
+        visible={showNoteModal}
+        onClose={() => setShowNoteModal(false)}
+        onSave={addNote}
       />
 
       {/* Event Details Modal */}
@@ -708,7 +706,7 @@ export const DashboardScreen: React.FC = () => {
           setShowTaskDetails(false);
           setSelectedTask(null);
         }}
-        onEdit={() => {}}
+        onEdit={() => { }}
         onDelete={id => {
           if (selectedTask) {
             setAlertConfig({

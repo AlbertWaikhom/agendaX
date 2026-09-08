@@ -7,6 +7,8 @@ export const CURRENT_SCHEMA_VERSION = 1;
  */
 export const PRAGMA_SETUP_SQL: string[] = [
   'PRAGMA journal_mode = WAL;',
+  'PRAGMA busy_timeout = 5000;',
+  'PRAGMA synchronous = NORMAL;',
   'PRAGMA foreign_keys = ON;',
 ];
 
@@ -129,10 +131,24 @@ CREATE TABLE IF NOT EXISTS attachments (
   created_at TEXT NOT NULL
 );
 
+-- 10. Notepad Table
+CREATE TABLE IF NOT EXISTS notes (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  category TEXT NOT NULL DEFAULT 'General',
+  color TEXT,
+  pinned INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
 -- Indices for performance
 CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date);
 CREATE INDEX IF NOT EXISTS idx_tasks_completed ON tasks(completed);
 CREATE INDEX IF NOT EXISTS idx_events_date ON events(date);
 CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(date);
 CREATE INDEX IF NOT EXISTS idx_attachments_parent ON attachments(parent_type, parent_id);
+CREATE INDEX IF NOT EXISTS idx_notes_pinned ON notes(pinned);
+CREATE INDEX IF NOT EXISTS idx_notes_updated_at ON notes(updated_at);
 `;

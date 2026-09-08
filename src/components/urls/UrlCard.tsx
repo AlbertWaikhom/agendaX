@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Linking, Image, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { Typography, BorderRadius, Spacing } from '../../constants/theme';
@@ -17,6 +17,7 @@ interface UrlCardProps {
 export const UrlCard: React.FC<UrlCardProps> = ({ item, onEdit, onDelete }) => {
   const { colors } = useTheme();
   const [copied, setCopied] = useState(false);
+  const [showFullImage, setShowFullImage] = useState(false);
   const domain = getDomain(item.url);
 
   const handleOpen = () => {
@@ -45,13 +46,26 @@ export const UrlCard: React.FC<UrlCardProps> = ({ item, onEdit, onDelete }) => {
       ]}
     >
       <View style={styles.topRow}>
-        {/* Favicon / Link Icon */}
-        <TouchableOpacity
-          onPress={handleOpen}
-          style={[styles.iconCircle, { backgroundColor: `${colors.primaryLight}20`, borderColor: `${colors.primaryLight}40` }]}
-        >
-          <Ionicons name="globe-outline" size={20} color={colors.primaryLight} />
-        </TouchableOpacity>
+        {/* Favicon / Link Icon or Thumbnail */}
+        {item.previewImageUri ? (
+          <TouchableOpacity
+            onPress={() => setShowFullImage(true)}
+            activeOpacity={0.8}
+            style={[styles.thumbCircle, { borderColor: `${colors.accentCyan}50` }]}
+          >
+            <Image source={{ uri: item.previewImageUri }} style={styles.topThumbImage} />
+            <View style={[styles.zoomDot, { backgroundColor: colors.accentCyan }]}>
+              <Ionicons name="expand" size={9} color="#FFF" />
+            </View>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            onPress={handleOpen}
+            style={[styles.iconCircle, { backgroundColor: `${colors.primaryLight}20`, borderColor: `${colors.primaryLight}40` }]}
+          >
+            <Ionicons name="globe-outline" size={20} color={colors.primaryLight} />
+          </TouchableOpacity>
+        )}
 
         {/* Title & Domain */}
         <View style={styles.titleContainer}>
@@ -96,6 +110,25 @@ export const UrlCard: React.FC<UrlCardProps> = ({ item, onEdit, onDelete }) => {
         </View>
       </View>
 
+      {/* Attached Media / Screenshot Preview Banner */}
+      {item.previewImageUri ? (
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={() => setShowFullImage(true)}
+          style={[styles.previewMediaBox, { borderColor: colors.borderLight, backgroundColor: colors.surfaceHighlight }]}
+        >
+          <Image
+            source={{ uri: item.previewImageUri }}
+            style={styles.previewImage}
+            resizeMode="cover"
+          />
+          <View style={[styles.expandBadge, { backgroundColor: 'rgba(0, 0, 0, 0.72)' }]}>
+            <Ionicons name="scan-outline" size={12} color="#FFFFFF" />
+            <Text style={styles.expandBadgeText}>Tap to view media</Text>
+          </View>
+        </TouchableOpacity>
+      ) : null}
+
       {/* Note */}
       {item.note ? (
         <Text style={[styles.note, { color: colors.textSecondary }]} numberOfLines={2}>
@@ -110,6 +143,27 @@ export const UrlCard: React.FC<UrlCardProps> = ({ item, onEdit, onDelete }) => {
           Added {formatDatePretty(item.createdAt.split('T')[0])}
         </Text>
       </View>
+
+      {/* Full Image Zoom Modal */}
+      {item.previewImageUri ? (
+        <Modal
+          visible={showFullImage}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowFullImage(false)}
+        >
+          <View style={[styles.fullImageOverlay, { backgroundColor: '#000000EB' }]}>
+            <TouchableOpacity onPress={() => setShowFullImage(false)} style={styles.closeFullImageBtn}>
+              <Ionicons name="close-circle" size={36} color="#FFFFFF" />
+            </TouchableOpacity>
+            <Image
+              source={{ uri: item.previewImageUri }}
+              style={styles.fullImage}
+              resizeMode="contain"
+            />
+          </View>
+        </Modal>
+      ) : null}
     </View>
   );
 };
@@ -191,5 +245,75 @@ const styles = StyleSheet.create({
   dateText: {
     fontFamily: Typography.fontFamily,
     fontSize: 11,
+  },
+  thumbCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1.5,
+    overflow: 'hidden',
+    position: 'relative',
+    marginRight: Spacing.md,
+    backgroundColor: '#000',
+  },
+  topThumbImage: {
+    width: '100%',
+    height: '100%',
+  },
+  zoomDot: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  previewMediaBox: {
+    width: '100%',
+    height: 140,
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+    marginTop: Spacing.sm + 2,
+    marginBottom: Spacing.xs,
+    position: 'relative',
+    borderWidth: 1,
+  },
+  previewImage: {
+    width: '100%',
+    height: '100%',
+  },
+  expandBadge: {
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
+  },
+  expandBadgeText: {
+    color: '#FFF',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  fullImageOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.lg,
+  },
+  closeFullImageBtn: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 10,
+  },
+  fullImage: {
+    width: '100%',
+    height: '80%',
   },
 });

@@ -8,9 +8,7 @@ import { FileStorage } from '../storage/fileStorage';
 import { Encryption } from '../storage/encryption';
 
 export const BackupService = {
-  /**
-   * Create encrypted backup payload from current workspace
-   */
+
   generateBackupPayload(workspace: WorkspaceData): any {
     const rawData = {
       user: workspace.user,
@@ -18,6 +16,7 @@ export const BackupService = {
       events: workspace.events || [],
       expenses: workspace.expenses || [],
       urls: workspace.urls || [],
+      notes: workspace.notes || [],
       notifications: workspace.notifications || [],
       settings: workspace.settings,
       attachments: workspace.attachments || [],
@@ -26,7 +25,7 @@ export const BackupService = {
     const encryptedData = Encryption.encryptVault(rawData);
 
     return {
-      version: '1.01',
+      version: '1.02',
       app: 'AgendaX',
       vaultVersion: 1,
       isEncrypted: true,
@@ -36,9 +35,6 @@ export const BackupService = {
     };
   },
 
-  /**
-   * Export backup as JSON file and share/save
-   */
   async exportBackup(workspace: WorkspaceData): Promise<{ success: boolean; message?: string; error?: string }> {
     try {
       const payload = this.generateBackupPayload(workspace);
@@ -82,15 +78,11 @@ export const BackupService = {
     }
   },
 
-  /**
-   * Export comprehensive ZIP backup (manifest + database + media)
-   */
   async exportZipBackup(workspace: WorkspaceData): Promise<{ success: boolean; message?: string; error?: string }> {
     try {
       const zip = new JSZip();
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
 
-      // 1. Manifest
       const manifest: ZipBackupManifest = {
         app: 'AgendaX',
         backupVersion: 1,
@@ -102,16 +94,15 @@ export const BackupService = {
           events: workspace.events.length,
           expenses: workspace.expenses.length,
           urls: workspace.urls.length,
+          notes: workspace.notes?.length || 0,
           attachments: workspace.attachments?.length || 0,
         },
       };
       zip.file('manifest.json', JSON.stringify(manifest, null, 2));
 
-      // 2. Full Workspace Data JSON snapshot inside ZIP
       const payload = this.generateBackupPayload(workspace);
       zip.file('workspace.json', JSON.stringify(payload, null, 2));
 
-      // 3. Generate genuine binary ZIP
       const zipBytes = await zip.generateAsync({ type: 'uint8array' });
       const fileName = `AgendaX_FullBackup_${workspace.user?.id || 'workspace'}_${timestamp}.zip`;
 
@@ -151,9 +142,6 @@ export const BackupService = {
     }
   },
 
-  /**
-   * Pick and validate a JSON or ZIP backup file
-   */
   async pickAndValidateBackup(): Promise<{
     success: boolean;
     data?: WorkspaceData;
@@ -183,12 +171,9 @@ export const BackupService = {
       const fileAsset = result.assets[0];
       const fileName = fileAsset.name?.toLowerCase() || '';
 
-      // Check if ZIP archive
       if (fileName.endsWith('.zip')) {
         return this.parseZipBackup(fileAsset.uri);
       }
-
-      // Otherwise read as JSON
       let jsonContent = '';
       if (Platform.OS === 'web' && (fileAsset as any).file) {
         jsonContent = await (fileAsset as any).file.text();
@@ -208,9 +193,6 @@ export const BackupService = {
     }
   },
 
-  /**
-   * Parse a ZIP backup archive
-   */
   async parseZipBackup(uri: string): Promise<{
     success: boolean;
     data?: WorkspaceData;
@@ -235,7 +217,6 @@ export const BackupService = {
         const zipContent = await file.bytes();
         zip = await JSZip.loadAsync(zipContent);
       } catch (binaryErr) {
-        // Fallback for legacy base64 encoded zip text
         const textContent = await file.text();
         zip = await JSZip.loadAsync(textContent.trim(), { base64: true });
       }
@@ -259,9 +240,6 @@ export const BackupService = {
     }
   },
 
-  /**
-   * Validate JSON schema and parse backup
-   */
   validateAndParseBackupContent(jsonString: string): {
     success: boolean;
     data?: WorkspaceData;
@@ -271,6 +249,7 @@ export const BackupService = {
       eventsCount: number;
       expensesCount: number;
       urlsCount: number;
+      notesCount?: number;
       attachmentsCount?: number;
       userName: string;
       exportedAt: string;
@@ -305,6 +284,7 @@ export const BackupService = {
         events: Array.isArray(workspaceData.events) ? workspaceData.events : [],
         expenses: Array.isArray(workspaceData.expenses) ? workspaceData.expenses : [],
         urls: Array.isArray(workspaceData.urls) ? workspaceData.urls : [],
+        notes: Array.isArray(workspaceData.notes) ? workspaceData.notes : [],
         notifications: Array.isArray(workspaceData.notifications) ? workspaceData.notifications : [],
         settings: workspaceData.settings || {
           theme: 'dark',
@@ -326,6 +306,7 @@ export const BackupService = {
           eventsCount: validatedData.events.length,
           expensesCount: validatedData.expenses.length,
           urlsCount: validatedData.urls.length,
+          notesCount: validatedData.notes?.length || 0,
           attachmentsCount: validatedData.attachments?.length || 0,
           userName: validatedData.user?.name || 'Workspace User',
           exportedAt,
