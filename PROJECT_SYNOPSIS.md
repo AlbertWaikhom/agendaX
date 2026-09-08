@@ -68,35 +68,291 @@ Modern productivity tools suffer from four critical architectural and ethical de
 
 ---
 
-## 4. System Architecture & Technical Stack
+## 4. Comprehensive System Architecture & Engineering Models
 
-AgendaX utilizes a four-tier offline architecture designed for longevity, speed, and defense-in-depth security:
+AgendaX is engineered around a four-tier, completely decoupled offline architecture. The system guarantees that every layer operates autonomously without external network round-trips, ensuring zero-latency operations, strict data encapsulation, and military-grade resilience.
 
+---
+
+### 4.1. High-Level Modular Component Architecture
+
+The diagram below illustrates the structural decomposition of AgendaX from UI presentation down to the native Android OS kernel:
+
+```mermaid
+graph TB
+    subgraph UI_Layer ["Tier 1: Presentation & Interaction Layer (UI/UX)"]
+        DASH["Dashboard & Day Planner"]
+        TASK_UI["Tasks & Eisenhower Matrix"]
+        EVENT_UI["Event & Calendar Strip"]
+        EXP_UI["Expense & Financial Analytics"]
+        NOTE_UI["Notepad & PIN Protected Notes"]
+        URL_UI["URL Vault & Browser Chooser"]
+        NAV["React Navigation 7 Native Stacks"]
+    end
+
+    subgraph Logic_Layer ["Tier 2: Concurrency & State Orchestration Layer"]
+        CTX["WorkspaceContext (Global State Provider)"]
+        OPT_MUT["Optimistic UI Mutator (0ms Perceived Latency)"]
+        FILTER["Dynamic Search & Filter Pipelines"]
+        
+        subgraph Domain_Services ["Domain Services Subsystem"]
+            TS["TaskService"]
+            ES["ExpenseService"]
+            EVS["EventService"]
+            NS["NoteService"]
+            US["UrlService"]
+            NOTIF_SRV["NotificationService"]
+            SND["SoundService & Haptics"]
+            BIO["BiometricService"]
+        end
+    end
+
+    subgraph Data_Layer ["Tier 3: Local Persistence & Data Access Layer"]
+        REPO_TASK["TaskRepository"]
+        REPO_EVENT["EventRepository"]
+        REPO_EXP["ExpenseRepository"]
+        REPO_NOTE["NoteRepository"]
+        REPO_URL["UrlRepository"]
+        REPO_SET["SettingsRepository"]
+        MIGRATOR["Schema Migration Engine"]
+        SQLITE[("Embedded SQLite Engine (agendax.db)")]
+        WAL["Write-Ahead Logging (WAL Mode)"]
+        CHKPT["Automatic AppState WAL Checkpointer"]
+    end
+
+    subgraph Security_Layer ["Tier 4: Security, Network Firewall & Native Subsystem"]
+        FIREWALL["Android Network Security Config (Block Cleartext & MITM CAs)"]
+        R8["R8 / ProGuard Bytecode Obfuscation"]
+        HERMES["Hermes Binary Bytecode Engine (.hbc)"]
+        ALARM["Android AlarmManager (SCHEDULE_EXACT_ALARM)"]
+        KEYSTORE["Android Biometric Hardware Keystore"]
+        NO_ADB["ADB Backup Isolation (allowBackup=false)"]
+    end
+
+    %% Layer Connections
+    DASH & TASK_UI & EVENT_UI & EXP_UI & NOTE_UI & URL_UI --> NAV
+    NAV --> CTX
+    CTX --> OPT_MUT
+    OPT_MUT --> Domain_Services
+    Domain_Services --> FILTER
+    Domain_Services --> REPO_TASK & REPO_EVENT & REPO_EXP & REPO_NOTE & REPO_URL & REPO_SET
+    REPO_TASK & REPO_EVENT & REPO_EXP & REPO_NOTE & REPO_URL & REPO_SET --> MIGRATOR
+    MIGRATOR --> SQLITE
+    SQLITE --> WAL
+    WAL --> CHKPT
+
+    %% Security Enforcements
+    Domain_Services -.-> NOTIF_SRV --> ALARM
+    Domain_Services -.-> BIO --> KEYSTORE
+    SQLITE -.-> NO_ADB
+    UI_Layer -.-> HERMES
+    Data_Layer -.-> R8
+    Data_Layer -.-> FIREWALL
 ```
-┌──────────────────────────────────────────────────────────────────────────┐
-│                   TIER 1: PRESENTATION & INTERACTION                     │
-│    Liquid Glass UI • SF Pro Typography • React Navigation 7 Native Stacks │
-│            Reanimated Micro-Interactions • FlatList Virtualization       │
-└────────────────────────────────────┬─────────────────────────────────────┘
-                                     │
-┌────────────────────────────────────▼─────────────────────────────────────┐
-│                TIER 2: CONCURRENCY & STATE ORCHESTRATION                 │
-│         WorkspaceContext Provider • 0ms Optimistic State Mutations       │
-│        Dynamic Search/Filter Pipelines • Native Haptics & Audio          │
-└────────────────────────────────────┬─────────────────────────────────────┘
-                                     │
-┌────────────────────────────────────▼─────────────────────────────────────┐
-│                 TIER 3: PERSISTENCE & DATA STORAGE                       │
-│    Embedded SQLite (agendax.db) • WAL Journaling • Relational Schema     │
-│   Atomic Migrations • Automatic AppState Flush • Relative Path Storage   │
-└────────────────────────────────────┬─────────────────────────────────────┘
-                                     │
-┌────────────────────────────────────▼─────────────────────────────────────┐
-│                 TIER 4: HARDENING & SECURITY SUBSYSTEM                   │
-│   Android Network Security Firewall • R8 / ProGuard Class Obfuscation     │
-│  Hermes Binary Bytecode (.hbc) • Biometric Auth • ADB Backup Disabled    │
-└──────────────────────────────────────────────────────────────────────────┘
+
+---
+
+### 4.2. Data Flow Diagram (DFD)
+
+#### Level 0: Context Diagram
+```mermaid
+flowchart LR
+    User(["👤 Mobile User"]) <-->|"Actions, Touches, Biometrics\nVisual Liquid Glass Feedback"| AgendaX["📱 AgendaX Sovereign Client\n(100% Offline Runtime)"]
+    AgendaX <-->|"Encrypted SQL Queries\nWAL Frames & Sync"| Storage[("🔒 Private App Sandbox\nagendax.db")]
+    AgendaX <-->|"Exact Alarms & Triggers"| OS["⚙️ Android OS Kernel\n(AlarmManager / Biometrics)"]
+    
+    style AgendaX fill:#1C263D,stroke:#6366F1,stroke-width:2px,color:#FFFFFF
+    style Storage fill:#0B0F19,stroke:#10B981,stroke-width:2px,color:#FFFFFF
 ```
+
+#### Level 1: Operational Data Flow & Transaction Processing
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as 👤 User
+    participant UI as 📱 UI View Component
+    participant Ctx as ⚡ WorkspaceContext
+    participant Srv as ⚙️ Domain Service
+    participant Repo as 🗄️ SQL Repository
+    participant DB as 💾 SQLite (WAL Mode)
+    participant Alarm as ⏰ Android AlarmManager
+
+    User->>UI: Triggers Action (e.g. Create Task / Log Expense)
+    UI->>Ctx: Dispatches Mutation Event
+    activate Ctx
+    Note over Ctx,UI: 0ms Latency: Optimistic in-memory update
+    Ctx-->>UI: Instantly Reflects New State in View (0ms)
+    deactivate Ctx
+    UI-->>User: Immediate Haptic & Auditory Feedback
+
+    par Background Persistence & OS Sync
+        Ctx->>Srv: Process Business Rules & Validation
+        Srv->>Repo: Construct Prepared SQL Statement
+        Repo->>DB: Execute INSERT/UPDATE via WAL Transaction
+        DB-->>Repo: Acknowledge Write (Committed to WAL)
+    and Native Alarm Registration
+        Srv->>Alarm: Register Notification with Exact AlarmManager
+    end
+
+    Note over DB: On App Backgrounding: PRAGMA wal_checkpoint(PASSIVE)
+```
+
+---
+
+### 4.3. Database Entity-Relationship Diagram (ERD)
+
+The persistent layer uses a normalized relational SQLite schema enforcing constraints, foreign keys, and indexes:
+
+```mermaid
+erDiagram
+    USERS ||--o{ TASKS : owns
+    USERS ||--o{ EVENTS : organizes
+    USERS ||--o{ EXPENSES : logs
+    USERS ||--o{ NOTES : writes
+    USERS ||--o{ URLS : saves
+    USERS ||--o{ NOTIFICATIONS : receives
+    USERS ||--|| SETTINGS : configures
+
+    USERS {
+        TEXT id PK "UUID"
+        TEXT name "Display Name"
+        TEXT avatarColor "Hex Color Code"
+        TEXT createdAt "ISO-8601 Timestamp"
+    }
+
+    TASKS {
+        TEXT id PK "UUID"
+        TEXT user_id FK "References users(id)"
+        TEXT title "Task Title"
+        TEXT description "Extended Notes"
+        TEXT category "Work, Personal, etc."
+        TEXT priority "High, Medium, Low"
+        TEXT dueDate "YYYY-MM-DD"
+        TEXT dueTime "HH:MM"
+        INTEGER reminderEnabled "Boolean flag (0/1)"
+        TEXT reminderTime "ISO Timestamp"
+        TEXT notificationId "Native OS Alarm ID"
+        INTEGER completed "Boolean flag (0/1)"
+        TEXT completedAt "ISO Timestamp"
+        TEXT createdAt "ISO Timestamp"
+        TEXT updatedAt "ISO Timestamp"
+    }
+
+    EVENTS {
+        TEXT id PK "UUID"
+        TEXT user_id FK "References users(id)"
+        TEXT name "Event Title"
+        TEXT description "Details"
+        TEXT date "YYYY-MM-DD"
+        TEXT startTime "HH:MM"
+        TEXT endTime "HH:MM"
+        TEXT location "Physical or Virtual"
+        TEXT url "Meeting / Reference URL"
+        INTEGER reminderEnabled "Boolean (0/1)"
+        TEXT repeat "none, daily, weekly, monthly"
+        TEXT color "Event Card Hex"
+        TEXT notificationId "Native Alarm ID"
+        TEXT createdAt "ISO Timestamp"
+    }
+
+    EXPENSES {
+        TEXT id PK "UUID"
+        TEXT user_id FK "References users(id)"
+        TEXT title "Payee / Description"
+        REAL amount "Monetary Value (INR)"
+        TEXT category "Housing, Food, Health, etc."
+        TEXT date "YYYY-MM-DD"
+        TEXT paymentMethod "Cash, UPI, Card, NetBanking"
+        TEXT notes "Optional Memo"
+        TEXT createdAt "ISO Timestamp"
+    }
+
+    NOTES {
+        TEXT id PK "UUID"
+        TEXT user_id FK "References users(id)"
+        TEXT title "Note Heading"
+        TEXT content "Body Text"
+        TEXT category "General, Ideas, etc."
+        INTEGER isLocked "PIN Protected Flag (0/1)"
+        TEXT pin "Encrypted Custom PIN"
+        TEXT createdAt "ISO Timestamp"
+        TEXT updatedAt "ISO Timestamp"
+    }
+
+    URLS {
+        TEXT id PK "UUID"
+        TEXT user_id FK "References users(id)"
+        TEXT title "Bookmark Label"
+        TEXT url "Full HTTP/HTTPS Address"
+        TEXT category "Work, Reading, Dev, etc."
+        TEXT note "Annotation"
+        TEXT createdAt "ISO Timestamp"
+    }
+
+    NOTIFICATIONS {
+        TEXT id PK "UUID"
+        TEXT user_id FK "References users(id)"
+        TEXT title "Alert Title"
+        TEXT message "Alert Content"
+        TEXT type "task_reminder, event_alarm"
+        INTEGER read "Read Status (0/1)"
+        TEXT timestamp "ISO Timestamp"
+    }
+
+    SETTINGS {
+        TEXT user_id PK,FK "References users(id)"
+        TEXT theme "dark, light, oled"
+        INTEGER notificationsEnabled "Boolean (0/1)"
+        INTEGER hapticFeedback "Boolean (0/1)"
+        TEXT currencySymbol "Default: ₹"
+        INTEGER appLockEnabled "Boolean (0/1)"
+        TEXT lockMode "pin, biometrics, both"
+        TEXT customPin "Hashed Master PIN"
+    }
+```
+
+---
+
+### 4.4. Security Hardening & Compilation Pipeline Architecture
+
+To guarantee that source code cannot be extracted or tampered with, AgendaX employs a multi-stage defensive compilation pipeline:
+
+```mermaid
+flowchart TD
+    subgraph Source_Stage ["1. Development & Source Stage"]
+        TS_CODE["TypeScript 5.3+ Source Code\nStrict Typing & Zero Lint Errors"]
+        ASSETS["Offline Media Assets & Chimes\nZero Remote CDN Dependencies"]
+    end
+
+    subgraph Compilation_Stage ["2. Compilation & Bytecode Packaging"]
+        METRO["Metro Bundler\nJS Optimization & Tree-Shaking"]
+        HERMES_COMP["Hermes Bytecode Compiler (hermesc)\nConverts JS to Binary Bytecode (.hbc)"]
+        METRO --> HERMES_COMP
+    end
+
+    subgraph Optimization_Stage ["3. Native Minification & Obfuscation"]
+        R8_COMP["R8 Optimizer & ProGuard\nClass/Method Scrambling, Inlining"]
+        SHRINK["Resource Shrinker & AAPT2 Crunch\nStrips Unused Assets (-11MB Size)"]
+        HERMES_COMP --> R8_COMP
+        R8_COMP --> SHRINK
+    end
+
+    subgraph Security_Integration ["4. Security Hardening Injection"]
+        NET_FW["Network Security Config Firewall\nCleartext Forbidden, Untrusted CAs Blocked"]
+        ADB_SEC["ADB Backup Disabled\n(android:allowBackup='false')"]
+        SHRINK --> NET_FW & ADB_SEC
+    end
+
+    subgraph Output_Stage ["5. Production Artifact"]
+        APK["Hardened Standalone Release APK\n(agendaX-v1.02.apk • 85.07 MB)"]
+        NET_FW & ADB_SEC --> APK
+    end
+
+    TS_CODE & ASSETS --> METRO
+```
+
+---
+
 
 ### Technology Matrix
 
