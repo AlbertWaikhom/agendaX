@@ -1,155 +1,193 @@
-# 🌌 AgendaX — Ultimate Life & Productivity Command Center
-
 <div align="center">
 
-![AgendaX Banner](assets/product-logo.png)
+![AgendaX Hero Banner](assets/agendax-banner.jpg)
 
-### **Next-Gen AgendaX Liquid Effect Productivity, Expense & Security Manager**
+# ⚡ AgendaX — Ultimate Life & Productivity Command Center
 
-[![Download APK](https://img.shields.io/badge/⬇️_Download_Android_APK-v1.01_Release-34D399?style=for-the-badge&logo=android&logoColor=white)](https://github.com/AlbertWaikhom/agendaX/raw/main/agendaX-v1.01.apk)
+### **Next-Gen Liquid Glass Productivity, Expense & Security Manager**
+
+[![Download Android APK](https://img.shields.io/badge/📲_Download_Android_APK-v1.02_Release-34D399?style=for-the-badge&logo=android&logoColor=white)](https://github.com/AlbertWaikhom/agendaX/raw/main/agendaX-v1.02.apk)
 [![Latest Release](https://img.shields.io/github/v/release/AlbertWaikhom/agendaX?style=for-the-badge&color=818CF8&label=Latest%20Version)](https://github.com/AlbertWaikhom/agendaX/releases/latest)
-[![React Native](https://img.shields.io/badge/React%20Native-0.86.2-blue?style=for-the-badge&logo=react)](https://reactnative.dev/)
-[![Expo](https://img.shields.io/badge/Expo-v57.0-black?style=for-the-badge&logo=expo)](https://expo.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+[![React Native](https://img.shields.io/badge/React%20Native-0.86.2-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactnative.dev/)
+[![Expo](https://img.shields.io/badge/Expo-v57.0-000020?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
-[⬇️ Download APK](#-download--install-apk) • [Features](#-key-features) • [Daily Life Benefits](#-how-agendax-helps-in-your-daily-life) • [Step-by-Step Guide](#-step-by-step-user-guide) • [Security Vault](#-security--privacy-vault) • [Building APK](#-how-to-build-offline-apk) • [Developer](#-developer--contact)
+[📲 Download APK](#-download--install-apk) • [✨ Key Features](#-key-features) • [📸 Visual Showcase](#-visual-showcase) • [🌟 Daily Life Benefits](#-how-agendax-helps-in-your-daily-life) • [📱 User Guide](#-step-by-step-user-guide) • [🛡️ Security Vault](#-military-grade-security--privacy-vault) • [🛠️ Architecture](#-tech-stack--architecture) • [📦 Build APK](#-how-to-build-standalone-offline-apk) • [👨‍💻 Developer](#-developer--contact)
 
 </div>
 
 ---
 
-## 📥 Download & Install APK
-
-Get the standalone **AgendaX Android APK** and run the app directly on your phone **100% offline (no PC or server needed)**:
+## 📱 Visual Showcase
 
 <div align="center">
 
-### 📲 [👉 Click Here to Download agendaX v1.01 APK (Direct)](https://github.com/AlbertWaikhom/agendaX/raw/main/agendaX-v1.01.apk)
-*(Direct file download: `agendaX-v1.01.apk` ~ 83 MB)*
+![AgendaX App Interface Showcase](assets/agendax-features-showcase.jpg)
 
-Or alternate mirror: **[Download agendaX-v1.apk](https://github.com/AlbertWaikhom/agendaX/raw/main/agendaX-v1.apk)** | **[GitHub Releases Hub](https://github.com/AlbertWaikhom/agendaX/releases)**
+*From Left to Right: (1) Smart Calendar Strip & Event Timelines, (2) Eisenhower Task Matrix & Habit Progress, (3) Native Indian Rupee (₹) Expense Analytics & Biometric Vault.*
 
 </div>
-
-### 🛠️ Easy Installation Steps:
-1. **Download**: Tap the download button above on your Android phone.
-2. **Install**: Tap `app-release.apk` in your phone's notification or Downloads folder.
-3. **Allow Permission**: If prompted with *"Install unknown apps"*, tap **Settings** → toggle **Allow from this source**.
-4. **Launch**: Open **AgendaX** and enjoy the next-gen AgendaX Liquid Effect experience!
-
-> **System Compatibility**: Android 8.0 (Oreo) to Android 15+ (API 24 to 36).
 
 ---
 
 ## 📖 About AgendaX
 
-**AgendaX** is an all-in-one personal management and lifestyle optimization application designed to streamline your daily workflow. Built with **AgendaX Liquid Effect aesthetics**, dynamic lighting refraction, smooth spring micro-animations, and haptic feedback, AgendaX combines calendar scheduling, prioritized task tracking, expense budget analytics in Indian Rupees (**₹**), bookmark/link organization, and military-grade biometric privacy into a single fluid experience.
+**AgendaX** is an all-in-one personal management and lifestyle command center crafted to transform how you plan, organize, and execute your day. Built with **Liquid Glass aesthetics**, dynamic lighting refractions, fluid 60fps spring animations, and tactile haptic feedback, AgendaX combines calendar scheduling, prioritized task tracking, expense budget analytics in Indian Rupees (**₹**), note-taking suite, digital bookmark vaults, and military-grade biometric privacy into a single, cohesive experience.
 
-Whether you are managing tight work deadlines, planning daily routines, monitoring monthly financial habits, or securing sensitive personal data, AgendaX acts as your reliable offline digital assistant.
+Designed from the ground up as a **100% offline-first application**, AgendaX keeps all your schedules, financial figures, notes, and personal tasks entirely local on your device via SQLite and AsyncStorage—zero telemetry, zero tracking, and zero dependence on cloud servers.
 
 ---
 
-## ✨ Key Features
+## 📥 Download & Install APK
 
-### 1. 📅 Events & Schedule Manager
-- **Calendar Strip Navigation**: Quick-hop between days with real-time event status indicators.
-- **Detailed Time Blocks**: Schedule meetings, calls, and routines with start & end time selectors.
-- **Category Color Coding**: Assign customized vibrant colors to separate work, meetings, fitness, and family events.
-- **Recurring Schedules**: Daily, weekly, monthly, or custom repeat routines.
+Get the standalone **AgendaX Android Release APK (v1.02)** and install it directly on your Android phone **100% offline (no PC or Metro dev server required)**:
 
-### 2. ⚡ Priorities & Task Management
-- **Eisenhower Priority Matrix**: Classify tasks by *High*, *Medium*, or *Low* priority with visual tags.
-- **Customizable Categories**: Organize tasks across Work, Personal, Study, Finance, and custom labels.
-- **Due Date & Time Reminders**: Never miss critical milestones with timely notifications.
-- **Haptic Completion Checklists**: Satisfying micro-interactions when clearing tasks.
+<div align="center">
 
-### 3. 💰 Monthly Expenses & Financial Analytics (₹ INR)
-- **Indian Rupee (₹) Native**: Tailored specifically for Indian currency transactions.
-- **Category Spend Breakdown**: Track expenses across Food, Housing, Transportation, Utilities, Shopping, Entertainment, Health, and more.
-- **Payment Method Tracking**: Log transactions made via UPI, Card, Cash, Bank Transfer, or Digital Wallets.
-- **Monthly Interactive Analytics**: Visual spend comparison charts with highest-spend category insights.
+### 🚀 [📲 Click Here to Download AgendaX v1.02 APK (Direct)](https://github.com/AlbertWaikhom/agendaX/raw/main/agendaX-v1.02.apk)
+*(Standalone Signed Release: `agendaX-v1.02.apk` ~ 91.8 MB)*
 
-### 4. 🔗 Important URLs & Digital Bookmark Vault
-- **One-Tap Quick Launch**: Access mission-critical portals, cloud dashboards, GitHub repos, and documents.
-- **Search & Categorization**: Instant filter by category tags (*Portals*, *Work*, *Development*, *Personal*).
-- **Credentials & Context Notes**: Securely store login usernames or contextual instructions with each URL.
+Or alternate mirror: **[Download agendaX-v1.apk (Latest)](https://github.com/AlbertWaikhom/agendaX/raw/main/agendaX-v1.apk)** | **[GitHub Releases Hub](https://github.com/AlbertWaikhom/agendaX/releases)**
 
-### 5. 🛡️ Military-Grade Security & Page-Wise Lock
-- **Multi-Mode App Security**:
-  - **Biometrics / Face ID / Fingerprint**
-  - **Custom 4-6 Digit Master PIN** (with default `1234` fallback)
-  - **Hybrid Authentication** (Biometrics + PIN Fallback)
-- **Page-Level Protection**: Lock the whole app or protect specific sensitive tabs (e.g. *Expenses*, *Secure URLs*, *Tasks*).
-- **Anti-Tamper PIN Keypad**: Transparent AgendaX Liquid Glass keypad with ambient light refraction, error shake animation, and haptic impact.
+</div>
 
-### 6. 🎨 AgendaX Liquid Glass Design System
-- **Translucent Glassmorphism**: Specular highlight rims, multi-layered depth, and glowing refraction orbs.
-- **4 Premium Curated Themes**:
-  - 🌌 **Liquid Dark** (Deep OLED Black with Neon Indigo accents)
-  - 🔷 **Crystal Light** (Executive Crisp Sapphire Glow)
-  - 👑 **Sunset Amber** (Warm Luxury Amber Specular)
-  - ⚡ **Cyber Neon** (Vibrant Electric Cyan Glow)
-- **Apple SF Pro Typography**: Modern, crisp, readable typography hierarchy.
+### 🛠️ Quick Installation Guide:
+1. **Download**: Tap the download link above directly on your Android phone.
+2. **Install**: Open `agendaX-v1.02.apk` in your device's notification tray or Downloads folder.
+3. **Allow Permission**: If prompted with *"Install unknown apps"*, tap **Settings** → toggle **Allow from this source**.
+4. **Launch**: Open **AgendaX** and experience next-gen liquid productivity!
+
+> **System Compatibility**: Android 8.0 (Oreo) to Android 15+ (API levels 24 to 36).
+
+---
+
+## ✨ Key Features in Version 1.02
+
+### 1. 🎯 In-App Guided Product Tour & Spotlight Onboarding *(NEW in v1.02)*
+- **Interactive Component Illumination**: Highlights actual native UI elements across the Dashboard (Command Center, Daily Focus Progress, Bento Grid, Floating Action Button (+), and Tab Bar).
+- **Specular Ambient Mask & Halo**: Darkened backdrop mask (`rgba(3, 7, 18, 0.82)`) with a glowing electric cyan pulsing ring and circular spotlight for the FAB.
+- **Floating Liquid Glass Tooltip Card**: Displays step progression (`STEP X OF 5`), pro tips, liquid dot indicators, and Back/Next/Skip/Get Started buttons.
+- **Settings Replay Anytime**: Added **"App Tour & Guided Tutorial"** in Settings (`More` tab) to replay the tour anytime.
+
+### 2. 📝 Dedicated Notepad Suite with SQLite Persistence *(NEW in v1.02)*
+- **Offline Notes Suite**: Full-fledged note-taking tab with SQLite persistence, search, and category filtering (*Work*, *Personal*, *Ideas*, *Study*, *Finance*).
+- **Pinned Notes & Color Tags**: Pin critical notes to the top and customize note card accent colors.
+- **Biometric Protection**: Lock sensitive notes behind biometric authentication or custom PIN.
+- **Backup & Restore**: Full JSON & ZIP SQLite export/import support.
+
+### 3. 📊 High-Fidelity Expense Analytics & Bar Graph (₹ INR) *(NEW in v1.02)*
+- **Interactive Bar Charts**: Visual category breakdown with comparative spend bars and monthly spending limits.
+- **Indian Rupee (₹) Native**: Tailored for UPI, Card, Cash, and Digital Wallet transactions.
+- **Spending Distribution**: Dynamic donut chart showing percentage allocation across Food, Housing, Utilities, and Shopping.
+
+### 4. 🔔 Audible Alarm & High-Priority Notification Engine *(NEW in v1.02)*
+- **Offline Audio Playback**: High-fidelity sound engine with 5 distinct tones (*Classic Bell*, *Gentle Chime*, *Digital Beep*, *Radar Pulse*, *Cosmic Glow*).
+- **Control Panel Testing**: Preview ringtones and test high-priority heads-up notifications directly in Settings.
+- **Quick Actions**: Notifications include instant `[Mark Completed]` and `[Snooze 10m]` buttons.
+
+### 5. ⚡ Priorities & Task Management
+- **Eisenhower Priority Matrix**: Classify tasks by *High*, *Medium*, or *Low* priority with visual color badges.
+- **Instant Optimistic Updates**: Checkboxes update with 0ms latency and haptic pulses while persisting asynchronously.
+- **Due Date Reminders**: Custom reminder dates and times with audible alerts.
+
+### 6. 📅 Events & Calendar Schedule Manager
+- **Calendar Strip Navigation**: Quick-hop between dates with real-time event status indicators.
+- **Time Block Scheduling**: Meetings, routines, and deadlines with start/end time selectors.
+- **Recurring Schedules**: Daily, weekly, or custom repeat intervals.
+
+### 7. 🔗 Important URLs & Digital Bookmark Vault
+- **Media Previews & Fullscreen Zoom**: Save web links with image attachments and open in fullscreen zoom preview.
+- **Quick Launch**: Launch saved URLs in the system browser with one tap.
+- **Context & Credential Notes**: Securely store login usernames or contextual instructions with each link.
+
+### 8. 🛡️ Military-Grade Security & Page-Wise App Lock
+- **Multi-Mode Authentication**: Biometrics (Fingerprint / Face ID), custom 4-6 digit master PIN, and hybrid authentication.
+- **Page-Level Protection**: Lock the entire application or protect specific sensitive modules (*Expenses*, *Notes*, *Secure URLs*).
+- **Anti-Tamper Keypad**: Translucent liquid glass keypad with ambient light refraction, error shake physics, and haptic feedback.
+
+### 9. 🎨 Liquid Glass Design System
+- **Glassmorphism**: Translucent cards, specular highlight rims, and glowing refraction orbs.
+- **Curated Themes**: *Cyber Dark*, *Midnight Blue*, *Amber Gold*, and *Cyber Neon*.
 
 ---
 
 ## 🌟 How AgendaX Helps in Your Daily Life
 
-| Life Challenge | How AgendaX Solves It |
+| Everyday Challenge | How AgendaX Solves It |
 | :--- | :--- |
-| **Scattered schedules across apps** | Centralizes calendar events, daily routines, and timed deadlines in one dashboard. |
-| **Financial blind spots at month-end** | Tracks daily UPI and card expenses in ₹ with instant category breakdown charts. |
-| **Losing important bookmarks & links** | One-tap vault for repository links, portals, and meeting rooms with notes. |
-| **Privacy on shared phones** | Locks sensitive financial and task data behind fingerprint, Face ID, or PIN. |
-| **Cluttered, ugly productivity apps** | Inspiring AgendaX Liquid Effect aesthetics with haptic feedback that makes daily planning enjoyable. |
-| **No internet connectivity** | 100% offline functionality with local AsyncStorage persistence. |
+| **Scattered schedules across multiple apps** | Consolidates calendar events, daily routines, and timed deadlines in one central screen. |
+| **Financial blind spots at month-end** | Tracks daily UPI and card expenditures in ₹ with instant category breakdown bar graphs. |
+| **Lost portals, notes & bookmarks** | Built-in link vault and dedicated Notepad tab with quick-launch buttons and tags. |
+| **Privacy concerns on shared devices** | Locks sensitive financial, task, and note data behind biometric fingerprint, Face ID, or PIN. |
+| **Cluttered, distracting productivity apps** | Inspiring Liquid Glass interface with haptic feedback that makes planning a pleasure. |
+| **Unreliable internet connections** | 100% offline functionality with persistent SQLite local storage—always accessible. |
 
 ---
 
 ## 📱 Step-by-Step User Guide
 
-### 🚀 Getting Started
+### 🚀 1. Getting Started & Guided Tour
 1. Launch **AgendaX** on your phone.
-2. Complete the initial welcome setup or jump straight into the **Dashboard**.
-3. Choose your favorite visual theme in **Settings** (Cyber Dark, Midnight, Amber Gold, or Light).
+2. Experience the **5-step guided spotlight tour** highlighting your Command Center, Today's Focus, Bento Grid, Floating Action Button, and Tab Bar.
+3. Replay the tour anytime from **More → App Tour & Guided Tutorial**.
 
-### 📅 Managing Events
+### 📅 2. Creating Events
 1. Tap the **`+` (Floating Action Button)** or navigate to the **Events** tab.
 2. Enter the **Event Name**, **Date**, **Start/End Time**, and pick a **Theme Color**.
-3. Toggle **Set Reminder** if you want an advance notification.
-4. Tap **Create Event**.
+3. Toggle **Set Reminder** for an advance notification alert and tap **Create Event**.
 
-### ✅ Tracking Daily Tasks
-1. Go to the **Tasks** tab.
-2. Tap **`+ Add Task`**.
-3. Enter title, select priority level (**High / Medium / Low**), and set category.
-4. Check off tasks as you complete them to hear and feel the haptic feedback!
+### ✅ 3. Managing Tasks
+1. Switch to the **Tasks** tab.
+2. Tap **`+ Add Task`**, enter the title, set priority (**High / Medium / Low**), and assign a category.
+3. Tap the checkbox to mark tasks completed with instant haptic feedback!
 
-### 💵 Recording Expenses
-1. Go to the **Expenses** tab (unlock with PIN/Biometrics if locked).
-2. Tap **`+ Add Expense`**.
-3. Enter amount in **₹ (INR)**, choose the spending category (e.g., *Food & Dining*, *Utilities*), and payment method (*UPI*, *Card*, *Cash*).
-4. Review your **Total Spent** and visual spending breakdown chart for the month.
+### 💵 4. Logging Expenses
+1. Switch to the **Expenses** tab (authenticate with PIN/Biometrics if locked).
+2. Tap **`+ Add Expense`**, enter amount in **₹ (INR)**, category, and payment method (*UPI*, *Card*, *Cash*).
+3. Review your **Total Spent** card and visual monthly bar graph breakdown.
 
-### 🔒 Setting Up Security & App Lock
-1. Go to **More → Security & Privacy**.
-2. Enable **App Lock** or **Page-Specific Locks** (Expenses, URLs, etc.).
-3. Choose authentication method: **Biometrics (Fingerprint/Face ID)** or **Custom PIN**.
-4. Set your unique 4-6 digit passcode.
+### 📝 5. Writing & Pinning Notes
+1. Switch to the **Notes** tab.
+2. Tap **`+ Add Note`**, select a category and accent color, type your content, and toggle **Pin to top**.
+3. Filter notes by category or search through titles and body text in real time.
+
+### 🔒 6. Securing with Vault Lock
+1. Navigate to **More ➔ Security & App Lock**.
+2. Toggle **App Lock** or configure **Page-Specific Locks** (e.g. lock only *Expenses*, *Notes*, and *URLs*).
+3. Select your preferred lock method: **Biometrics** or **Custom PIN**.
 
 ---
 
 ## 🛠️ Tech Stack & Architecture
 
+```text
+┌────────────────────────────────────────────────────────┐
+│                   AgendaX Client App                   │
+├────────────────────────────────────────────────────────┤
+│  UI Layer: React Native 0.86 + Expo SDK 57 (TypeScript)│
+│  Design: Liquid Glass Translucent StyleSheets          │
+│  Navigation: React Navigation Native Stack & Tab Bar   │
+├────────────────────────────────────────────────────────┤
+│                  Core Service Engines                  │
+├──────────────────┬──────────────────┬──────────────────┤
+│ Event & Task Svc │  Expense Svc (₹) │ Note & Tour Svc  │
+├──────────────────┴──────────────────┴──────────────────┤
+│                  Device Hardware APIs                  │
+├──────────────────┬──────────────────┬──────────────────┤
+│ expo-local-auth  │   expo-haptics   │ expo-audio / db  │
+├──────────────────┴──────────────────┴──────────────────┤
+│           Offline Persistence (SQLite + Storage)       │
+└────────────────────────────────────────────────────────┘
+```
+
 - **Framework**: [React Native 0.86](https://reactnative.dev/) with [Expo SDK 57](https://expo.dev/)
-- **Language**: TypeScript 6.0
-- **Navigation**: React Navigation (Native Stack + Liquid Tab Bar)
-- **Local Database**: React Native Async Storage (Offline First)
-- **Biometrics**: `expo-local-authentication`
-- **Sensors & Haptics**: `expo-haptics`
-- **Icons & Graphics**: Expo Vector Icons (Ionicons)
-- **Styling**: Modular StyleSheets with Dynamic Liquid Glass Theme Tokens
+- **Language**: TypeScript 6.0 (Strict mode)
+- **Navigation**: React Navigation (Native Stack + Custom Liquid Tab Bar)
+- **Local Database**: SQLite (`expo-sqlite`) & AsyncStorage (100% Offline-First)
+- **Audio & Haptics**: `expo-audio` & `expo-haptics`
+- **Biometrics & Security**: `expo-local-authentication`
+- **Iconography**: Expo Vector Icons (`Ionicons`)
 
 ---
 
@@ -163,16 +201,21 @@ Double-click `build-apk.bat` in the project root, or run in PowerShell:
 .\build-apk.bat
 ```
 
-### Manual Command
+### Manual Build Command
 ```powershell
+# Set Java Home & Android SDK
 $env:JAVA_HOME = "D:\software\Android-Studio\jbr"
 $env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
+
+# Bundle JS/TS assets
 npx expo export:embed --entry-file index.ts --platform android --dev false --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res
+
+# Compile Standalone Release APK
 cd android
 .\gradlew.bat app:assembleRelease
 ```
 
-📂 **Generated APK Output:**
+📂 **Generated APK Output Path:**
 ```text
 android\app\build\outputs\apk\release\app-release.apk
 ```
@@ -186,9 +229,10 @@ Developed with ❤️ by **Waikhom Albert Mangang**
 - 🐙 **GitHub**: [@AlbertWaikhom](https://github.com/AlbertWaikhom/)
 - 💼 **LinkedIn**: [Waikhom Albert Mangang](https://www.linkedin.com/in/waikhom-albert-mangang-9b4362246/)
 - 📸 **Instagram**: [@albert_waikhom](https://www.instagram.com/albert_waikhom/)
+- 🌐 **Portfolio / Works**: [Creative Vasishtha](https://creativevasishtha.com/)
 
 ---
 
-## 📄 License
-
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+<div align="center">
+  <sub>Released under the MIT License • Built with passion for high-performance mobile software</sub>
+</div>
